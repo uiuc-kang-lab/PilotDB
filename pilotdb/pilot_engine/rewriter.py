@@ -2,6 +2,7 @@ import sqlglot
 from sqlglot import exp
 from pilotdb.pilot_engine.commons import *
 
+
 class query_rewrite:
     def __init__(self, table_cols, table_size):
         self.table_cols = table_cols
@@ -45,7 +46,7 @@ class query_rewrite:
 
     def find_all_aggregator(self, expression):
         for agg in expression.find_all(exp.AggFunc):
-            # print(57, repr(agg.parent))
+            print(57, repr(agg.parent))
             self.aggregator_mapping[agg.parent.alias] = agg
             table_set = set()
             for column in agg.find_all(exp.Column):
@@ -84,7 +85,7 @@ class query_rewrite:
                   if sub_select_expression.find(exp.Alias):
                     new_expressions.append(exp.Column(this=exp.Identifier(this=sub_select_expression.alias)))
               expression.set("expressions", new_expressions)
-
+        print(88, expression)
 
     def replace_avg(self, expression):
         number_of_avg = 0
@@ -230,16 +231,7 @@ class query_rewrite:
 
             if add_group_by:
                 self.add_page_id_to_group_by(expression, f"page_id_{self.page_id_count-1}")
-                # page_col = exp.Column(this=exp.Identifier(this=f"page_id_{self.page_id_count-1}"))
-                # if "group" in expression.args:
-                #     print(99, expression.args["group"].args)
-                #     if "rollup" in expression.args["group"].args:
-                #         expression.args["group"].args["rollup"].append(page_col)
-                #     else:
-                #         expression.args["group"].args["expressions"].append(page_col)
-                # else:
-                #     group_by_expr = exp.Group(expressions=[page_col])
-                #     expression.set("group", group_by_expr)
+
         else:
             for i in range(self.page_id_count):
                 column = f"page_id_{i}"
@@ -247,29 +239,7 @@ class query_rewrite:
                 expression.args["expressions"].append(page_exp)
                 if add_group_by:
                   self.add_page_id_to_group_by(expression, f"page_id_{i}")
-                  # page_col = exp.Column(this=exp.Identifier(this=f"page_id_{i}"))
-                  # if "group" in expression.args:
-                  #     print(99, expression.args["group"].args)
-                  #     if "rollup" in expression.args["group"].args:
-                  #         expression.args["group"].args["rollup"].append(page_col)
-                  #     else:
-                  #         expression.args["group"].args["expressions"].append(page_col)
-                  # else:
-                  #     group_by_expr = exp.Group(expressions=[page_col])
-                  #     expression.set("group", group_by_expr)
-                
-        # if add_group_by:
-        #     for i in range(self.page_id_count):
-        #         page_col = exp.Column(this=exp.Identifier(this=f"page_id_{i}"))
-        #         if "group" in expression.args:
-        #             print(99, expression.args["group"].args)
-        #             if "rollup" in expression.args["group"].args:
-        #                 expression.args["group"].args["rollup"].append(page_col)
-        #             else:
-        #                 expression.args["group"].args["expressions"].append(page_col)
-        #         else:
-        #             group_by_expr = exp.Group(expressions=[page_col])
-        #             expression.set("group", group_by_expr)
+
         return expression
 
 
@@ -345,7 +315,6 @@ class query_rewrite:
         return expression
 
     def subquery_in_from(self, expression, is_union=False):
-        # print(220, expression)
         self.subquery_in_where(expression, self.table_cols)
         self.add_table_sample(expression)
         if expression.find(exp.AggFunc):
@@ -464,7 +433,7 @@ class query_rewrite:
 
         expression = self.page(expression)
         self.extract_res_2_page_id(expression)
-        # print(266, expression)
+        print(266, expression)
         modified_query = expression.sql()
 
         return modified_query
