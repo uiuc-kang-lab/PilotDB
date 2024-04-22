@@ -1,0 +1,1 @@
+SELECT 'page_id_0:' || CAST((CAST(CAST(lineitem.ctid AS TEXT) AS point))[0] AS INT) AS page_id_0 FROM lineitem AS sampling_method TABLESAMPLE SYSTEM (1 ROWS) WHERE l_shipdate <= CAST('1998-12-01' AS DATE) - INTERVAL '90' DAY GROUP BY l_returnflag, l_linestatus
