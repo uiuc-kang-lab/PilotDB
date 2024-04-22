@@ -49,7 +49,7 @@ order by
 pilot_query = """select
     o_orderpriority as c0,
     {page_id} as c1,
-    count(*) as c2,
+    count(*) as c2
 from
     orders {sample}
 where

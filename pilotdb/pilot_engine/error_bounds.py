@@ -79,7 +79,6 @@ def estimate_final_rate(failure_prob: float, pilot_results: pd.DataFrame, page_e
         df = pilot_results.groupby(by=group_cols).agg(["mean", "std", "size"])
     else:
         df = pilot_results.agg(["mean", "std", "size"])
-        print(df)
     n_groups = df.shape[0] if len(group_cols) > 0 else 1
     n_est = n_groups * (n_page_stats * 3 + page_size_stats*2 + 1)
     fp = 1 - math.pow(1-failure_prob, 1/n_est)
