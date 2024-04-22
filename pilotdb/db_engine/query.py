@@ -19,7 +19,7 @@ def close_connection(conn, dbms: str):
     else:
         raise ValueError(f"Unknown DBMS: {dbms}")
 
-def execute_query(conn, query: str, dbms: str):
+def execute_query(conn, query: str, dbms: str) -> pd.DataFrame:
     if dbms == 'duckdb':
         return duckdb_utils.execute_query(conn, query)
     elif dbms == 'postgres':
