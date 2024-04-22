@@ -79,13 +79,13 @@ class query_rewrite:
     def replace_star(self, expression):
         new_expressions = []
         for select_expression in expression.args["expressions"]:
-            if select_expression.find(exp.Star):
+            if isinstance(select_expression, exp.Star):
               for subquery in expression.find_all(exp.Subquery):
                 for sub_select_expression in subquery.this.args["expressions"]:
                   if sub_select_expression.find(exp.Alias):
                     new_expressions.append(exp.Column(this=exp.Identifier(this=sub_select_expression.alias)))
               expression.set("expressions", new_expressions)
-        print(88, expression)
+
 
     def replace_avg(self, expression):
         number_of_avg = 0
