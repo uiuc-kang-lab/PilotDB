@@ -1,12 +1,14 @@
 import sqlglot
 from sqlglot import exp
 from pilotdb.pilot_engine.commons import *
-
+from pilotdb.pilot_engine.query_base import Query
 
 class query_rewrite:
-    def __init__(self, table_cols, table_size):
+    def __init__(self, table_cols, table_size, database):
         self.table_cols = table_cols
         self.table_size = table_size
+        self.database = database
+        
         self.subquery_count = 0
         self.page_id_rank = 0
         self.page_id_count = 0
@@ -55,14 +57,24 @@ class query_rewrite:
                 self.single_sample = True
 
 
-    def extract_page_id(self, table, database, is_union=False):
-        if database == "postgres":
+    def extract_page_id(self, is_union=False):
+        if self.database == POSTGRES:
             if is_union:
-                expresion = f"'page_id_{self.page_id_rank}:' || ({table}.ctid::text::point)[0]::int as page_id_0"
+                expresion = f"'page_id_{self.page_id_rank}:' || ({self.largest_table}.ctid::text::point)[0]::int as page_id_0"
                 self.page_id_rank += 1
                 self.page_id_count = 1
             else:
-                expresion = f"'page_id_{self.page_id_rank}:' || ({table}.ctid::text::point)[0]::int as page_id_{self.page_id_count}"
+                expresion = f"'page_id_{self.page_id_rank}:' || ({self.largest_table}.ctid::text::point)[0]::int as page_id_{self.page_id_count}"
+                self.page_id_rank += 1
+                self.page_id_count += 1
+            return sqlglot.parse_one(expresion)
+        elif self.database == DUCKDB:
+            if is_union:
+                expresion = f"'page_id_{self.page_id_rank}:' || floor({self.largest_table}.rowid/2048) as page_id_0"
+                self.page_id_rank += 1
+                self.page_id_count = 1
+            else:
+                expresion = f"'page_id_{self.page_id_rank}:' || floor({self.largest_table}.rowid/2048) as page_id_{self.page_id_count}"
                 self.page_id_rank += 1
                 self.page_id_count += 1
             return sqlglot.parse_one(expresion)
@@ -111,9 +123,7 @@ class query_rewrite:
                 div_operator = select_expression.find(exp.Div)
                 mul_operator = select_expression.find(exp.Mul)
                 if div_operator:
-                    if div_operator.this.find(
-                        exp.AggFunc
-                    ) and div_operator.expression.find(exp.AggFunc):
+                    if div_operator.this.find(exp.AggFunc) and div_operator.expression.find(exp.AggFunc):
                         ratio_type = DIV_OPERATOR
                         temp_expressions.append(div_operator.this)
                         temp_expressions.append(div_operator.expression)
@@ -121,12 +131,8 @@ class query_rewrite:
                         left = div_operator.this.find(exp.Column)
                         right = div_operator.expression.find(exp.Column)
                         if (
-                            left
-                            and right
-                            and left.this.this in self.alias
-                            and isinstance(self.alias[left.this.this], exp.AggFunc)
-                            and right.this.this in self.alias
-                            and isinstance(self.alias[right.this.this], exp.AggFunc)
+                            left and right and left.this.this in self.alias and isinstance(self.alias[left.this.this], exp.AggFunc)
+                            and right.this.this in self.alias and isinstance(self.alias[right.this.this], exp.AggFunc)
                         ):
                             ratio_type = DIV_OPERATOR
                             temp_expressions.append(div_operator.this)
@@ -134,9 +140,7 @@ class query_rewrite:
                         else:
                             temp_expressions.append(select_expression)
                 elif mul_operator:
-                    if mul_operator.this.find(
-                        exp.AggFunc
-                    ) and mul_operator.expression.find(exp.AggFunc):
+                    if mul_operator.this.find(exp.AggFunc) and mul_operator.expression.find(exp.AggFunc):
                         ratio_type = MUL_OPERATOR
                         temp_expressions.append(mul_operator.this)
                         temp_expressions.append(mul_operator.expression)
@@ -144,12 +148,8 @@ class query_rewrite:
                         left = mul_operator.this.find(exp.Column)
                         right = mul_operator.expression.find(exp.Column)
                         if (
-                            left
-                            and right
-                            and left.this.this in self.alias
-                            and isinstance(self.alias[left.this.this], exp.AggFunc)
-                            and right.this.this in self.alias
-                            and isinstance(self.alias[right.this.this], exp.AggFunc)
+                            left and right and left.this.this in self.alias and isinstance(self.alias[left.this.this], exp.AggFunc)
+                            and right.this.this in self.alias and isinstance(self.alias[right.this.this], exp.AggFunc)
                         ):
                             ratio_type = MUL_OPERATOR
                             temp_expressions.append(mul_operator.this)
@@ -240,7 +240,7 @@ class query_rewrite:
 
     def add_page_id(self, expression, add_group_by=True, page_id=True, is_union=False):
         if page_id:
-            page_exp = self.extract_page_id(self.largest_table, "postgres", is_union)
+            page_exp = self.extract_page_id(is_union)
             for select_expression in expression.args["expressions"]:
                 if select_expression.find(exp.Alias):
                     self.alias_2_page_id[select_expression.find(exp.Alias).alias] = (
@@ -564,7 +564,7 @@ if __name__ == "__main__":
     with open(meta_file, "r") as f:
         meta = json.load(f)
 
-    qr = query_rewrite(meta["table_cols"], meta["table_size"])
+    qr = query_rewrite(meta["table_cols"], meta["table_size"], DUCKDB)
 
     modified_query = qr.rewrite(sql)
     query_class = Query(
@@ -572,7 +572,7 @@ if __name__ == "__main__":
         final_sample_query=None,
         pilot_query=modified_query,
         column_mapping=qr.result_mapping_list,
-        page_id_col=qr.res_2_page_id,
+        res_2_page_id=qr.res_2_page_id,
         group_cols=qr.group_cols,
         subquery_dict=qr.subquery_dict,
     )
