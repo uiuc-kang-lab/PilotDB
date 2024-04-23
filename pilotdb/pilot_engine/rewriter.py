@@ -25,8 +25,8 @@ class query_rewrite:
         self.aggregator_mapping = {}
         self.alias_2_page_id = {}
         self.res_2_page_id = {}
-        
-        
+
+
     def find_alias(self, expression):
         alias_list = expression.find_all(exp.Alias)
         for alias in alias_list:
@@ -46,15 +46,14 @@ class query_rewrite:
 
     def find_all_aggregator(self, expression):
         for agg in expression.find_all(exp.AggFunc):
-            print(57, repr(agg.parent))
             self.aggregator_mapping[agg.parent.alias] = agg
             table_set = set()
             for column in agg.find_all(exp.Column):
                 table_set.add(column.table)
             if len(table_set) > 1:
-              self.single_sample = True
-              
-              
+                self.single_sample = True
+
+
     def extract_page_id(self, table, database, is_union=False):
         if database == "postgres":
             if is_union:
@@ -67,24 +66,29 @@ class query_rewrite:
                 self.page_id_count += 1
             return sqlglot.parse_one(expresion)
 
-    def remove_order(self, expression):
+
+    def remove_clauses(self, expression):
         expression.set("order", None)
-        return expression
-
-    def remove_limit(self, expression):
         expression.set("limit", None)
-        return expression
+        for having_expression in expression.find_all(exp.Having):
+            having_expression.parent.set("having", None)
 
-    
+
     def replace_star(self, expression):
         new_expressions = []
         for select_expression in expression.args["expressions"]:
             if isinstance(select_expression, exp.Star):
-              for subquery in expression.find_all(exp.Subquery):
-                for sub_select_expression in subquery.this.args["expressions"]:
-                  if sub_select_expression.find(exp.Alias):
-                    new_expressions.append(exp.Column(this=exp.Identifier(this=sub_select_expression.alias)))
-              expression.set("expressions", new_expressions)
+                for subquery in expression.find_all(exp.Subquery):
+                    for sub_select_expression in subquery.this.args["expressions"]:
+                        if sub_select_expression.find(exp.Alias):
+                            new_expressions.append(
+                                exp.Column(
+                                    this=exp.Identifier(
+                                        this=sub_select_expression.alias
+                                    )
+                                )
+                            )
+                expression.set("expressions", new_expressions)
 
 
     def replace_avg(self, expression):
@@ -93,9 +97,9 @@ class query_rewrite:
         is_average = False
         ratio_type = None
 
-        for select_expression in expression.args["expressions"]:            
+        for select_expression in expression.args["expressions"]:
             temp_expressions = []
-            
+
             if select_expression.find(exp.Avg):
                 avg_expression = select_expression.find(exp.Avg)
                 sum_expression = exp.Sum(this=avg_expression.this)
@@ -103,134 +107,150 @@ class query_rewrite:
                 number_of_avg += 1
                 is_average = True
             else:
-              div_operator = select_expression.find(exp.Div)
-              mul_operator = select_expression.find(exp.Mul)
-              if div_operator:
-                  if div_operator.this.find(exp.AggFunc) and div_operator.expression.find(
-                      exp.AggFunc
-                  ):
-                      ratio_type = DIV_OPERATOR
-                      temp_expressions.append(div_operator.this)
-                      temp_expressions.append(div_operator.expression)
-                  else:
-                      left = div_operator.this.find(exp.Column)
-                      right = div_operator.expression.find(exp.Column)
-                      if (
-                          left
-                          and right
-                          and left.this.this in self.alias
-                          and isinstance(self.alias[left.this.this], exp.AggFunc)
-                          and right.this.this in self.alias
-                          and isinstance(self.alias[right.this.this], exp.AggFunc)
-                      ):
-                          ratio_type = DIV_OPERATOR
-                          temp_expressions.append(div_operator.this)
-                          temp_expressions.append(div_operator.expression)
-                      else:
-                          temp_expressions.append(select_expression)
-              elif mul_operator:
-                  if mul_operator.this.find(exp.AggFunc) and mul_operator.expression.find(
-                      exp.AggFunc
-                  ):
-                      ratio_type = MUL_OPERATOR
-                      temp_expressions.append(mul_operator.this)
-                      temp_expressions.append(mul_operator.expression)
-                  else:
-                      left = mul_operator.this.find(exp.Column)
-                      right = mul_operator.expression.find(exp.Column)
-                      if (
-                          left
-                          and right
-                          and left.this.this in self.alias
-                          and isinstance(self.alias[left.this.this], exp.AggFunc)
-                          and right.this.this in self.alias
-                          and isinstance(self.alias[right.this.this], exp.AggFunc)
-                      ):
-                          ratio_type = MUL_OPERATOR
-                          temp_expressions.append(mul_operator.this)
-                          temp_expressions.append(mul_operator.expression)
-                      else:
-                          temp_expressions.append(select_expression)
-              else:
-                  temp_expressions.append(select_expression)
-            
+                div_operator = select_expression.find(exp.Div)
+                mul_operator = select_expression.find(exp.Mul)
+                if div_operator:
+                    if div_operator.this.find(
+                        exp.AggFunc
+                    ) and div_operator.expression.find(exp.AggFunc):
+                        ratio_type = DIV_OPERATOR
+                        temp_expressions.append(div_operator.this)
+                        temp_expressions.append(div_operator.expression)
+                    else:
+                        left = div_operator.this.find(exp.Column)
+                        right = div_operator.expression.find(exp.Column)
+                        if (
+                            left
+                            and right
+                            and left.this.this in self.alias
+                            and isinstance(self.alias[left.this.this], exp.AggFunc)
+                            and right.this.this in self.alias
+                            and isinstance(self.alias[right.this.this], exp.AggFunc)
+                        ):
+                            ratio_type = DIV_OPERATOR
+                            temp_expressions.append(div_operator.this)
+                            temp_expressions.append(div_operator.expression)
+                        else:
+                            temp_expressions.append(select_expression)
+                elif mul_operator:
+                    if mul_operator.this.find(
+                        exp.AggFunc
+                    ) and mul_operator.expression.find(exp.AggFunc):
+                        ratio_type = MUL_OPERATOR
+                        temp_expressions.append(mul_operator.this)
+                        temp_expressions.append(mul_operator.expression)
+                    else:
+                        left = mul_operator.this.find(exp.Column)
+                        right = mul_operator.expression.find(exp.Column)
+                        if (
+                            left
+                            and right
+                            and left.this.this in self.alias
+                            and isinstance(self.alias[left.this.this], exp.AggFunc)
+                            and right.this.this in self.alias
+                            and isinstance(self.alias[right.this.this], exp.AggFunc)
+                        ):
+                            ratio_type = MUL_OPERATOR
+                            temp_expressions.append(mul_operator.this)
+                            temp_expressions.append(mul_operator.expression)
+                        else:
+                            temp_expressions.append(select_expression)
+                else:
+                    temp_expressions.append(select_expression)
+
             for temp_exp in temp_expressions:
                 if isinstance(temp_exp, exp.Alias):
-                  alias_expression = exp.Alias(this=temp_exp.this, alias=exp.Identifier(this=f'r{self.select_expression_count}'))
+                    alias_expression = exp.Alias(
+                        this=temp_exp.this,
+                        alias=exp.Identifier(this=f"r{self.select_expression_count}"),
+                    )
                 else:
-                  alias_expression = exp.Alias(this=temp_exp, alias=exp.Identifier(this=f'r{self.select_expression_count}'))
+                    alias_expression = exp.Alias(
+                        this=temp_exp,
+                        alias=exp.Identifier(this=f"r{self.select_expression_count}"),
+                    )
                 self.select_expression_count += 1
                 new_expressions.append(alias_expression)
-            
+
             result_mapping = {}
             if ratio_type == DIV_OPERATOR:
                 result_mapping[AGGREGATE] = DIV_OPERATOR
-                result_mapping[FIRST_ELEMENT] = f'r{self.select_expression_count-2}'
-                result_mapping[SECOND_ELEMENT] = f'r{self.select_expression_count-1}'
+                result_mapping[FIRST_ELEMENT] = f"r{self.select_expression_count-2}"
+                result_mapping[SECOND_ELEMENT] = f"r{self.select_expression_count-1}"
             elif ratio_type == MUL_OPERATOR:
                 result_mapping[AGGREGATE] = MUL_OPERATOR
-                result_mapping[FIRST_ELEMENT] = f'r{self.select_expression_count-2}'
-                result_mapping[SECOND_ELEMENT] = f'r{self.select_expression_count-1}'
+                result_mapping[FIRST_ELEMENT] = f"r{self.select_expression_count-2}"
+                result_mapping[SECOND_ELEMENT] = f"r{self.select_expression_count-1}"
             else:
-              if is_average:
-                  result_mapping[AGGREGATE] = AVG_OPERATOR
-                  result_mapping[PAGE_SUM] = f'r{self.select_expression_count-1}'
-              elif select_expression.find(exp.Sum):
-                  result_mapping[AGGREGATE] = SUM_OPERATOR
-                  result_mapping[PAGE_SUM] = f'r{self.select_expression_count-1}'
-              elif select_expression.find(exp.Count):
-                  result_mapping[AGGREGATE] = COUNT_OPERATOR
-                  result_mapping[PAGE_SIZE] = f'r{self.select_expression_count-1}'
-              elif select_expression.this.this in self.aggregator_mapping:
-                if self.aggregator_mapping[select_expression.this.this].find(exp.Sum):
-                  result_mapping[AGGREGATE] = SUM_OPERATOR
-                  result_mapping[PAGE_SUM] = f'r{self.select_expression_count-1}'
-                elif self.aggregator_mapping[select_expression.this.this].find(exp.Count):
-                  result_mapping[AGGREGATE] = COUNT_OPERATOR
-                  result_mapping[PAGE_SIZE] = f'r{self.select_expression_count-1}'
-            
+                if is_average:
+                    result_mapping[AGGREGATE] = AVG_OPERATOR
+                    result_mapping[PAGE_SUM] = f"r{self.select_expression_count-1}"
+                elif select_expression.find(exp.Sum):
+                    result_mapping[AGGREGATE] = SUM_OPERATOR
+                    result_mapping[PAGE_SUM] = f"r{self.select_expression_count-1}"
+                elif select_expression.find(exp.Count):
+                    result_mapping[AGGREGATE] = COUNT_OPERATOR
+                    result_mapping[PAGE_SIZE] = f"r{self.select_expression_count-1}"
+                elif select_expression.this.this in self.aggregator_mapping:
+                    if self.aggregator_mapping[select_expression.this.this].find(
+                        exp.Sum
+                    ):
+                        result_mapping[AGGREGATE] = SUM_OPERATOR
+                        result_mapping[PAGE_SUM] = f"r{self.select_expression_count-1}"
+                    elif self.aggregator_mapping[select_expression.this.this].find(
+                        exp.Count
+                    ):
+                        result_mapping[AGGREGATE] = COUNT_OPERATOR
+                        result_mapping[PAGE_SIZE] = f"r{self.select_expression_count-1}"
 
             if result_mapping:
-              self.result_mapping_list.append(result_mapping)
+                self.result_mapping_list.append(result_mapping)
             else:
-              self.group_cols.append(f'r{self.select_expression_count-1}')
-        
+                self.group_cols.append(f"r{self.select_expression_count-1}")
+
         if number_of_avg > 0:
             count_expression = sqlglot.parse_one("COUNT(*)")
-            alias_expression = exp.Alias(this=count_expression, alias=exp.Identifier(this=f'r{self.select_expression_count}'))
+            alias_expression = exp.Alias(
+                this=count_expression,
+                alias=exp.Identifier(this=f"r{self.select_expression_count}"),
+            )
             self.select_expression_count += 1
             new_expressions.append(alias_expression)
-            
+
             for result_mapping in self.result_mapping_list:
                 if result_mapping[AGGREGATE] == AVG_OPERATOR:
-                    result_mapping[PAGE_SIZE] = f'r{self.select_expression_count-1}'
+                    result_mapping[PAGE_SIZE] = f"r{self.select_expression_count-1}"
         expression.set("expressions", new_expressions)
-        
+
         return expression
 
-    
+
     def add_page_id_to_group_by(self, expression, page_id_name):
-      page_col = exp.Column(this=exp.Identifier(this=page_id_name))
-      if "group" in expression.args:
-          if "rollup" in expression.args["group"].args:
-              expression.args["group"].args["rollup"].append(page_col)
-          else:
-              expression.args["group"].args["expressions"].append(page_col)
-      else:
-          group_by_expr = exp.Group(expressions=[page_col])
-          expression.set("group", group_by_expr)
-      
-    
+        page_col = exp.Column(this=exp.Identifier(this=page_id_name))
+        if "group" in expression.args:
+            if "rollup" in expression.args["group"].args:
+                expression.args["group"].args["rollup"].append(page_col)
+            else:
+                expression.args["group"].args["expressions"].append(page_col)
+        else:
+            group_by_expr = exp.Group(expressions=[page_col])
+            expression.set("group", group_by_expr)
+
+
     def add_page_id(self, expression, add_group_by=True, page_id=True, is_union=False):
         if page_id:
             page_exp = self.extract_page_id(self.largest_table, "postgres", is_union)
             for select_expression in expression.args["expressions"]:
                 if select_expression.find(exp.Alias):
-                    self.alias_2_page_id[select_expression.find(exp.Alias).alias] = f"page_id_{self.page_id_count-1}"
+                    self.alias_2_page_id[select_expression.find(exp.Alias).alias] = (
+                        f"page_id_{self.page_id_count-1}"
+                    )
             expression.args["expressions"].append(page_exp)
 
             if add_group_by:
-                self.add_page_id_to_group_by(expression, f"page_id_{self.page_id_count-1}")
+                self.add_page_id_to_group_by(
+                    expression, f"page_id_{self.page_id_count-1}"
+                )
 
         else:
             for i in range(self.page_id_count):
@@ -238,7 +258,7 @@ class query_rewrite:
                 page_exp = exp.Column(this=exp.Identifier(this=column))
                 expression.args["expressions"].append(page_exp)
                 if add_group_by:
-                  self.add_page_id_to_group_by(expression, f"page_id_{i}")
+                    self.add_page_id_to_group_by(expression, f"page_id_{i}")
 
         return expression
 
@@ -251,6 +271,7 @@ class query_rewrite:
             for join in expression.args["joins"]:
                 table_list.append(join.find(exp.Table))
         return table_list
+
 
     def add_table_sample(self, expression):
         tablesample = (
@@ -277,11 +298,13 @@ class query_rewrite:
                         table_parent.set("this", tablesample)
                         return expression
 
+
     def extract_items(self, expression, type):
         extracted_items = []
         for item in expression.find_all(type):
             extracted_items.append(item)
         return extracted_items
+
 
     def subquery_in_where(self, expression, column_information):
         if "where" in expression.args:
@@ -290,8 +313,36 @@ class query_rewrite:
                 tables_in_from = self.find_all_tables(subquery)
 
                 column_list = []
+                subquery_2_name = {y: x for x, y in self.subquery_dict.items()}
                 for table in tables_in_from:
-                    column_list += column_information[table.this.this]
+                    if table.this.this in column_information:
+                        column_list += column_information[table.this.this]
+                    else:
+                        if table.this.this in self.cte:
+                            new_cte_expression = []
+                            new_cte_expression.append(self.cte[table.this.this])
+                            for table_in_cte in self.cte[table.this.this].find_all(
+                                exp.Table
+                            ):
+                                if table_in_cte.this.this in self.cte:
+                                    new_cte_expression.insert(
+                                        0, self.cte[table_in_cte.this.this]
+                                    )
+                            new_cte = exp.With()
+                            new_cte.set("expressions", new_cte_expression)
+                            new_subquery = subquery.copy()
+                            new_subquery.set("with", new_cte)
+                            if new_subquery.sql() in subquery_2_name:
+                                subquery_exp = sqlglot.parse_one(
+                                    subquery_2_name[new_subquery.sql()]
+                                )
+                                subquery.parent.replace(subquery_exp)
+                            else:
+                                subquery_str = f"subquery_{self.subquery_count}"
+                                self.subquery_count += 1
+                                self.subquery_dict[subquery_str] = new_subquery.sql()
+                                subquery_exp = sqlglot.parse_one(subquery_str)
+                                subquery.parent.replace(subquery_exp)
 
                 tables_in_subquery = self.extract_items(subquery, exp.Table)
                 columns_in_subquery = self.extract_items(subquery, exp.Column)
@@ -312,7 +363,9 @@ class query_rewrite:
                     self.subquery_dict[subquery_str] = subquery.sql()
                     subquery_exp = sqlglot.parse_one(subquery_str)
                     subquery.parent.replace(subquery_exp)
+
         return expression
+
 
     def subquery_in_from(self, expression, is_union=False):
         self.subquery_in_where(expression, self.table_cols)
@@ -324,6 +377,7 @@ class query_rewrite:
 
         return expression
 
+
     def page(self, expression, is_union=False, level=0):
         contains_agg = False
         for select_expression in expression.args["expressions"]:
@@ -332,8 +386,8 @@ class query_rewrite:
                 break
         if contains_agg:
             for i in range(level):
-              if self.contains_agg[i]:
-                self.is_rewritable = False
+                if self.contains_agg[i]:
+                    self.is_rewritable = False
             self.contains_agg[level] = True
         elif level not in self.contains_agg:
             self.contains_agg[level] = False
@@ -343,16 +397,25 @@ class query_rewrite:
 
         if expression.args["from"].find(exp.Subquery):
             if expression.args["from"].find(exp.Union):
-              for select_query in expression.args["from"].find_all(exp.Select, bfs=False):
-                self.page(select_query, is_union, level + 1)
+                for select_query in expression.args["from"].find_all(
+                    exp.Select, bfs=False
+                ):
+                    is_in_where = False
+                    node = select_query
+                    while node:
+                        if isinstance(node, exp.Where):
+                            is_in_where = True
+                            break
+                        node = node.parent
+                    if not is_in_where:
+                        self.page(select_query, is_union, level + 1)
             else:
-              select_query = expression.args["from"].find(exp.Select)
-              self.page(select_query, is_union, level + 1)
-            # expression = self.page(expression.args['from'].find(exp.Subquery))
+                select_query = expression.args["from"].find(exp.Select)
+                self.page(select_query, is_union, level + 1)
             if "joins" in expression.args:
-              for join_expression in expression.args["joins"]:
-                if join_expression.find(exp.Select):
-                    self.page(join_expression.find(exp.Select), is_union, level + 1)
+                for join_expression in expression.args["joins"]:
+                    if join_expression.find(exp.Select):
+                        self.page(join_expression.find(exp.Select), is_union, level + 1)
             is_aggregate = False
             is_star = False
             for select_expression in expression.args["expressions"]:
@@ -366,35 +429,35 @@ class query_rewrite:
                 self.add_page_id(expression, add_group_by=False, page_id=False)
         elif self.cte and expression.args["from"].this.this.this in self.cte:
             cte_expression = self.cte[expression.args["from"].this.this.this]
-            if expression.args["from"].this.this.this not in self.sampled_cte:   
-              self.page(cte_expression, is_union, level+1)
-              self.sampled_cte.add(expression.args["from"].this.this.this)
-              
+            if expression.args["from"].this.this.this not in self.sampled_cte:
+                self.page(cte_expression, is_union, level + 1)
+                self.sampled_cte.add(expression.args["from"].this.this.this)
+
             if not self.single_sample:
-              if "joins" in expression.args:
-                  for join_expression in expression.args["joins"]:
-                      if join_expression.this.this.this in self.cte:
-                          cte_expression = self.cte[join_expression.this.this.this]
-                          if join_expression.this.this.this not in self.sampled_cte:
-                            self.page(cte_expression, is_union, level+1)
-                            self.sampled_cte.add(join_expression.this.this.this)
+                if "joins" in expression.args:
+                    for join_expression in expression.args["joins"]:
+                        if join_expression.this.this.this in self.cte:
+                            cte_expression = self.cte[join_expression.this.this.this]
+                            if join_expression.this.this.this not in self.sampled_cte:
+                                self.page(cte_expression, is_union, level + 1)
+                                self.sampled_cte.add(join_expression.this.this.this)
 
             is_aggregate = False
-            is_star = False
+
             for select_expression in expression.args["expressions"]:
                 if select_expression.find(exp.AggFunc):
                     is_aggregate = True
-                if select_expression.find(exp.Star):
-                    is_star = True
+
             if is_aggregate:
                 self.add_page_id(expression, add_group_by=True, page_id=False)
-            elif not is_star:
+            else:
                 self.add_page_id(expression, add_group_by=False, page_id=False)
 
         else:
             self.subquery_in_from(expression, is_union)
 
         return expression
+
 
     def parse_window(self, expression):
         window = expression.find(exp.Window)
@@ -404,18 +467,42 @@ class query_rewrite:
         if stddev:
             return True
         return False
-      
-      
+
+
     def extract_res_2_page_id(self, expression):
-      if self.page_id_count > 1:
-        for select_expression in expression.args["expressions"]:
-            if select_expression.find(exp.Column):
-                column = select_expression.find(exp.Column)
-                if column.this.this in self.alias_2_page_id:
-                    self.res_2_page_id[select_expression.alias] = self.alias_2_page_id[column.this.this]
-        
-      
-      
+        if self.page_id_count > 1:
+            for select_expression in expression.args["expressions"]:
+                if select_expression.find(exp.Column):
+                    column = select_expression.find(exp.Column)
+                    if column.this.this in self.alias_2_page_id:
+                        self.res_2_page_id[select_expression.alias] = (
+                            self.alias_2_page_id[column.this.this]
+                        )
+                        
+
+    def remove_cte(self, expression):
+        remove_cte = True
+        for table in expression.args["from"].find_all(exp.Table):
+            if table.this.this in self.cte:
+                remove_cte = False
+                break
+
+        if "join" in expression.args:
+            for join_expression in expression.args["join"]:
+                for table in join_expression.find_all(exp.Table):
+                    if table.this.this in self.cte:
+                        remove_cte = False
+                        break
+
+        if remove_cte:
+            expression.set("with", None)
+
+
+    def replace_sample_method(self, sql_query):
+        new_query = sql_query.replace("TABLESAMPLE SYSTEM (1 ROWS)", "sampling_method")
+        return new_query
+
+
     def rewrite(self, original_query):
         expression = sqlglot.parse_one(original_query)
         if self.parse_window(expression):
@@ -424,24 +511,25 @@ class query_rewrite:
         self.extract_cte(expression)
         self.find_all_aggregator(expression)
         self.replace_star(expression)
-        
-        
-        expression = self.remove_order(expression)
-        expression = self.remove_limit(expression)
+
+        self.remove_clauses(expression)
+
         expression = self.subquery_in_where(expression, self.table_cols)
         expression = self.replace_avg(expression)
 
         expression = self.page(expression)
         self.extract_res_2_page_id(expression)
-        print(266, expression)
+
+        self.remove_cte(expression)
+
         modified_query = expression.sql()
-
-        return modified_query
-
+        new_query = self.replace_sample_method(modified_query)
+        return new_query
 
 
 if __name__ == "__main__":
     import json
+
     query_file = "../../benchmarks/tpch/query_1.sql"
     meta_file = "../../benchmarks/tpch/meta.json"
 
@@ -474,7 +562,7 @@ if __name__ == "__main__":
 
     with open(meta_file, "r") as f:
         meta = json.load(f)
-    
+
     qr = query_rewrite(meta["table_cols"], meta["table_size"])
 
     modified_query = qr.rewrite(sql)
