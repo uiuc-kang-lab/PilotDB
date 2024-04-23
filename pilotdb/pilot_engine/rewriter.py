@@ -10,7 +10,6 @@ class query_rewrite:
         self.subquery_count = 0
         self.page_id_rank = 0
         self.page_id_count = 0
-        self.subquery_dict = {}
         self.alias = {}
         self.table_alias = {}
         self.cte = {}
@@ -20,11 +19,13 @@ class query_rewrite:
         self.single_sample = False
         self.sampled_cte = set()
         self.select_expression_count = 0
-        self.result_mapping_list = []
-        self.group_cols = []
         self.aggregator_mapping = {}
         self.alias_2_page_id = {}
+        
         self.res_2_page_id = {}
+        self.result_mapping_list = []
+        self.group_cols = []
+        self.subquery_dict = {}
 
 
     def find_alias(self, expression):
@@ -566,4 +567,13 @@ if __name__ == "__main__":
     qr = query_rewrite(meta["table_cols"], meta["table_size"])
 
     modified_query = qr.rewrite(sql)
+    query_class = Query(
+        original_query=sql,
+        final_sample_query=None,
+        pilot_query=modified_query,
+        column_mapping=qr.result_mapping_list,
+        page_id_col=qr.res_2_page_id,
+        group_cols=qr.group_cols,
+        subquery_dict=qr.subquery_dict,
+    )
     print(modified_query)
