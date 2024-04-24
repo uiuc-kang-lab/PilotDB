@@ -58,14 +58,20 @@ class query_rewrite:
                 table_set.add(column.table)
             if len(table_set) > 1:
                 self.single_sample = True
+        
 
 
-    def extract_page_id(self, is_union=False):
+    def extract_page_id(self, is_union=False, is_join=False):
         if self.database == POSTGRES:
             if is_union:
-                expresion = f"'page_id_{self.page_id_rank}:' || ({self.largest_table}.ctid::text::point)[0]::int as page_id_0"
-                self.page_id_rank += 1
-                self.page_id_count = 1
+                if is_join:
+                    expresion = f"'page_id_{self.page_id_rank}:' || ({self.largest_table}.ctid::text::point)[0]::int as page_id_1"
+                    self.page_id_rank += 1
+                    self.page_id_count = 2
+                else:
+                    expresion = f"'page_id_{self.page_id_rank}:' || ({self.largest_table}.ctid::text::point)[0]::int as page_id_0"
+                    self.page_id_rank += 1
+                    self.page_id_count = 1
             else:
                 expresion = f"'page_id_{self.page_id_rank}:' || ({self.largest_table}.ctid::text::point)[0]::int as page_id_{self.page_id_count}"
                 self.page_id_rank += 1
@@ -73,9 +79,14 @@ class query_rewrite:
             return sqlglot.parse_one(expresion)
         elif self.database == DUCKDB:
             if is_union:
-                expresion = f"'page_id_{self.page_id_rank}:' || floor({self.largest_table}.rowid/2048) as page_id_0"
-                self.page_id_rank += 1
-                self.page_id_count = 1
+                if is_join:
+                    expresion = f"'page_id_{self.page_id_rank}:' || floor({self.largest_table}.rowid/2048) as page_id_1"
+                    self.page_id_rank += 1
+                    self.page_id_count = 2
+                else:
+                    expresion = f"'page_id_{self.page_id_rank}:' || floor({self.largest_table}.rowid/2048) as page_id_0"
+                    self.page_id_rank += 1
+                    self.page_id_count = 1
             else:
                 expresion = f"'page_id_{self.page_id_rank}:' || floor({self.largest_table}.rowid/2048) as page_id_{self.page_id_count}"
                 self.page_id_rank += 1
@@ -106,6 +117,36 @@ class query_rewrite:
                             )
                 expression.set("expressions", new_expressions)
 
+    def rewrite_subtraction(self, expression):
+        new_select_expression = []
+        new_expressions = []
+        for sub_expression in expression.find_all(exp.Sub):
+            left = sub_expression.this.find(exp.Column)
+            right = sub_expression.expression.find(exp.Column)
+            if left and right and left.this.this in self.alias and right.this.this in self.alias:
+                if isinstance(self.alias[right.this.this], exp.AggFunc):
+                    node = sub_expression
+                    while not isinstance(node, exp.Select):
+                        node = node.parent
+                    node_expressions = []
+                    for node_select_expression in node.args["expressions"]:
+                        if node_select_expression.find(exp.Sub):
+                            sub_left = node_select_expression.find(exp.Sub)
+                            sub_right = node_select_expression.find(exp.Sub).expression
+                            sub_left.parent.parent.set('this', sub_left.this)
+                            node_expressions.append(node_select_expression)
+                            node_expressions.append(exp.Alias(this=sub_right, alias=sub_right.this.this))
+                            if exp.Sum(this=sub_right.find(exp.Column)) not in new_select_expression:
+                                new_select_expression.append(exp.Sum(this=sub_right.find(exp.Column)))
+                        else:
+                            node_expressions.append(node_select_expression)
+                    node.set('expressions', node_expressions)
+
+        for select_expression in new_select_expression:
+            new_expressions.append(exp.Alias(this=select_expression, alias=f"r{self.select_expression_count}"))
+            self.select_expression_count += 1
+        
+        return new_expressions
 
     def rewrite_select_expression(self, expression):
         number_of_avg = 0
@@ -124,7 +165,6 @@ class query_rewrite:
             #     condition_subquery.replace(sqlglot.parse_one(subquery_str))
             #     new_subquery1 = self.rewrite(case_subquery.args['true'].this.sql(), return_expression=True)
             #     case_subquery.args['true'].this.replace(new_subquery1)
-            #     print(126, new_subquery1)
             #     new_subquery2 = self.rewrite(case_subquery.parent.args['default'].this.sql(), return_expression=True)
             #     case_subquery.parent.args['default'].this.replace(new_subquery2)
             #     temp_expressions.append(select_expression)
@@ -136,8 +176,6 @@ class query_rewrite:
                 is_average = True
             else:
                 div_operator = select_expression.find(exp.Div)
-                print(136, repr(div_operator))
-                print(self.alias)
                 mul_operator = select_expression.find(exp.Mul)
                 if div_operator:
                     if div_operator.this.find(exp.AggFunc) and div_operator.expression.find(exp.AggFunc):
@@ -238,6 +276,17 @@ class query_rewrite:
             for result_mapping in self.result_mapping_list:
                 if result_mapping[AGGREGATE] == AVG_OPERATOR:
                     result_mapping[PAGE_SIZE] = f"r{self.select_expression_count-1}"
+
+        # rewrite subtraction operator
+        
+        new_select_expression = self.rewrite_subtraction(expression)
+        if new_select_expression:
+            self.result_mapping_list[-1] = {
+                AGGREGATE: SUB_OPERATOR, 
+                FIRST_ELEMENT: f"r{self.select_expression_count-2}", 
+                SECOND_ELEMENT: f"r{self.select_expression_count-1}"
+                }
+        new_expressions += new_select_expression
         expression.set("expressions", new_expressions)
         
         return expression
@@ -255,9 +304,9 @@ class query_rewrite:
             expression.set("group", group_by_expr)
 
 
-    def add_page_id(self, expression, add_group_by=True, page_id=True, is_union=False):
+    def add_page_id(self, expression, add_group_by=True, page_id=True, is_union=False, is_join=False):
         if page_id:
-            page_exp = self.extract_page_id(is_union)
+            page_exp = self.extract_page_id(is_union, is_join)
             for select_expression in expression.args["expressions"]:
                 if select_expression.find(exp.Alias):
                     self.alias_2_page_id[select_expression.find(exp.Alias).alias] = (
@@ -389,18 +438,18 @@ class query_rewrite:
         return expression
 
 
-    def subquery_in_from(self, expression, is_union=False):
+    def subquery_in_from(self, expression, is_union=False, is_join=False):
         self.subquery_in_where(expression, self.table_cols)
         self.add_table_sample(expression)
         if expression.find(exp.AggFunc):
-            self.add_page_id(expression, True, True, is_union)
+            self.add_page_id(expression, True, True, is_union, is_join)
         else:
-            self.add_page_id(expression, False, True, is_union)
+            self.add_page_id(expression, False, True, is_union, is_join)
 
         return expression
 
 
-    def page(self, expression, is_union=False, level=0):
+    def page(self, expression, is_union=False, level=0, is_join=False):
         contains_agg = False
         for select_expression in expression.args["expressions"]:
             if select_expression.find(exp.AggFunc):
@@ -461,7 +510,7 @@ class query_rewrite:
                         if join_expression.this.this.this in self.cte:
                             cte_expression = self.cte[join_expression.this.this.this]
                             if join_expression.this.this.this not in self.sampled_cte:
-                                self.page(cte_expression, is_union, level + 1)
+                                self.page(cte_expression, is_union, level + 1, True)
                                 self.sampled_cte.add(join_expression.this.this.this)  
 
             is_aggregate = False
@@ -469,15 +518,12 @@ class query_rewrite:
             for select_expression in expression.args["expressions"]:
                 if select_expression.find(exp.AggFunc):
                     is_aggregate = True
-            print(463, expression)
             if is_aggregate:
                 self.add_page_id(expression, add_group_by=True, page_id=False)
             else:
-                print(471, expression.parent.parent)
                 self.add_page_id(expression, add_group_by=False, page_id=False, is_union=False)
-                print(474, expression)
         else:
-            self.subquery_in_from(expression, is_union)
+            self.subquery_in_from(expression, is_union, is_join)
 
         return expression
 
@@ -607,5 +653,3 @@ if __name__ == "__main__":
     with open('test.sql', 'w') as f:
         f.write(modified_query)
     print(modified_query)
-    print(qr.result_mapping_list)
-    print(qr.res_2_page_id)
