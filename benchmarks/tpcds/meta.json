@@ -478,7 +478,7 @@
         "inventory",
         "web_sales",
         "store_returns",
-        "store_returns",
+        "catalog_returns",
         "web_returns",
         "customer_demographics",
         "customer",
