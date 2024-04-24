@@ -449,7 +449,7 @@ class query_rewrite:
         return expression
 
 
-    def page(self, expression, is_union=False, level=0, is_join=False):
+    def primary_query_rewriter(self, expression, is_union=False, level=0, is_join=False):
         contains_agg = False
         for select_expression in expression.args["expressions"]:
             if select_expression.find(exp.AggFunc):
@@ -478,14 +478,14 @@ class query_rewrite:
                             break
                         node = node.parent
                     if not is_in_where:
-                        self.page(select_query, is_union, level + 1)
+                        self.primary_query_rewriter(select_query, is_union, level + 1)
             else:
                 select_query = expression.args["from"].find(exp.Select)
-                self.page(select_query, is_union, level + 1)
+                self.primary_query_rewriter(select_query, is_union, level + 1)
             if "joins" in expression.args:
                 for join_expression in expression.args["joins"]:
                     if join_expression.find(exp.Select):
-                        self.page(join_expression.find(exp.Select), is_union, level + 1)
+                        self.primary_query_rewriter(join_expression.find(exp.Select), is_union, level + 1)
             is_aggregate = False
             is_star = False
             for select_expression in expression.args["expressions"]:
@@ -501,7 +501,7 @@ class query_rewrite:
         elif self.cte and expression.args["from"].this.this.this in self.cte:
             cte_expression = self.cte[expression.args["from"].this.this.this]
             if expression.args["from"].this.this.this not in self.sampled_cte:
-                self.page(cte_expression, is_union, level + 1)
+                self.primary_query_rewriter(cte_expression, is_union, level + 1)
                 self.sampled_cte.add(expression.args["from"].this.this.this)
 
             if not self.single_sample:
@@ -510,7 +510,7 @@ class query_rewrite:
                         if join_expression.this.this.this in self.cte:
                             cte_expression = self.cte[join_expression.this.this.this]
                             if join_expression.this.this.this not in self.sampled_cte:
-                                self.page(cte_expression, is_union, level + 1, True)
+                                self.primary_query_rewriter(cte_expression, is_union, level + 1, True)
                                 self.sampled_cte.add(join_expression.this.this.this)  
 
             is_aggregate = False
@@ -578,6 +578,30 @@ class query_rewrite:
         return new_query
 
 
+    def remove_duplicate(self, expression):
+        new_expressions = []
+        select_expression_dict = dict()
+        res_2_res_mapping = dict()
+        for select_expression in expression.args["expressions"]:
+            if select_expression.find(exp.Alias):
+                alias = select_expression.alias
+                if select_expression.this not in select_expression_dict:
+                    select_expression_dict[select_expression.this] = alias
+                    new_expressions.append(select_expression)
+                else:
+                    res_2_res_mapping[alias] = select_expression_dict[select_expression.this]
+            else:
+                new_expressions.append(select_expression)
+        expression.set("expressions", new_expressions)
+        print(res_2_res_mapping)
+        
+        for res_mapping in self.result_mapping_list:
+            for key in [FIRST_ELEMENT, SECOND_ELEMENT, PAGE_SUM, PAGE_SIZE]:
+                if key in res_mapping:
+                    if res_mapping[key] in res_2_res_mapping:
+                        res_mapping[key] = res_2_res_mapping[res_mapping[key]]
+
+        
     def rewrite(self, original_query):
         expression = sqlglot.parse_one(original_query)
         if self.parse_window(expression):
@@ -592,11 +616,11 @@ class query_rewrite:
         expression = self.subquery_in_where(expression, self.table_cols)
         expression = self.rewrite_select_expression(expression)
 
-        expression = self.page(expression)
+        expression = self.primary_query_rewriter(expression)
         self.extract_res_2_page_id(expression)
 
         self.remove_cte(expression)
-
+        self.remove_duplicate(expression)
         modified_query = expression.sql()
         new_query = self.replace_sample_method(modified_query)
         return new_query
@@ -605,8 +629,8 @@ class query_rewrite:
 if __name__ == "__main__":
     import json
 
-    query_file = "../../benchmarks/tpcds/query_77.sql"
-    meta_file = "../../benchmarks/tpcds/meta.json"
+    query_file = "../../benchmarks/tpch/query_1.sql"
+    meta_file = "../../benchmarks/tpch/meta.json"
 
     desired_modified_query = """
     select
@@ -653,3 +677,4 @@ if __name__ == "__main__":
     with open('test.sql', 'w') as f:
         f.write(modified_query)
     print(modified_query)
+    print(qr.result_mapping_list)
