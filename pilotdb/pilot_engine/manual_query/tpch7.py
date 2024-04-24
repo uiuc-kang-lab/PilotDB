@@ -120,11 +120,7 @@ group by
     supp_nation,
     cust_nation,
     l_year,
-    page_id
-order by
-    supp_nation,
-    cust_nation,
-    l_year;
+    page_id;
 """
 
 column_mapping = [

@@ -64,10 +64,7 @@ where
 group by
     l_returnflag,
     l_linestatus,
-    {page_id}
-order by
-    l_returnflag,
-    l_linestatus;
+    {page_id};
 """
 
 column_mapping = [

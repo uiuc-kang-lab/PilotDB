@@ -100,10 +100,8 @@ from
 group by
     nation,
     o_year,
-    page_id
-order by
-    nation,
-    o_year desc;"""
+    page_id;
+"""
 
 column_mapping = [
     {"aggregate": "sum", "page_sum": "c3"},

@@ -34,19 +34,22 @@ def get_std_two_side(sample_size: int, sample_std: float, failure_probability: f
 
 def get_bernoulli_N_ub(sample_size: int, sample_rate: float, failure_probability: float):
     z_val = norm.ppf(1-failure_probability)
-    p_lb = sample_rate - z_val * (sample_rate * (1-sample_rate) / sample_size) ** 0.5
-    return sample_size / p_lb
+    return _solve_quadratic(a=sample_rate**2,
+                            b=-2*sample_rate*sample_size - z_val*sample_rate*(1-sample_rate),
+                            c=sample_size**2)[1]
 
 def get_bernoulli_N_lb(sample_size: int, sample_rate: float, failure_probability: float):
     z_val = norm.ppf(1-failure_probability)
-    p_ub = sample_rate + z_val * (sample_rate * (1-sample_rate) / sample_size) ** 0.5
-    return sample_size / p_ub
+    return _solve_quadratic(a=sample_rate**2,
+                            b=-2*sample_rate*sample_size - z_val*sample_rate*(1-sample_rate),
+                            c=sample_size**2)[0]
 
 def get_bernoulli_N_two_side(sample_size: int, sample_rate: float, failure_probability: float):
     failure_probability = failure_probability / 2
-    lb = get_bernoulli_N_lb(sample_size, sample_rate, failure_probability)
-    ub = get_bernoulli_N_ub(sample_size, sample_rate, failure_probability)
-    return lb, ub
+    z_val = norm.ppf(1-failure_probability)
+    return _solve_quadratic(a=sample_rate**2,
+                            b=-2*sample_rate*sample_size - z_val*sample_rate*(1-sample_rate),
+                            c=sample_size**2)
 
 def get_mean_sample_size(error, fp: float, fp1: float, fp2: float, pilot_sample_mean, pilot_sample_std, pilot_sample_size):
     std_ub = get_std_ub(pilot_sample_size, pilot_sample_std, failure_probability=fp1)
@@ -55,7 +58,7 @@ def get_mean_sample_size(error, fp: float, fp1: float, fp2: float, pilot_sample_
     return (z_val/error * std_ub / mean_lb) ** 2
 
 def _solve_quadratic(a, b, c):
-    return (-b + math.sqrt(b**2 - 4*a*c)) / (2*a)
+    return (-b - math.sqrt(b**2 - 4*a*c)) / (2*a), (-b + math.sqrt(b**2 - 4*a*c)) / (2*a)
 
 def get_sample_rate(fp: float, sample_size: int, pilot_sample_rate: float, pilot_sample_size: int):
     bernoulli_N_lb = get_bernoulli_N_lb(pilot_sample_size, pilot_sample_rate, fp)
@@ -63,7 +66,7 @@ def get_sample_rate(fp: float, sample_size: int, pilot_sample_rate: float, pilot
     z_val = norm.ppf(1-fp)
     p = _solve_quadratic(a=bernoulli_N_lb**2 + z_val**2 * bernoulli_N_lb,
                           b=-(2*bernoulli_N_lb*sample_size + z_val**2 * bernoulli_N_lb),
-                          c=sample_size**2)
+                          c=sample_size**2)[1]
     return p
 
 def get_bernoulli_N_sample_rate(error, fp: float, fp1: float, pilot_sample_rate: float, pilot_sample_size: int):
@@ -82,7 +85,6 @@ def estimate_final_rate(failure_prob: float, pilot_results: pd.DataFrame, page_e
     n_groups = df.shape[0] if len(group_cols) > 0 else 1
     n_est = n_groups * (n_page_stats * 3 + page_size_stats*2 + 1)
     fp = 1 - math.pow(1-failure_prob, 1/n_est)
-
     candidate_sample_rate = []
     try:
         for col, error in page_errors.items():
@@ -108,10 +110,10 @@ def estimate_final_rate(failure_prob: float, pilot_results: pd.DataFrame, page_e
                     sample_mean = df[col].iloc[0]
                     sample_std = df[col].iloc[1]
                     sample_size = df[col].iloc[2]
-                    print(sample_mean, sample_std, sample_size)
                     final_sample_size = get_mean_sample_size(error, fp, fp, fp, sample_mean, sample_std, sample_size)
                     final_sample_rate = get_sample_rate(fp, final_sample_size, pilot_rate, sample_size)
                     candidate_sample_rate.append(final_sample_rate)
+
     except Exception as e:
         print(f"fail to estimate final sample rate due to {e}")
         return -1

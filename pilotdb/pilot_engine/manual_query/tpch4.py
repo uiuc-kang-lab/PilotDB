@@ -66,9 +66,7 @@ where
     )
 group by
     o_orderpriority,
-    {page_id}
-order by
-    o_orderpriority;
+    {page_id};
 """
 
 column_mapping = [
