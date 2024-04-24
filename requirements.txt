@@ -3,3 +3,4 @@ numpy
 pandas
 psycopg2
 duckdb
+sqlglot
