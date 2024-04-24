@@ -247,7 +247,9 @@ class query_rewrite:
                 elif select_expression.find(exp.Count):
                     result_mapping[AGGREGATE] = COUNT_OPERATOR
                     result_mapping[PAGE_SIZE] = f"r{self.select_expression_count-1}"
-                elif select_expression.this.this in self.aggregator_mapping:
+                elif isinstance(select_expression, exp.Expression) \
+                    and isinstance(select_expression.this, exp.Expression) \
+                        and select_expression.this.this in self.aggregator_mapping:
                     if self.aggregator_mapping[select_expression.this.this].find(
                         exp.Sum
                     ):
@@ -628,7 +630,6 @@ class query_rewrite:
 
 if __name__ == "__main__":
     import json
-
     query_file = "../../benchmarks/tpch/query_1.sql"
     meta_file = "../../benchmarks/tpch/meta.json"
 
