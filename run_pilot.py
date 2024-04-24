@@ -1,3 +1,6 @@
+import warnings
+warnings.simplefilter(action='ignore', category=UserWarning)
+
 import pandas as pd
 
 from pilotdb.pilot_engine.utils import aggregate_error_to_page_error
@@ -15,26 +18,45 @@ def get_queries(qid: str):
     elif qid == "tpch4":
         from pilotdb.pilot_engine.manual_query.tpch4 import query
         page_id_table="orders"
+    elif qid == "tpch5":
+        from pilotdb.pilot_engine.manual_query.tpch5 import query
+        page_id_table="lineitem"
     elif qid == "tpch6":
         from pilotdb.pilot_engine.manual_query.tpch6 import query
         page_id_table="lineitem"
     elif qid == "tpch7":
         from pilotdb.pilot_engine.manual_query.tpch7 import query
         page_id_table="lineitem"
+    elif qid == "tpch8":
+        from pilotdb.pilot_engine.manual_query.tpch8 import query
+        page_id_table="lineitem"
+    
     elif qid == "tpch9":
         from pilotdb.pilot_engine.manual_query.tpch9 import query
         page_id_table="lineitem"
     elif qid == "tpch12":
         from pilotdb.pilot_engine.manual_query.tpch12 import query
         page_id_table="lineitem"
+    elif qid == "tpch13":
+        from pilotdb.pilot_engine.manual_query.tpch13 import query
+        page_id_table="orders"
+    elif qid == "tpch14":
+        from pilotdb.pilot_engine.manual_query.tpch14 import query
+        page_id_table="lineitem"
+    elif qid == "tpch17":
+        from pilotdb.pilot_engine.manual_query.tpch17 import query
+        page_id_table="lineitem"
     elif qid == "tpch19":
         from pilotdb.pilot_engine.manual_query.tpch19 import query
+        page_id_table="lineitem"
+    elif qid == "tpch22":
+        from pilotdb.pilot_engine.manual_query.tpch22 import query
         page_id_table="lineitem"
     else:
         raise NotImplemented(f"query {qid} is not implemented")
     return query, page_id_table
 
-def run_aqp(dbms: str, query: Query, page_id_table: str, pilot_rate: float):
+def run_aqp(dbms: str, query: Query, page_id_table: str, pilot_rate: float, qid: str):
     if dbms == "duckdb":
         conn = connect_to_db("duckdb", path="/mydata/tpch_1t.duckdb")
         pilot_query = query.pilot_query.format(
@@ -42,7 +64,7 @@ def run_aqp(dbms: str, query: Query, page_id_table: str, pilot_rate: float):
             sample=f"TABLESAMPLE SYSTEM({pilot_rate}%)")
 
     elif dbms == "postgres":
-        conn = connect_to_db("postgres", db="tpch_1t", user="yuxuan")
+        conn = connect_to_db("postgres", db="tpch1t", user="teng")
         pilot_query = query.pilot_query.format(
             page_id=f"({page_id_table}.ctid::text::point)[0]::int",
             sample=f"TABLESAMPLE SYSTEM ({pilot_rate})")
@@ -55,7 +77,11 @@ def run_aqp(dbms: str, query: Query, page_id_table: str, pilot_rate: float):
     print(f"pilot query time {pilot_query_time}")
     page_errors = aggregate_error_to_page_error(query.column_mapping, 
                                                     query.page_size_col)
-    final_sample_rate = estimate_final_rate(0.05, results_df, page_errors, 
+    if qid in ["tpch14", "tpch8"]:
+        error_rate = 0.024
+    else:
+        error_rate = 0.05
+    final_sample_rate = estimate_final_rate(error_rate, results_df, page_errors, 
                                             query.group_cols, query.page_size_col, 
                                             query.page_id_col, 
                                             pilot_rate=pilot_rate/100)
@@ -64,14 +90,18 @@ def run_aqp(dbms: str, query: Query, page_id_table: str, pilot_rate: float):
 
     if final_sample_rate == -1:
         results_df = execute_query(conn, query.original_query, dbms)
-    else:
+    elif final_sample_rate*100 > pilot_rate:
         final_sample_rate = round(final_sample_rate * 100, 2)
-        print(f"final sample rate {final_sample_rate}")
+        print(f"final sample rate {final_sample_rate}")       
         
         if dbms == "duckdb":
             final_sample_query = query.final_sample_query.format(sample=f"TABLESAMPLE SYSTEM({final_sample_rate}%)")
         elif dbms == "postgres":
-            final_sample_query = query.final_sample_query.format(sample=f"TABLESAMPLE SYSTEM ({final_sample_rate})")
+            if final_sample_rate <= 5:
+                final_sample_query = query.final_sample_query.format(sample=f"TABLESAMPLE SYSTEM ({final_sample_rate})")
+            else:
+                final_sample_query = query.original_query
+
 
         results_df = execute_query(conn, final_sample_query, dbms)
     final_query_time = time.time() - start - pilot_query_time - pilot_solving_time
@@ -94,7 +124,7 @@ def run_exact(dbms: str, query: Query):
         conn = connect_to_db("duckdb", path="/mydata/tpch_1t.duckdb")
 
     elif dbms == "postgres":
-        conn = connect_to_db("postgres", db="tpch_1t", user="yuxuan")
+        conn = connect_to_db("postgres", db="tpch1t", user="teng")
 
     else:
         raise NotImplementedError(f"DBMS {dbms} is not supported")
@@ -103,6 +133,7 @@ def run_exact(dbms: str, query: Query):
     results_df = execute_query(conn, query.original_query, dbms)
     exact_runtime = time.time() - start
     close_connection(conn, dbms)
+    print(f"exact query time: {exact_runtime}")
 
     runtime = {
         "exact_runtime": exact_runtime
@@ -122,18 +153,18 @@ def aggregate_runtimes(runtimes: List[Dict]):
     return agg_runtime
 
 if __name__ == "__main__":
-    dbms = "duckdb"
+    dbms = "postgres"
     pilot_rate = 0.05
 
-    for qid in ["tpch1", "tpch4", "tpch6", "tpch7", "tpch9", "tpch12", "tpch19"]:
+    for qid in ["tpch5", "tpch8", "tpch13", "tpch14", "tpch17"]:
         print(qid)
         try:
             query, page_id_table = get_queries(qid)
             exact_runtimes = []
             aqp_runtimes = []
-            for _ in range(10):
+            for _ in range(3):
+                results_df, aqp_runtime = run_aqp(dbms, query, page_id_table, pilot_rate, qid)
                 results_df, exact_runtime = run_exact(dbms, query)
-                results_df, aqp_runtime = run_aqp(dbms, query, page_id_table, pilot_rate)
                 exact_runtimes.append(exact_runtime)
                 aqp_runtimes.append(aqp_runtime)
 
