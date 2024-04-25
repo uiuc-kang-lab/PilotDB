@@ -1,7 +1,6 @@
 import sqlglot
 from sqlglot import exp
 from pilotdb.pilot_engine.commons import *
-from pilotdb.pilot_engine.query_base import Query
 
 class query_sampling:
     def __init__(self, table_cols, table_size, database):
@@ -17,7 +16,6 @@ class query_sampling:
         self.single_sample = False
         self.sampled_cte = set()
         self.aggregator_mapping = {}
-        
         self.subquery_dict = {}
 
 
@@ -355,9 +353,8 @@ if __name__ == "__main__":
       # with open(f'test_{i}.sql', 'w') as f:
       #     f.write(modified_query)
  
-      with open(f'/Users/jun/Desktop/research/PilotDB/answer/tpcds/test_{i}.sql', 'r') as f:
+      with open(f'../../tests/sampling_tests/tpcds/test_{i}.sql', 'r') as f:
           template = f.read()
 
       if modified_query != template:
           print(i)
-
