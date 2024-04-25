@@ -1,0 +1,1 @@
+SELECT SUM(l_extendedprice * l_discount) / sample_rate AS revenue FROM lineitem sampling_method WHERE l_shipdate >= CAST('1994-01-01' AS DATE) AND l_shipdate < CAST('1994-01-01' AS DATE) + INTERVAL '1' YEAR AND l_discount BETWEEN 0.06 - 0.01 AND 0.06 + 0.01 AND l_quantity < 24

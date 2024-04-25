@@ -630,8 +630,8 @@ class query_rewrite:
 
 if __name__ == "__main__":
     import json
-    query_file = "../../benchmarks/tpch/query_1.sql"
-    meta_file = "../../benchmarks/tpch/meta.json"
+    query_file = "../../benchmarks/tpcds/query_14a.sql"
+    meta_file = "../../benchmarks/tpcds/meta.json"
 
     desired_modified_query = """
     select
@@ -678,4 +678,4 @@ if __name__ == "__main__":
     with open('test.sql', 'w') as f:
         f.write(modified_query)
     print(modified_query)
-    print(qr.result_mapping_list)
+    print(qr.subquery_dict)
