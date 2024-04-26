@@ -1,7 +1,7 @@
 from pilotdb.pilot_engine.rewriter.pilot import Pilot_Rewriter
 from pilotdb.pilot_engine.rewriter.sampling import Sampling_Rewriter
 from pilotdb.pilot_engine.commons import *
-from pilotdb.db_engine.query import connect_to_db, execute_query, close_connection, get_sampling_clause
+from pilotdb.db_driver.query import connect_to_db, execute_query, close_connection, get_sampling_clause
 from pilotdb.pilot_engine.utils import aggregate_error_to_page_error
 from pilotdb.pilot_engine.error_bounds import estimate_final_rate
 from pilotdb.utils import setup_logging, dump_results

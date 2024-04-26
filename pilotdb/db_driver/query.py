@@ -1,5 +1,5 @@
-import pilotdb.db_engine.duckdb_utils as duckdb_utils
-import pilotdb.db_engine.postgres_utils as postgres_utils
+import pilotdb.db_driver.duckdb_utils as duckdb_utils
+import pilotdb.db_driver.postgres_utils as postgres_utils
 
 import pandas as pd
 import yaml
