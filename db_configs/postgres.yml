@@ -1,0 +1,5 @@
+db: tpch1t
+user: teng
+host: localhost
+port: 5432
+password: testaqp
