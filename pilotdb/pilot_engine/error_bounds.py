@@ -79,6 +79,8 @@ def estimate_final_rate(failure_prob: float, pilot_results: pd.DataFrame, page_e
     page_stats_cols = [col for col in page_errors.keys() if col != "n_page"]
     n_page_stats = len(page_stats_cols)
     page_size_stats = len(page_errors) - n_page_stats
+    keep_columns = group_cols + page_stats_cols
+    pilot_results = pilot_results[keep_columns]
     if len(group_cols) > 0:
         df = pilot_results.groupby(by=group_cols).agg(["mean", "std", "size"])
     else:

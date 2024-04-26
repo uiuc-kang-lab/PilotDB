@@ -12,7 +12,7 @@ import time
 
 def execute_aqp(benchmark: str, qid: str, pilot_sample_rate: float=0.05, 
                 dbms: str=POSTGRES, db_config_file: str="db_configs/postgres.yml"):
-    log_file = f"logs/{benchmark}-{qid}-{time.time}.log"
+    log_file = f"logs/{benchmark}-{qid}-{time.time()}.log"
     setup_logging(log_file=log_file)
 
     # read query and meta info
@@ -28,12 +28,10 @@ def execute_aqp(benchmark: str, qid: str, pilot_sample_rate: float=0.05,
     pq = Pilot_Rewriter(meta["table_cols"], meta["table_size"], dbms)
     sq = Sampling_Rewriter(meta["table_cols"], meta["table_size"], dbms)
 
-    pilot_query = pq.rewrite(original_query)
-    sampling_query = sq.rewrite(original_query)
+    pilot_query = pq.rewrite(original_query) + ";"
+    sampling_query = sq.rewrite(original_query) + ";"
 
     logging.info(f"original query:\n{original_query}")
-    logging.info(f"sampling query:\n{sampling_query}")
-    logging.info(f"pilot query:\n{pilot_query}")
     logging.info(f"column mapping: {pq.result_mapping_list}")
     logging.info(f"group cols: {pq.group_cols}")
     logging.info(f"subquery dict: {pq.subquery_dict}")
@@ -42,9 +40,12 @@ def execute_aqp(benchmark: str, qid: str, pilot_sample_rate: float=0.05,
     # construct and execute pilot sampling query
     sampling_clause = get_sampling_clause(pilot_sample_rate, dbms)
     pilot_query = pilot_query.format(sampling_method=sampling_clause)
+    logging.info(f"pilot query:\n{pilot_query}")
     start = time.time()
     conn = connect_to_db(dbms, db_config_file)
     pilot_results = execute_query(conn, pilot_query, dbms)
+    pilot_results_file = f"results/{benchmark}-{qid}-pilot-{pilot_sample_rate}-{dbms}.csv"
+    dump_results(result_file=pilot_results_file, results_df=pilot_results)
     pilot_execution_time = time.time() - start
     logging.info(f"pilot query executing time: {pilot_execution_time}")
 
@@ -52,7 +53,7 @@ def execute_aqp(benchmark: str, qid: str, pilot_sample_rate: float=0.05,
     page_errors = aggregate_error_to_page_error(pq.result_mapping_list)
     logging.info(f"converted page errors: {page_errors}")
     final_sample_rate = estimate_final_rate(failure_prob=0.05, pilot_results=pilot_results, page_errors=page_errors,
-                                            group_cols=pq.group_cols, pilot_rate=pilot_sample_rate)
+                                            group_cols=pq.group_cols, pilot_rate=pilot_sample_rate/100)
     sample_rate_solving_time = time.time() - start - pilot_execution_time
     logging.info(f"sample rate solving time: {sample_rate_solving_time}")
 
@@ -66,8 +67,12 @@ def execute_aqp(benchmark: str, qid: str, pilot_sample_rate: float=0.05,
         final_sample_rate = round(final_sample_rate*100, 2)
         logging.info(f"final sample rate: {final_sample_rate}")
         sampling_clause = get_sampling_clause(final_sample_rate, dbms)
-        sampling_query = sampling_query.format(sample_method=sampling_clause, sample_rate=final_sample_rate)
+        sampling_query = sampling_query.format(sampling_method=sampling_clause, sample_rate=final_sample_rate)
+        logging.info(f"sampling query:\n{sampling_query}")
         results_df = execute_query(conn, sampling_query, dbms)
+    else:
+        logging.info(f"final sample rate: {final_sample_rate}, pilot sampling is large enough")
+        results_df = pilot_results
     sampling_execution_time = time.time() - start - pilot_execution_time - sample_rate_solving_time
     logging.info(f"sampling execution time: {sampling_execution_time}")
 
@@ -81,7 +86,7 @@ def execute_aqp(benchmark: str, qid: str, pilot_sample_rate: float=0.05,
         "total_runtime": total_runtime
     }
 
-    result_file = f"results/{benchmark}-{qid}-pilot-{pilot_sample_rate}-{dbms}.jsonl"
+    result_file = f"results/{benchmark}-{qid}-aqp-{pilot_sample_rate}-{dbms}.jsonl"
     dump_results(result_file=result_file, results_df=results_df)
 
     return results_df, runtime
