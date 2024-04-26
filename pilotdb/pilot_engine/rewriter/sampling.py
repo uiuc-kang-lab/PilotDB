@@ -2,7 +2,7 @@ import sqlglot
 from sqlglot import exp
 from pilotdb.pilot_engine.commons import *
 
-class query_sampling:
+class Sampling_Rewriter:
     def __init__(self, table_cols, table_size, database):
         self.table_cols = table_cols
         self.table_size = table_size
@@ -172,7 +172,7 @@ class query_sampling:
                 agg_expression_parent = agg_expression.parent
                 new_div_expression = exp.Div(
                     this=agg_expression,
-                    expression=sqlglot.parse_one("sample_rate"),
+                    expression="{sample_rate}",
                 )
                 if isinstance(agg_expression_parent, exp.Select):
                   new_select_expression_list.append(new_div_expression)
@@ -273,7 +273,7 @@ class query_sampling:
 
 
     def replace_sample_method(self, sql_query):
-        new_query = sql_query.replace("TABLESAMPLE SYSTEM (1 ROWS)", "sampling_method")
+        new_query = sql_query.replace("TABLESAMPLE SYSTEM (1 ROWS)", "{sampling_method}")
         return new_query
 
 
@@ -289,7 +289,7 @@ class query_sampling:
                 agg_expression_parent = agg_expression.parent
                 new_div_expression = exp.Div(
                     this=agg_expression,
-                    expression=sqlglot.parse_one("sample_rate"),
+                    expression="{sample_rate}"
                 )
                 agg_expression_parent.set("this", new_div_expression)
 
@@ -308,53 +308,3 @@ class query_sampling:
         new_query = self.replace_sample_method(modified_query)
         return new_query
 
-
-if __name__ == "__main__":
-    import json
-    tpch_list = [1,4,5,6,7,8,9,11,12,14,17,19,22]
-    tpcds_list = [2, 3, 6, 10, 13, 17, 19, 25,  29, 32, 33, 42, 43, 45, 48, 50, 52, 55, 61, 62, 66, 67, 76, 77, 80, 85, 86, 88, 90, 91, 92, 96, 97, 99, '24a', '24b', '14a', '14b', '23a', '23b']
-    for i in tpcds_list:
-      query_file = f"../../benchmarks/tpcds/query_{i}.sql"
-      meta_file = "../../benchmarks/tpcds/meta.json"
-
-      desired_modified_query = """
-      select
-          l_returnflag as c0,
-          l_linestatus as c1,
-          {page_id} as c2,
-          sum(l_quantity) as c3,
-          sum(l_extendedprice) as c4,
-          sum(l_extendedprice * (1 - l_discount)) as c5,
-          sum(l_extendedprice * (1 - l_discount) * (1 + l_tax)) as c6,
-          sum(l_discount) as c7,
-          count(*) as c8
-      from
-          lineitem {sample}
-      where
-          l_shipdate <= date '1998-12-01' - interval '90 day'
-      group by
-          l_returnflag,
-          l_linestatus,
-          {page_id}
-      order by
-          l_returnflag,
-          l_linestatus;
-      """
-
-      with open(query_file, "r") as f:
-          sql = f.read()
-
-      with open(meta_file, "r") as f:
-          meta = json.load(f)
-
-      qr = query_sampling(meta["table_cols"], meta["table_size"], POSTGRES)
-
-      modified_query = qr.rewrite(sql)
-      # with open(f'test_{i}.sql', 'w') as f:
-      #     f.write(modified_query)
- 
-      with open(f'../../tests/sampling_tests/tpcds/test_{i}.sql', 'r') as f:
-          template = f.read()
-
-      if modified_query != template:
-          print(i)

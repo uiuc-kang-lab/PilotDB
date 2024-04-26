@@ -3,6 +3,7 @@ from scipy.stats import t, chi2, norm
 from typing import Dict, List
 import math
 import pandas as pd
+import logging
 
 def get_mean_ub(sample_size: int, sample_mean: float, sample_std: float, failure_probability: float):
     t_val = t.ppf(1-failure_probability, sample_size-1)
@@ -74,7 +75,7 @@ def get_bernoulli_N_sample_rate(error, fp: float, fp1: float, pilot_sample_rate:
     z_val = norm.ppf(1-fp/2)
     return 1 / (1 + error**2 * bernoulli_N_lb**3 / z_val**2)
 
-def estimate_final_rate(failure_prob: float, pilot_results: pd.DataFrame, page_errors: Dict, group_cols: List[str], page_size_col: str, page_id_col: str, pilot_rate: float=0.0001):
+def estimate_final_rate(failure_prob: float, pilot_results: pd.DataFrame, page_errors: Dict, group_cols: List[str], pilot_rate: float=0.0001):
     page_stats_cols = [col for col in page_errors.keys() if col != "n_page"]
     n_page_stats = len(page_stats_cols)
     page_size_stats = len(page_errors) - n_page_stats
@@ -115,7 +116,7 @@ def estimate_final_rate(failure_prob: float, pilot_results: pd.DataFrame, page_e
                     candidate_sample_rate.append(final_sample_rate)
 
     except Exception as e:
-        print(f"fail to estimate final sample rate due to {e}")
+        logging.info(f"fail to estimate final sample rate due to {e}")
         return -1
     return max(candidate_sample_rate)
 

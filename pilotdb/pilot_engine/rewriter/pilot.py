@@ -3,7 +3,7 @@ from sqlglot import exp
 from pilotdb.pilot_engine.commons import *
 from pilotdb.pilot_engine.query_base import Query
 
-class query_rewrite:
+class Pilot_Rewriter:
     def __init__(self, table_cols, table_size, database):
         self.table_cols = table_cols
         self.table_size = table_size
@@ -576,7 +576,7 @@ class query_rewrite:
 
 
     def replace_sample_method(self, sql_query):
-        new_query = sql_query.replace("TABLESAMPLE SYSTEM (1 ROWS)", "sampling_method")
+        new_query = sql_query.replace("TABLESAMPLE SYSTEM (1 ROWS)", "{sampling_method}")
         return new_query
 
 
@@ -595,7 +595,6 @@ class query_rewrite:
             else:
                 new_expressions.append(select_expression)
         expression.set("expressions", new_expressions)
-        print(res_2_res_mapping)
         
         for res_mapping in self.result_mapping_list:
             for key in [FIRST_ELEMENT, SECOND_ELEMENT, PAGE_SUM, PAGE_SIZE]:
@@ -628,54 +627,3 @@ class query_rewrite:
         return new_query
 
 
-if __name__ == "__main__":
-    import json
-    query_file = "../../benchmarks/tpcds/query_14a.sql"
-    meta_file = "../../benchmarks/tpcds/meta.json"
-
-    desired_modified_query = """
-    select
-        l_returnflag as c0,
-        l_linestatus as c1,
-        {page_id} as c2,
-        sum(l_quantity) as c3,
-        sum(l_extendedprice) as c4,
-        sum(l_extendedprice * (1 - l_discount)) as c5,
-        sum(l_extendedprice * (1 - l_discount) * (1 + l_tax)) as c6,
-        sum(l_discount) as c7,
-        count(*) as c8
-    from
-        lineitem {sample}
-    where
-        l_shipdate <= date '1998-12-01' - interval '90 day'
-    group by
-        l_returnflag,
-        l_linestatus,
-        {page_id}
-    order by
-        l_returnflag,
-        l_linestatus;
-    """
-
-    with open(query_file, "r") as f:
-        sql = f.read()
-
-    with open(meta_file, "r") as f:
-        meta = json.load(f)
-
-    qr = query_rewrite(meta["table_cols"], meta["table_size"], POSTGRES)
-
-    modified_query = qr.rewrite(sql)
-    query_class = Query(
-        original_query=sql,
-        final_sample_query=None,
-        pilot_query=modified_query,
-        column_mapping=qr.result_mapping_list,
-        res_2_page_id=qr.res_2_page_id,
-        group_cols=qr.group_cols,
-        subquery_dict=qr.subquery_dict,
-    )
-    with open('test.sql', 'w') as f:
-        f.write(modified_query)
-    print(modified_query)
-    print(qr.subquery_dict)
