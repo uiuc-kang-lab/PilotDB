@@ -40,6 +40,7 @@ To approximately execute TPC-H query 1 with sampling only at rate 0.1% on postgr
 python run_pilotdb.py \
     --benchmark tpch \
     --qid 1 \
+    --dbms postgres \
     --sample_rate 0.1 \
     --process_mode sample
 ```
