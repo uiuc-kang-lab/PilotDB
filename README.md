@@ -34,3 +34,12 @@ python run_pilotdb.py \
     --qid 1 \
     --process_model exact
 ```
+
+To approximately execute TPC-H query 1 with sampling only at rate 0.1% on postgres
+```batch
+python run_pilotdb.py \
+    --benchmark tpch \
+    --qid 1 \
+    --sample_rate 0.1 \
+    --process_mode sample
+```

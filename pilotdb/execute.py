@@ -109,3 +109,31 @@ def execute_exact(benchmark: str, qid: str, dbms: str=POSTGRES, db_config_file: 
     dump_results(result_file=result_file, results_df=results_df)
 
     return results_df, {"exact_runtime": runtime}
+
+def execute_sample_only(benchmark: str, qid: str, sample_rate: float,
+                        dbms: str=POSTGRES, db_config_file: str="db_configs/postgres.yml"):
+    # read query and meta info
+    query_file = f"benchmarks/{benchmark}/query_{qid}.sql"
+    meta_file = f"benchmarks/{benchmark}/meta.json"
+
+    with open(query_file, "r") as f:
+        original_query = f.read()
+
+    with open(meta_file, "r") as f:
+        meta = json.load(f)
+
+    sq = Sampling_Rewriter(meta["table_cols"], meta["table_size"], dbms)
+    sampling_query = sq.rewrite(original_query) + ";"
+    sampling_query = sampling_query.format(sampling_method=get_sampling_clause(sample_rate, dbms), 
+                                           sample_rate=sample_rate)
+
+    conn = connect_to_db(dbms, db_config_file)
+    start = time.time()
+    results_df = execute_query(conn, sampling_query, dbms)
+    runtime = time.time() - start
+
+    close_connection(conn, dbms)
+    result_file = f"results/{benchmark}-{qid}-sample_only.jsonl"
+    dump_results(result_file=result_file, results_df=results_df)
+
+    return results_df, {"sample_only_runtime": runtime}
