@@ -5,7 +5,7 @@ rm -rf ~/miniconda3/miniconda.sh
 export PATH=$~/miniconda3/bin:$PATH
 ~/miniconda3/bin/conda init bash
 . ~/.bashrc
-conda create -n pilotdb
+conda create -y -n pilotdb
 conda activate pilotdb
 conda install -y -c conda-forge postgresql
 conda install -y python=3.10
