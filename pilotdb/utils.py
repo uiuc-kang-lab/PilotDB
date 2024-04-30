@@ -3,6 +3,7 @@ import json
 import logging
 import pandas as pd
 
+from pilotdb.pilot_engine.commons import *
 
 def setup_logging(log_file: str):
     log_dir = os.path.dirname(log_file)
@@ -23,7 +24,15 @@ def dump_results(result_file: str, results_df: pd.DataFrame):
     if not os.path.isdir(result_dir):
         os.makedirs(result_dir, exist_ok=True)
     
-    result_dict = results_df.to_dict()
-    with open(result_file, "a+") as f:
-        json.dump(result_dict, f)
-    
+    results_df.to_csv(result_file)
+
+
+def get_largest_sample_rate(dbms: str) -> float:
+    if dbms == POSTGRES:
+        return 5
+    elif dbms == DUCKDB:
+        return 75
+    elif dbms == SQLSERVER:
+        return 10
+    else:
+        return 5

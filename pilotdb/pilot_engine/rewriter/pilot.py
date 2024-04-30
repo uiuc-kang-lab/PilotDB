@@ -1,7 +1,7 @@
 import sqlglot
 from sqlglot import exp
 from pilotdb.pilot_engine.commons import *
-from pilotdb.pilot_engine.query_base import Query
+from pilotdb.pilot_engine.pilot_query import Query
 
 class Pilot_Rewriter:
     def __init__(self, table_cols, table_size, database):
