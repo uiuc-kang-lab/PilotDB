@@ -604,6 +604,9 @@ class Pilot_Rewriter:
                     if res_mapping[key] in res_2_res_mapping:
                         res_mapping[key] = res_2_res_mapping[res_mapping[key]]
 
+    def fix_parse(self, sql):
+        sql = sql.replace("AS days", "days")
+        return sql
         
     def rewrite(self, original_query):
         expression = sqlglot.parse_one(original_query)
@@ -626,6 +629,7 @@ class Pilot_Rewriter:
         self.remove_duplicate(expression)
         modified_query = expression.sql()
         new_query = self.replace_sample_method(modified_query)
+        new_query = self.fix_parse(new_query)
         return new_query
 
 
