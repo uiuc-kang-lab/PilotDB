@@ -350,11 +350,13 @@ class Pilot_Rewriter:
         tablesample = (
             sqlglot.parse_one("from lineitem TABLESAMPLE SYSTEM (1)").args["from"].this
         )
-        table_list = [table.this.this for table in self.find_all_tables(expression)]
-
+        table_list = {table.this.this : table for table in self.find_all_tables(expression)}
         for largest_table in self.table_size:
             if largest_table in table_list:
-                self.largest_table = largest_table
+                if table_list[largest_table].find(exp.TableAlias):
+                    self.largest_table = table_list[largest_table].find(exp.TableAlias).this.this
+                else:
+                    self.largest_table = largest_table
                 break
 
         for table in expression.args["from"].find_all(exp.Table):
