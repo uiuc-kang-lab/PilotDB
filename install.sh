@@ -13,7 +13,7 @@ conda activate pilotdb
 conda install -y -c conda-forge postgresql
 conda install -y python=3.11
 pip install -r requirements.txt
-gdown 1CXdBfgbef4AxZYjzzMYWaRADzHZ5vtAU
+gdown 1CXdBfgbef4AxZYjzzMYWaRADzHZ5vtAU -O duckdb.whl
 pip install duckdb.whl
 pip install -e .
 rm duckdb.whl
