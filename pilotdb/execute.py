@@ -9,6 +9,7 @@ from pilotdb.pilot_engine.rewriter.sampling import Sampling_Rewriter
 from pilotdb.pilot_engine.utils import aggregate_error_to_page_error
 from pilotdb.utils.utils import setup_logging, dump_results, get_largest_sample_rate
 
+import json
 import time
 import logging
 import pandas as pd
@@ -67,6 +68,7 @@ def execute_aqp(query: Query, db_config: dict, pilot_sample_rate: float=0.05):
             sampling_query = sampling_query.replace(subquery_name, subquery_result)
         logging.info(f"sampling query:\n{sampling_query}")
         results_df = execute_query(conn, sampling_query, dbms)
+        logging.info(f"sampling execution time: {timer.check('sampling_query_execution')}")
     elif final_sample_rate*100 > pilot_sample_rate:
         final_sample_rate = round(final_sample_rate*100, 2)
         logging.info(f"final sample rate: {final_sample_rate}")
@@ -76,10 +78,16 @@ def execute_aqp(query: Query, db_config: dict, pilot_sample_rate: float=0.05):
             sampling_query = sampling_query.replace(subquery_name, subquery_result)
         logging.info(f"sampling query:\n{sampling_query}")
         results_df = execute_query(conn, sampling_query, dbms)
+        logging.info(f"sampling execution time: {timer.check('sampling_query_execution')}")
     else:
         logging.info(f"final sample rate: {final_sample_rate}, pilot sampling is large enough")
-        results_df = pilot_results
-    logging.info(f"sampling execution time: {timer.check('sampling_query_execution')}")
+        logging.info(f"sampling execution time: {timer.check('sampling_query_execution')}")
+        # FIXME: directly translate pilot results instead of running sampling again
+        sampling_clause = get_sampling_clause(final_sample_rate, dbms)
+        sampling_query = sampling_query.format(sampling_method=sampling_clause, sample_rate=pilot_sample_rate/100)
+        for subquery_name, subquery_result in subquery_results.items():
+            sampling_query = sampling_query.replace(subquery_name, subquery_result)
+        results_df = execute_query(conn, sampling_query, dbms)
     logging.info(f"aqp result:\n{results_df}")
 
     timer.stop()
@@ -87,6 +95,11 @@ def execute_aqp(query: Query, db_config: dict, pilot_sample_rate: float=0.05):
     
     dump_results(result_file=get_result_file_path("./results", query.name, job_id, "aqp", dbms), 
                  results_df=results_df)
+    
+    with open("all_results.jsonl", "a+") as f:
+        result = {"query": query.name, "dbms": dbms, "pilot_sample_rate": pilot_sample_rate, "runtime": timer.get_records(),
+                  "results_file": get_result_file_path("./results", query.name, job_id, "aqp", dbms)}
+        f.write(json.dumps(result) + "\n")
 
     return results_df, timer.get_records()
 
@@ -120,21 +133,24 @@ def process_subqueries(dbms, conn, pq) -> Dict[str, str]:
 def execute_exact(query: Query, db_config: dict):
     dbms = db_config["dbms"]
     conn = connect_to_db(dbms, db_config)
-    start = time.time()
-    job_id = str(int(start*100))
+    timer = Timer()
+    job_id = str(int(timer.start()*100))
     log_file = f"logs/{query.name}-{job_id}.log"
     setup_logging(log_file=log_file)
     results_df = execute_query(conn, query.query, dbms)
-    runtime = time.time() - start
-
+    logging.info(f"exact execution time: {timer.check('exact_execution')}")
+    timer.stop()
     close_connection(conn, dbms)
-    result_file = f"results/{query.name}-exact-{dbms}-{job_id}.csv"
-    dump_results(result_file=result_file, results_df=results_df)
-
-    logging.info(f"exact execution time: {runtime}")
+    dump_results(result_file=get_result_file_path("./results", query.name, job_id, "exact", dbms), 
+                 results_df=results_df)
     logging.info(f"exact result:\n{results_df}")
 
-    return results_df, {"exact_runtime": runtime}
+    with open("all_results.jsonl", "a+") as f:
+        result = {"query": query.name, "dbms": dbms, "runtime": timer.get_records(),
+                  "results_file": get_result_file_path("./results", query.name, job_id, "exact", dbms)}
+        f.write(json.dumps(result) + "\n")
+
+    return results_df, timer.get_records()
 
 def execute_sample_only(query: Query, sample_rate: float, db_config: dict):
     dbms = db_config["dbms"]
