@@ -97,8 +97,8 @@ class Pilot_Rewriter:
     def remove_clauses(self, expression):
         expression.set("order", None)
         expression.set("limit", None)
-        for having_expression in expression.find_all(exp.Having):
-            having_expression.parent.set("having", None)
+        # for having_expression in expression.find_all(exp.Having):
+        #     having_expression.parent.set("having", None)
 
 
     def replace_star(self, expression):
@@ -404,7 +404,14 @@ class Pilot_Rewriter:
                                         0, self.cte[table_in_cte.this.this]
                                     )
                             new_cte = exp.With()
-                            new_cte.set("expressions", new_cte_expression)
+                            new_cte_with_alias_list = []
+                            cte_to_alias = {y:x for x, y in self.cte.items()}
+                            for temp_cte in new_cte_expression:
+                                cte_alis = cte_to_alias[temp_cte]
+                                new_cte_with_alias_list.append(
+                                    exp.CTE(this=temp_cte, alias=exp.TableAlias(this=exp.Identifier(this=cte_alis)))
+                                )
+                            new_cte.set("expressions", new_cte_with_alias_list)
                             new_subquery = subquery.copy()
                             new_subquery.set("with", new_cte)
                             if new_subquery.sql() in subquery_2_name:
@@ -528,7 +535,7 @@ class Pilot_Rewriter:
                 self.add_page_id(expression, add_group_by=False, page_id=False, is_union=False)
         else:
             self.subquery_in_from(expression, is_union, is_join)
-
+        expression.set("having", None)
         return expression
 
 
