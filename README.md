@@ -13,34 +13,26 @@ Install PilotDB as a python package
 pip install -e .
 ```
 
-Setup the database configuration in `db_configs/<dbms>.yml`
+Setup the database configuration in `db_configs/<dbms_bench>.yml`
 
 ## Experiments
-To approximately execute TPC-H query 6 with pilot sampling rate 0.05% on postgres
+To approximately execute TPC-H or TPC-DS queries
 ```batch
 python run_pilotdb.py \
-    --benchmark tpch \
-    --qid 6 \
+    --benchmark <tpch|tpcds> \
+    --qid <query_id> \
     --pilot_sample_rate 0.05 \
-    --dbms postgres \
-    --db_config_file db_configs/postgres.yml \
+    --dbms <postgres|duckdb|sql_server> \
+    --db_config_file <path_to_db_config> \
     --process_mode aqp
 ```
 
 To exactly execute TPC-H query 1 on postgres
 ```batch
 python run_pilotdb.py \
-    --benchmark tpch \
-    --qid 1 \
+    --benchmark <tpch|tpcds> \
+    --qid <query_id> \
+    --dbms <postgres|duckdb|sql_server> \
+    --db_config_file <path_to_db_config> \
     --process_model exact
-```
-
-To approximately execute TPC-H query 1 with sampling only at rate 0.1% on postgres
-```batch
-python run_pilotdb.py \
-    --benchmark tpch \
-    --qid 1 \
-    --dbms postgres \
-    --sample_rate 0.1 \
-    --process_mode sample
 ```
