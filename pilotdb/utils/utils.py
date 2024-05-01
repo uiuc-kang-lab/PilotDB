@@ -36,3 +36,4 @@ def get_largest_sample_rate(dbms: str) -> float:
         return 10
     else:
         return 5
+    

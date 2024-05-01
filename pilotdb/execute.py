@@ -1,15 +1,19 @@
-from pilotdb.pilot_engine.rewriter.pilot import Pilot_Rewriter
-from pilotdb.pilot_engine.rewriter.sampling import Sampling_Rewriter
+from pilotdb.query import *
+from pilotdb.utils.path import *
+from pilotdb.utils.timer import Timer
+from pilotdb.db_driver.driver import *
 from pilotdb.pilot_engine.commons import *
-from pilotdb.db_driver.query import connect_to_db, execute_query, close_connection, get_sampling_clause
-from pilotdb.pilot_engine.utils import aggregate_error_to_page_error
+from pilotdb.pilot_engine.rewriter.pilot import Pilot_Rewriter
 from pilotdb.pilot_engine.error_bounds import estimate_final_rate
-from pilotdb.utils import setup_logging, dump_results, get_largest_sample_rate
-from pilotdb.query import Query
+from pilotdb.pilot_engine.rewriter.sampling import Sampling_Rewriter
+from pilotdb.pilot_engine.utils import aggregate_error_to_page_error
+from pilotdb.utils.utils import setup_logging, dump_results, get_largest_sample_rate
 
 import time
-from typing import Dict
 import logging
+import pandas as pd
+from typing import Dict
+from sqlglot import transpile
 
 def execute_aqp(query: Query, db_config: dict, pilot_sample_rate: float=0.05):
     # prepare the query and db
@@ -24,17 +28,11 @@ def execute_aqp(query: Query, db_config: dict, pilot_sample_rate: float=0.05):
     pilot_query = pilot_query.format(sampling_method=sampling_clause)
 
     # start execution
-    start = time.time()
-    job_id = str(int(start*100))
-    log_file = f"logs/{query.name}-{job_id}.log"
-    setup_logging(log_file=log_file)
-    logging.info(f"start approximately processing query {query.name} with pilot sample rate {pilot_sample_rate} on {dbms}")
-    logging.info(f"original query:\n{query.query}")
-    logging.info(f"column mapping: {pq.result_mapping_list}")
-    logging.info(f"group cols: {pq.group_cols}")
-    logging.info(f"subquery dict: {pq.subquery_dict}")
-    logging.info(f"res2pageid: {pq.res_2_page_id}")
-    logging.info(f"subqueries in WHERE and HAVING: {pq.subquery_dict}")
+    timer = Timer()
+    job_id = str(int(timer.start()*100))
+    setup_logging(log_file=get_log_file_path("logs", query.name, job_id))
+    log_query_info(query, dbms)
+    pq.log_info()
 
     # execute subqueries
     subquery_results = process_subqueries(dbms, conn, pq)
@@ -42,26 +40,19 @@ def execute_aqp(query: Query, db_config: dict, pilot_sample_rate: float=0.05):
     # execute pilot query
     for subquery_name, subquery_result in subquery_results.items():
         pilot_query = pilot_query.replace(subquery_name, subquery_result)
-    logging.info(f"pilot query:\n{pilot_query}")
+    logging.info(f"pilot query:\n{transpile(pilot_query, read=dbms, pretty=True)[0]}")
 
     pilot_results = execute_query(conn, pilot_query, dbms)
-    pilot_results_file = f"results/{query.name}-pilot-{pilot_sample_rate}-{dbms}-{job_id}.csv"
-    dump_results(result_file=pilot_results_file, results_df=pilot_results)
-    pilot_execution_time = time.time() - start
-    logging.info(f"pilot query executing time: {pilot_execution_time}")
+    dump_results(result_file=get_result_file_path("./results", query.name, job_id, "pilot", dbms), 
+                 results_df=pilot_results)
+    logging.info(f"pilot query executing time: {timer.check('pilot_query_execution')}")
 
     # parse the results of pilot query
     page_errors = aggregate_error_to_page_error(pq.result_mapping_list)
     logging.info(f"converted page errors: {page_errors}")
     final_sample_rate = estimate_final_rate(failure_prob=0.05, pilot_results=pilot_results, page_errors=page_errors,
                                             group_cols=pq.group_cols, pilot_rate=pilot_sample_rate/100)
-    sample_rate_solving_time = time.time() - start - pilot_execution_time
-    logging.info(f"sample rate solving time: {sample_rate_solving_time}")
-
-    # # ========== debug begin
-    # final_sample_rate = 0.01
-    # # ========== debug end
-
+    logging.info(f"sample rate solving time: {timer.check('sampling_rate_solving')}")
 
     if final_sample_rate == -1:
         final_sample_rate = 1
@@ -88,24 +79,16 @@ def execute_aqp(query: Query, db_config: dict, pilot_sample_rate: float=0.05):
     else:
         logging.info(f"final sample rate: {final_sample_rate}, pilot sampling is large enough")
         results_df = pilot_results
-    sampling_execution_time = time.time() - start - pilot_execution_time - sample_rate_solving_time
-    logging.info(f"sampling execution time: {sampling_execution_time}")
+    logging.info(f"sampling execution time: {timer.check('sampling_query_execution')}")
     logging.info(f"aqp result:\n{results_df}")
 
-    total_runtime = time.time() - start
+    timer.stop()
     close_connection(conn, dbms)
     
-    runtime = {
-        "pilot_execution_time": pilot_execution_time,
-        "sample_rate_solving_time": sample_rate_solving_time,
-        "sampling_execution_time": sampling_execution_time,
-        "total_runtime": total_runtime
-    }
+    dump_results(result_file=get_result_file_path("./results", query.name, job_id, "aqp", dbms), 
+                 results_df=results_df)
 
-    result_file = f"results/{query.name}-aqp-{pilot_sample_rate}-{dbms}.jsonl"
-    dump_results(result_file=result_file, results_df=results_df)
-
-    return results_df, runtime
+    return results_df, timer.get_records()
 
 def process_subqueries(dbms, conn, pq) -> Dict[str, str]:
     subquery_results = {}
@@ -119,7 +102,7 @@ def process_subqueries(dbms, conn, pq) -> Dict[str, str]:
                 # convert the subquery results into a list
                 subquery_result = subquery_result[column_name].tolist()
                 # format the subquery results
-                if isinstance(subquery_result[0], str):
+                if isinstance(subquery_result[0], str) or isinstance(subquery_result[0], pd.Timestamp):
                     subquery_result = [f"'{r}'" for r in subquery_result]
                 else:
                     subquery_result = [str(r) for r in subquery_result]

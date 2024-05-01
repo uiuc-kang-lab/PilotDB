@@ -1,0 +1,3 @@
+dbms: duckdb
+path: /mydata/tpcds_1t.duckdb
+flush_memory: False
