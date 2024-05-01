@@ -317,7 +317,7 @@ class Pilot_Rewriter:
                     )
             expression.args["expressions"].append(page_exp)
 
-            if add_group_by:
+            if add_group_by or 'group' in expression.args:
                 self.add_page_id_to_group_by(
                     expression, f"page_id_{self.page_id_count-1}"
                 )
