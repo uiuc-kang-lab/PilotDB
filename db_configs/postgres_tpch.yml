@@ -1,0 +1,6 @@
+dbms: postgres
+dbname: tpch1t
+username: teng
+host: localhost
+port: 5432
+password: testaqp

@@ -1,3 +1,4 @@
+import logging
 from dataclasses import dataclass
 from typing import Dict, List
 
@@ -9,3 +10,7 @@ class Query:
     error: float = 0.05                 # the acceptable error rate
     failure_probability: float = 0.05   # the acceptable failure probability
     name: str = "query"                 # the name of the query
+
+def log_query_info(query: Query, dbms: str="unknown"):
+    logging.info(f"start approximately processing query {query.name} on {dbms}")
+    logging.info(f"original:\n{query.query}")

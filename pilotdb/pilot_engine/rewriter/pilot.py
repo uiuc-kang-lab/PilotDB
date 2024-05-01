@@ -1,3 +1,4 @@
+import logging
 import sqlglot
 from sqlglot import exp
 from pilotdb.pilot_engine.commons import *
@@ -639,4 +640,10 @@ class Pilot_Rewriter:
         new_query = self.fix_parse(new_query)
         return new_query
 
+    def log_info(self):
+        logging.info(f"column mapping: {self.result_mapping_list}")
+        logging.info(f"group cols: {self.group_cols}")
+        logging.info(f"subquery dict: {self.subquery_dict}")
+        logging.info(f"res2pageid: {self.res_2_page_id}")
+        logging.info(f"subqueries in WHERE and HAVING: {self.subquery_dict}")
 

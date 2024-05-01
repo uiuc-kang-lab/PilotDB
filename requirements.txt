@@ -5,3 +5,4 @@ psycopg2
 duckdb
 sqlglot
 pyyaml
+gdown
