@@ -96,7 +96,7 @@ class Pilot_Rewriter:
 
 
     def remove_clauses(self, expression):
-        expression.set("order", None)
+        # expression.set("order", None)
         expression.set("limit", None)
         # for having_expression in expression.find_all(exp.Having):
         #     having_expression.parent.set("having", None)
