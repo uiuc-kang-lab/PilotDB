@@ -29,6 +29,7 @@ class Pilot_Rewriter:
         self.result_mapping_list = []
         self.group_cols = []
         self.subquery_dict = {}
+        self.limit_value = None
 
 
     def find_alias(self, expression):
@@ -96,7 +97,9 @@ class Pilot_Rewriter:
 
 
     def remove_clauses(self, expression):
-        # expression.set("order", None)
+        if expression.find(exp.Limit):
+            self.limit_value = int(expression.args['limit'].args['expression'].this)
+
         expression.set("limit", None)
         # for having_expression in expression.find_all(exp.Having):
         #     having_expression.parent.set("having", None)
