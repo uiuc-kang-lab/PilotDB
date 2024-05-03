@@ -1,7 +1,6 @@
 queries included in the post-hoc w/o bugs
 tpch-1
 tpch-4
-tpch-5
 tpch-6
 tpch-7
 tpch-8
@@ -10,88 +9,47 @@ tpch-12
 tpch-14
 tpch-19
 tpch-22
-tpcds-3
 tpcds-13
-tpcds-42
-tpcds-43
 tpcds-48
-tpcds-50
-tpcds-52
-tpcds-55
 tpcds-62
 tpcds-88
 tpcds-90
 tpcds-92
-tpcds-99
 
 queries not included in the post-hoc
-tpch-3
-tpch-10
 tpch-17
 tpch-18
-tpch-21
 tpcds-2
 tpcds-7
 tpcds-8
 tpcds-10
 tpcds-15
 tpcds-18
-tpcds-22
-tpcds-24a
-tpcds-24b
-tpcds-25
 tpcds-26
 tpcds-27
-tpcds-29
 tpcds-33
 tpcds-34
 tpcds-45
-tpcds-56
 tpcds-58
 tpcds-59
 tpcds-60
 tpcds-61
-tpcds-66
-tpcds-67
 tpcds-68
 tpcds-69
-tpcds-72
-tpcds-73
-tpcds-76
 tpcds-78
 tpcds-79
 tpcds-83
-tpcds-85
-tpcds-86
-tpcds-91
-tpcds-93
-tpcds-96
 
 queries need more tests
-tpcds-5
-tpcds-6
-tpcds-11
-tpcds-12
-tpcds-14a
-tpcds-14b
-tpcds-19
-tpcds-20
 tpcds-21
-tpcds-23a
-tpcds-23b
 tpcds-30
 tpcds-31
 tpcds-32
 tpcds-40
-tpcds-64
 tpcds-65
-tpcds-71
-tpcds-75
 tpcds-77
 tpcds-80
-tpcds-81
 tpcds-97
-tpcds-98
 
 
 queries need special treatment
