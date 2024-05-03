@@ -27,30 +27,22 @@ tpcds-15
 tpcds-18
 tpcds-26
 tpcds-27
-tpcds-33
-tpcds-34
-tpcds-45
-tpcds-58
-tpcds-59
-tpcds-60
-tpcds-61
-tpcds-68
-tpcds-69
-tpcds-78
-tpcds-79
-tpcds-83
-
-queries need more tests
-tpcds-21
-tpcds-30
-tpcds-31
 tpcds-32
 tpcds-40
-tpcds-65
-tpcds-77
-tpcds-80
+tpcds-45
+tpcds-69
 tpcds-97
-
 
 queries need special treatment
 tpcds-9
+
+process after aggregates:
+tpcds-31
+tpcds-33
+tpcds-34
+tpcds-58
+tpcds-59
+tpcds-68
+tpcds-77
+tpcds-80
+tpcds-79

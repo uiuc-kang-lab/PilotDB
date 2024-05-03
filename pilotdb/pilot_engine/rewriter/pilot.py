@@ -649,4 +649,5 @@ class Pilot_Rewriter:
         logging.info(f"subquery dict: {self.subquery_dict}")
         logging.info(f"res2pageid: {self.res_2_page_id}")
         logging.info(f"subqueries in WHERE and HAVING: {self.subquery_dict}")
+        logging.info(f"limit value: {self.limit_value}")
 
