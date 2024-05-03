@@ -44,8 +44,8 @@ def execute_aqp(query: Query, db_config: dict, pilot_sample_rate: float=0.05):
     logging.info(f"pilot query:\n{transpile(pilot_query, read=dbms, pretty=True)[0]}")
 
     pilot_results = execute_query(conn, pilot_query, dbms)
-    dump_results(result_file=get_result_file_path("./results", query.name, job_id, "pilot", dbms), 
-                 results_df=pilot_results)
+    # dump_results(result_file=get_result_file_path("./results", query.name, job_id, "pilot", dbms), 
+    #              results_df=pilot_results)
     logging.info(f"pilot query executing time: {timer.check('pilot_query_execution')}")
 
     # parse the results of pilot query
