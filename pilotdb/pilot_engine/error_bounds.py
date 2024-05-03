@@ -75,14 +75,18 @@ def get_bernoulli_N_sample_rate(error, fp: float, fp1: float, pilot_sample_rate:
     z_val = norm.ppf(1-fp/2)
     return 1 / (1 + error**2 * bernoulli_N_lb**3 / z_val**2)
 
-def estimate_final_rate(failure_prob: float, pilot_results: pd.DataFrame, page_errors: Dict, group_cols: List[str], pilot_rate: float=0.0001):
+def estimate_final_rate(failure_prob: float, pilot_results: pd.DataFrame, page_errors: Dict, group_cols: List[str], 
+                        pilot_rate: float=0.0001, limit: int|None=None):
     page_stats_cols = [col for col in page_errors.keys() if col != "n_page"]
     n_page_stats = len(page_stats_cols)
     page_size_stats = len(page_errors) - n_page_stats
     keep_columns = group_cols + page_stats_cols
     pilot_results = pilot_results[keep_columns]
     if len(group_cols) > 0:
-        df = pilot_results.groupby(by=group_cols).agg(["mean", "std", "size"])
+        if limit is not None:
+            df = pilot_results.groupby(by=group_cols, sort=False).agg(["mean", "std", "size"]).head(limit)
+        else:
+            df = pilot_results.groupby(by=group_cols, sort=False).agg(["mean", "std", "size"])
     else:
         df = pilot_results.agg(["mean", "std", "size"])
     n_groups = df.shape[0] if len(group_cols) > 0 else 1

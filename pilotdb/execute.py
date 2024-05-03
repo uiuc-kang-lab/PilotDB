@@ -52,7 +52,7 @@ def execute_aqp(query: Query, db_config: dict, pilot_sample_rate: float=0.05):
     page_errors = aggregate_error_to_page_error(pq.result_mapping_list)
     logging.info(f"converted page errors: {page_errors}")
     final_sample_rate = estimate_final_rate(failure_prob=0.05, pilot_results=pilot_results, page_errors=page_errors,
-                                            group_cols=pq.group_cols, pilot_rate=pilot_sample_rate/100)
+                                            group_cols=pq.group_cols, pilot_rate=pilot_sample_rate/100, limit=pq.limit_value)
     logging.info(f"sample rate solving time: {timer.check('sampling_rate_solving')}")
 
     if final_sample_rate == -1:
