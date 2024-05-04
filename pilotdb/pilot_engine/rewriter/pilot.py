@@ -24,6 +24,8 @@ class Pilot_Rewriter:
         self.select_expression_count = 0
         self.aggregator_mapping = {}
         self.alias_2_page_id = {}
+        self.sqlserver_page_id_mapping = {}
+        self.sqlserver_page_id_mapping_count = 0
         
         self.res_2_page_id = {}
         self.result_mapping_list = []
@@ -97,7 +99,7 @@ class Pilot_Rewriter:
         elif self.database == SQLSERVER:
             if is_union:
                 if is_join:
-                    expresion = f''' 'page_id_{self.page_id_rank}:' + CAST(CAST(SUBSTRING({self.largest_table}.%%physloc%%, 6, 1)
+                    expresion = f''''page_id_{self.page_id_rank}:' + CAST(CAST(SUBSTRING({self.largest_table}.%%physloc%%, 6, 1)
                     + SUBSTRING({self.largest_table}.%%physloc%%, 5, 1) AS int) AS VARCHAR) 
                     + '||' + CAST(CAST(SUBSTRING({self.largest_table}.%%physloc%%, 4, 1) 
                     + SUBSTRING({self.largest_table}.%%physloc%%, 3, 1) + SUBSTRING({self.largest_table}.%%physloc%%, 2, 1) 
@@ -105,7 +107,7 @@ class Pilot_Rewriter:
                     self.page_id_rank += 1
                     self.page_id_count = 2
                 else:
-                    expresion = f''' 'page_id_{self.page_id_rank}:' + CAST(CAST(SUBSTRING({self.largest_table}.%%physloc%%, 6, 1)
+                    expresion = f''''page_id_{self.page_id_rank}:' + CAST(CAST(SUBSTRING({self.largest_table}.%%physloc%%, 6, 1)
                     + SUBSTRING({self.largest_table}.%%physloc%%, 5, 1) AS int) AS VARCHAR) 
                     + '||' + CAST(CAST(SUBSTRING({self.largest_table}.%%physloc%%, 4, 1) 
                     + SUBSTRING({self.largest_table}.%%physloc%%, 3, 1) + SUBSTRING({self.largest_table}.%%physloc%%, 2, 1) 
@@ -113,14 +115,17 @@ class Pilot_Rewriter:
                     self.page_id_rank += 1
                     self.page_id_count = 1
             else:
-                expresion = f''' 'page_id_{self.page_id_rank}:' + CAST(CAST(SUBSTRING({self.largest_table}.%%physloc%%, 6, 1)
+                expresion = f''''page_id_{self.page_id_rank}:' + CAST(CAST(SUBSTRING({self.largest_table}.%%physloc%%, 6, 1)
                     + SUBSTRING({self.largest_table}.%%physloc%%, 5, 1) AS int) AS VARCHAR) 
                     + '||' + CAST(CAST(SUBSTRING({self.largest_table}.%%physloc%%, 4, 1) 
                     + SUBSTRING({self.largest_table}.%%physloc%%, 3, 1) + SUBSTRING({self.largest_table}.%%physloc%%, 2, 1) 
                     + SUBSTRING({self.largest_table}.%%physloc%%, 1, 1) AS int) AS VARCHAR) AS page_id_{self.page_id_count}'''
                 self.page_id_rank += 1
                 self.page_id_count += 1
-            return sqlglot.parse_one(expresion)
+            sqlserver_page_id_mapping = f"sqlserver_page_id_mapping_{self.sqlserver_page_id_mapping_count}"
+            self.sqlserver_page_id_mapping[sqlserver_page_id_mapping] = expresion
+            self.sqlserver_page_id_mapping_count += 1
+            return sqlglot.parse_one(sqlserver_page_id_mapping)
 
     def remove_clauses(self, expression):
         if expression.find(exp.Limit):
@@ -644,6 +649,12 @@ class Pilot_Rewriter:
     def fix_parse(self, sql):
         sql = sql.replace("AS days", "days")
         return sql
+    
+    def sqlserver_replace_page_id(self, old_query):
+        for key, value in self.sqlserver_page_id_mapping.items():
+            old_query = old_query.replace(key, value)
+        return old_query
+        
         
     def rewrite(self, original_query):
         expression = sqlglot.parse_one(original_query)
@@ -667,6 +678,8 @@ class Pilot_Rewriter:
         modified_query = expression.sql()
         new_query = self.replace_sample_method(modified_query)
         new_query = self.fix_parse(new_query)
+        if self.database == SQLSERVER:
+            new_query = self.sqlserver_replace_page_id(new_query)
         return new_query
 
     def log_info(self):
