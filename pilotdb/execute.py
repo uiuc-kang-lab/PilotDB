@@ -97,7 +97,8 @@ def execute_aqp(query: Query, db_config: dict, pilot_sample_rate: float=0.05):
                  results_df=results_df)
     
     with open("all_results.jsonl", "a+") as f:
-        result = {"query": query.name, "dbms": dbms, "pilot_sample_rate": pilot_sample_rate, "runtime": timer.get_records(),
+        result = {"query": query.name, "dbms": dbms, "pilot_sample_rate": pilot_sample_rate, "final_sample_rate": final_sample_rate,
+                  "runtime": timer.get_records(),
                   "results_file": get_result_file_path("./results", query.name, job_id, "aqp", dbms)}
         f.write(json.dumps(result) + "\n")
 
