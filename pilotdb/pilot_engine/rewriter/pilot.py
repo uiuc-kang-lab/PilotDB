@@ -26,6 +26,7 @@ class Pilot_Rewriter:
         self.alias_2_page_id = {}
         self.sqlserver_page_id_mapping = {}
         self.sqlserver_page_id_mapping_count = 0
+        self.sqlserver_alias2page_id = {}
         
         self.res_2_page_id = {}
         self.result_mapping_list = []
@@ -103,7 +104,9 @@ class Pilot_Rewriter:
                     + SUBSTRING({self.largest_table}.%%physloc%%, 5, 1) AS int) AS VARCHAR) 
                     + '||' + CAST(CAST(SUBSTRING({self.largest_table}.%%physloc%%, 4, 1) 
                     + SUBSTRING({self.largest_table}.%%physloc%%, 3, 1) + SUBSTRING({self.largest_table}.%%physloc%%, 2, 1) 
-                    + SUBSTRING({self.largest_table}.%%physloc%%, 1, 1) AS int) AS VARCHAR) AS page_id_1'''
+                    + SUBSTRING({self.largest_table}.%%physloc%%, 1, 1) AS int) AS VARCHAR)'''
+                    self.sqlserver_alias2page_id['page_id_1'] = expresion
+                    expresion = f'''{expresion} AS page_id_1'''
                     self.page_id_rank += 1
                     self.page_id_count = 2
                 else:
@@ -111,7 +114,9 @@ class Pilot_Rewriter:
                     + SUBSTRING({self.largest_table}.%%physloc%%, 5, 1) AS int) AS VARCHAR) 
                     + '||' + CAST(CAST(SUBSTRING({self.largest_table}.%%physloc%%, 4, 1) 
                     + SUBSTRING({self.largest_table}.%%physloc%%, 3, 1) + SUBSTRING({self.largest_table}.%%physloc%%, 2, 1) 
-                    + SUBSTRING({self.largest_table}.%%physloc%%, 1, 1) AS int) AS VARCHAR) AS page_id_0'''
+                    + SUBSTRING({self.largest_table}.%%physloc%%, 1, 1) AS int) AS VARCHAR)'''
+                    self.sqlserver_alias2page_id['page_id_0'] = expresion
+                    expresion = f'''{expresion} AS page_id_0'''
                     self.page_id_rank += 1
                     self.page_id_count = 1
             else:
@@ -119,7 +124,9 @@ class Pilot_Rewriter:
                     + SUBSTRING({self.largest_table}.%%physloc%%, 5, 1) AS int) AS VARCHAR) 
                     + '||' + CAST(CAST(SUBSTRING({self.largest_table}.%%physloc%%, 4, 1) 
                     + SUBSTRING({self.largest_table}.%%physloc%%, 3, 1) + SUBSTRING({self.largest_table}.%%physloc%%, 2, 1) 
-                    + SUBSTRING({self.largest_table}.%%physloc%%, 1, 1) AS int) AS VARCHAR) AS page_id_{self.page_id_count}'''
+                    + SUBSTRING({self.largest_table}.%%physloc%%, 1, 1) AS int) AS VARCHAR)'''
+                self.sqlserver_alias2page_id[f'page_id_{self.page_id_count}'] = expresion
+                expresion = f'''{expresion} AS page_id_{self.page_id_count}'''
                 self.page_id_rank += 1
                 self.page_id_count += 1
             sqlserver_page_id_mapping = f"sqlserver_page_id_mapping_{self.sqlserver_page_id_mapping_count}"
@@ -651,6 +658,9 @@ class Pilot_Rewriter:
         return sql
     
     def sqlserver_replace_page_id(self, old_query):
+        if self.page_id_rank == 1 and self.page_id_count == 1:
+            for key, value in self.sqlserver_alias2page_id.items():
+                old_query = old_query.replace(key, value)
         for key, value in self.sqlserver_page_id_mapping.items():
             old_query = old_query.replace(key, value)
         return old_query
