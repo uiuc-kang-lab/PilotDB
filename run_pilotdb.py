@@ -21,10 +21,10 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    with open(f"benchmarks/{args.benchmark}/query_{args.qid}.sql", "r") as f:
+    with open(f"benchmarks/{args.dbms}/{args.benchmark}/query_{args.qid}.sql", "r") as f:
         query_str = f.read()
     
-    with open(f"benchmarks/{args.benchmark}/meta.json", "r") as f:
+    with open(f"benchmarks/{args.dbms}/{args.benchmark}/meta.json", "r") as f:
         meta = json.load(f)
 
     query = Query(name=f"{args.benchmark}-{args.qid}", query=query_str,
