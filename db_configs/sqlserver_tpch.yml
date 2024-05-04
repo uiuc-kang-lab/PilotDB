@@ -1,0 +1,5 @@
+dbms: sqlserver
+dbname: tpch1t
+username: sa
+host: localhost
+password: Teng0707!

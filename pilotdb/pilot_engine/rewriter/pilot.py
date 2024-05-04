@@ -94,7 +94,33 @@ class Pilot_Rewriter:
                 self.page_id_rank += 1
                 self.page_id_count += 1
             return sqlglot.parse_one(expresion)
-
+        elif self.database == SQLSERVER:
+            if is_union:
+                if is_join:
+                    expresion = f''' 'page_id_{self.page_id_rank}:' + CAST(CAST(SUBSTRING({self.largest_table}.%%physloc%%, 6, 1)
+                    + SUBSTRING({self.largest_table}.%%physloc%%, 5, 1) AS int) AS VARCHAR) 
+                    + '||' + CAST(CAST(SUBSTRING({self.largest_table}.%%physloc%%, 4, 1) 
+                    + SUBSTRING({self.largest_table}.%%physloc%%, 3, 1) + SUBSTRING({self.largest_table}.%%physloc%%, 2, 1) 
+                    + SUBSTRING({self.largest_table}.%%physloc%%, 1, 1) AS int) AS VARCHAR) AS page_id_1'''
+                    self.page_id_rank += 1
+                    self.page_id_count = 2
+                else:
+                    expresion = f''' 'page_id_{self.page_id_rank}:' + CAST(CAST(SUBSTRING({self.largest_table}.%%physloc%%, 6, 1)
+                    + SUBSTRING({self.largest_table}.%%physloc%%, 5, 1) AS int) AS VARCHAR) 
+                    + '||' + CAST(CAST(SUBSTRING({self.largest_table}.%%physloc%%, 4, 1) 
+                    + SUBSTRING({self.largest_table}.%%physloc%%, 3, 1) + SUBSTRING({self.largest_table}.%%physloc%%, 2, 1) 
+                    + SUBSTRING({self.largest_table}.%%physloc%%, 1, 1) AS int) AS VARCHAR) AS page_id_0'''
+                    self.page_id_rank += 1
+                    self.page_id_count = 1
+            else:
+                expresion = f''' 'page_id_{self.page_id_rank}:' + CAST(CAST(SUBSTRING({self.largest_table}.%%physloc%%, 6, 1)
+                    + SUBSTRING({self.largest_table}.%%physloc%%, 5, 1) AS int) AS VARCHAR) 
+                    + '||' + CAST(CAST(SUBSTRING({self.largest_table}.%%physloc%%, 4, 1) 
+                    + SUBSTRING({self.largest_table}.%%physloc%%, 3, 1) + SUBSTRING({self.largest_table}.%%physloc%%, 2, 1) 
+                    + SUBSTRING({self.largest_table}.%%physloc%%, 1, 1) AS int) AS VARCHAR) AS page_id_{self.page_id_count}'''
+                self.page_id_rank += 1
+                self.page_id_count += 1
+            return sqlglot.parse_one(expresion)
 
     def remove_clauses(self, expression):
         if expression.find(exp.Limit):
