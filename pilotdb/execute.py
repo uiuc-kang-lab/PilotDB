@@ -41,7 +41,9 @@ def execute_aqp(query: Query, db_config: dict, pilot_sample_rate: float=0.05):
     # execute pilot query
     for subquery_name, subquery_result in subquery_results.items():
         pilot_query = pilot_query.replace(subquery_name, subquery_result)
-    logging.info(f"pilot query:\n{transpile(pilot_query, read=dbms, pretty=True)[0]}")
+    
+    if dbms != 'sqlserver':
+        logging.info(f"pilot query:\n{transpile(pilot_query, read=dbms, pretty=True)[0]}")
 
     pilot_results = execute_query(conn, pilot_query, dbms)
     # dump_results(result_file=get_result_file_path("./results", query.name, job_id, "pilot", dbms), 
