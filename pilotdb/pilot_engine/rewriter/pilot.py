@@ -3,6 +3,8 @@ import sqlglot
 from sqlglot import exp
 from pilotdb.pilot_engine.commons import *
 from pilotdb.pilot_engine.pilot_query import Query
+import re
+
 
 class Pilot_Rewriter:
     def __init__(self, table_cols, table_size, database):
@@ -719,15 +721,16 @@ class Pilot_Rewriter:
 
         self.remove_cte(expression)
         self.remove_duplicate(expression)
-        self.sqlserver_replace_group_by(expression)
-        if self.database == SQLSERVER:        
-            modified_query = expression.sql(dialect='tsql')
-        else:
-            modified_query = expression.sql(dialect=self.database)
+        self.sqlserver_replace_group_by(expression)      
+        modified_query = expression.sql()
         new_query = self.replace_sample_method(modified_query)
         new_query = self.fix_parse(new_query)
+        
         if self.database == SQLSERVER:
             new_query = self.sqlserver_replace_page_id(new_query)
+        elif self.database == POSTGRES:
+            pattern = r"\b(INTERVAL) '(\d+)' (DAYS)\b"
+            new_query = re.sub(pattern, r"\1 '\2 \3'", new_query)
         return new_query
 
     def log_info(self):

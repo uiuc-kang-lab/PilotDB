@@ -1,6 +1,7 @@
 import sqlglot
 from sqlglot import exp
 from pilotdb.pilot_engine.commons import *
+import re
 
 class Sampling_Rewriter:
     def __init__(self, table_cols, table_size, database):
@@ -313,12 +314,12 @@ class Sampling_Rewriter:
 
         self.remove_cte(expression)
         self.modify_having(expression)
-        if self.database == SQLSERVER:        
-            modified_query = expression.sql(dialect='tsql')
-        else:
-            modified_query = expression.sql(dialect=self.database)
-
+        modified_query = expression.sql()
         new_query = self.replace_sample_method(modified_query)
+        
+        if self.database == POSTGRES:
+            pattern = r"\b(INTERVAL) '(\d+)' (DAYS)\b"
+            new_query = re.sub(pattern, r"\1 '\2 \3'", new_query)
         
         if include_limit:
             new_query = "SELECT TOP 100 " + new_query[6:]
