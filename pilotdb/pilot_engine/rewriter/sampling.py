@@ -161,8 +161,11 @@ class Sampling_Rewriter:
               if div_operator.this.find(exp.AggFunc) and div_operator.expression.find(exp.AggFunc):
                 new_select_expression_list.append(select_expression)
                 continue
-            if select_expression.find(exp.Sum) or select_expression.find(exp.Count):
+            if (select_expression.find(exp.Sum) or select_expression.find(exp.Count) or (select_expression.find(exp.Anonymous) 
+                    and select_expression.find(exp.Anonymous).this == 'COUNT_BIG')):
                 agg_expression = select_expression.find(exp.AggFunc)
+                if not agg_expression:
+                    agg_expression = select_expression.find(exp.Anonymous)
                 col = agg_expression.find(exp.Column)
                 if col and col.this.this in self.alias:
                     original_agg_expression = self.alias[col.this.this]
