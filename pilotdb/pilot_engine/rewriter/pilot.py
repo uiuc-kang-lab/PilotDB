@@ -286,9 +286,13 @@ class Pilot_Rewriter:
                 elif select_expression.find(exp.Sum):
                     result_mapping[AGGREGATE] = SUM_OPERATOR
                     result_mapping[PAGE_SUM] = f"r{self.select_expression_count-1}"
-                elif select_expression.find(exp.Count):
+                elif select_expression.find(exp.Count) or select_expression.find(exp.Anonymous):
                     result_mapping[AGGREGATE] = COUNT_OPERATOR
                     result_mapping[PAGE_SIZE] = f"r{self.select_expression_count-1}"
+                elif select_expression.find(exp.Anonymous):
+                    if select_expression.find(exp.Anonymous).this == 'COUNT_BIG':
+                        result_mapping[AGGREGATE] = COUNT_OPERATOR
+                        result_mapping[PAGE_SIZE] = f"r{self.select_expression_count-1}"
                 elif isinstance(select_expression, exp.Expression) \
                     and isinstance(select_expression.this, exp.Expression) \
                         and select_expression.this.this in self.aggregator_mapping:
@@ -309,7 +313,10 @@ class Pilot_Rewriter:
                 self.group_cols.append(f"r{self.select_expression_count-1}")
 
         if number_of_avg > 0:
-            count_expression = sqlglot.parse_one("COUNT(*)")
+            if self.database == SQLSERVER:
+                count_expression = sqlglot.parse_one("COUNT_BIG(*)")
+            else:
+                count_expression = sqlglot.parse_one("COUNT(*)")
             alias_expression = exp.Alias(
                 this=count_expression,
                 alias=exp.Identifier(this=f"r{self.select_expression_count}"),
