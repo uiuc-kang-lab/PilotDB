@@ -193,10 +193,10 @@ class Pilot_Rewriter:
     def rewrite_select_expression(self, expression):
         number_of_avg = 0
         new_expressions = []
-        is_average = False
         ratio_type = None
 
         for select_expression in expression.args["expressions"]:
+            is_average = False
             temp_expressions = []
             # if select_expression.find(exp.Case):
             #     case_subquery = select_expression.find(exp.Case).args['ifs'][0].find(exp.If)
@@ -661,6 +661,7 @@ class Pilot_Rewriter:
         if self.page_id_rank == 1 and self.page_id_count == 1:
             for key, value in self.sqlserver_alias2page_id.items():
                 old_query = old_query.replace(key, value)
+        old_query = old_query.replace("COUNT(", "COUNT_BIG(")
         for key, value in self.sqlserver_page_id_mapping.items():
             old_query = old_query.replace(key, value)
         return old_query
