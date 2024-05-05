@@ -6,3 +6,4 @@ duckdb
 sqlglot
 pyyaml
 gdown
+pyodbc
