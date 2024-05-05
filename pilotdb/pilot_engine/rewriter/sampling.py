@@ -295,6 +295,12 @@ class Sampling_Rewriter:
 
  
     def rewrite(self, original_query):
+        include_limit = False
+        if self.database == SQLSERVER:
+            if "SELECT TOP 100" in original_query:
+                original_query = original_query.replace("TOP 100", "")
+                include_limit = True
+                
         expression = sqlglot.parse_one(original_query)
         self.find_alias(expression)
         self.extract_cte(expression)
@@ -306,5 +312,8 @@ class Sampling_Rewriter:
         self.modify_having(expression)
         modified_query = expression.sql()
         new_query = self.replace_sample_method(modified_query)
+        
+        if include_limit:
+            new_query = "SELECT TOP 100 " + new_query[6:]
         return new_query
 

@@ -697,6 +697,10 @@ class Pilot_Rewriter:
                 group_by.set('expressions', new_group_by)
         
     def rewrite(self, original_query):
+        if self.database == SQLSERVER:
+            if "SELECT TOP 100" in original_query:
+                original_query = original_query.replace("TOP 100", "")
+                self.limit_value = 100
         expression = sqlglot.parse_one(original_query)
         if self.parse_window(expression):
             return original_query
