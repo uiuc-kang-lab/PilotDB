@@ -665,14 +665,36 @@ class Pilot_Rewriter:
         return sql
     
     def sqlserver_replace_page_id(self, old_query):
-        if self.page_id_rank == 1 and self.page_id_count == 1:
-            for key, value in self.sqlserver_alias2page_id.items():
-                old_query = old_query.replace(key, value)
+        # if self.page_id_rank == 1 and self.page_id_count == 1:
+        #     for key, value in self.sqlserver_alias2page_id.items():
+        #         old_query = old_query.replace(key, value)
         old_query = old_query.replace("COUNT(", "COUNT_BIG(")
         for key, value in self.sqlserver_page_id_mapping.items():
             old_query = old_query.replace(key, value)
         return old_query
-        
+
+    
+    def sqlserver_replace_group_by(self, expression):
+        for group_by in expression.find_all(exp.Group):
+            replacement = False
+            for select_expression in group_by.parent.args['expressions']:
+                if select_expression.find(exp.Column):
+                    column_name = select_expression.find(exp.Column).this.this
+                    if column_name in self.sqlserver_page_id_mapping:
+                        replacement = True
+            if replacement:
+                new_group_by = []
+                for group_by_expression in group_by.args['expressions']:
+                    if group_by_expression.find(exp.Column):
+                        column_name = group_by_expression.find(exp.Column).this.this
+                        if column_name[:7] == 'page_id':
+                            new_group_by.append(exp.Column(this=exp.Identifier(this=f'replace_{column_name[8:]}')))
+                            self.sqlserver_page_id_mapping[f'replace_{column_name[8:]}'] = self.sqlserver_alias2page_id[column_name]
+                        else:
+                            new_group_by.append(group_by_expression)
+                    else:
+                        new_group_by.append(group_by_expression)
+                group_by.set('expressions', new_group_by)
         
     def rewrite(self, original_query):
         expression = sqlglot.parse_one(original_query)
@@ -693,6 +715,8 @@ class Pilot_Rewriter:
 
         self.remove_cte(expression)
         self.remove_duplicate(expression)
+        self.sqlserver_replace_group_by(expression)
+                                                        
         modified_query = expression.sql()
         new_query = self.replace_sample_method(modified_query)
         new_query = self.fix_parse(new_query)
