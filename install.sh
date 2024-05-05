@@ -16,4 +16,5 @@ pip install -r requirements.txt
 gdown 1CXdBfgbef4AxZYjzzMYWaRADzHZ5vtAU
 pip install duckdb-0.0.0-cp311-cp311-linux_x86_64.whl
 pip install -e .
+bash ./sqlserver_driver.sh
 rm duckdb.whl
