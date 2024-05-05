@@ -313,7 +313,11 @@ class Sampling_Rewriter:
 
         self.remove_cte(expression)
         self.modify_having(expression)
-        modified_query = expression.sql()
+        if self.database == SQLSERVER:        
+            modified_query = expression.sql(dialect='tsql')
+        else:
+            modified_query = expression.sql(dialect=self.database)
+
         new_query = self.replace_sample_method(modified_query)
         
         if include_limit:

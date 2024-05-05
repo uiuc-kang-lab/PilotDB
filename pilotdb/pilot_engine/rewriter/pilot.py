@@ -720,8 +720,10 @@ class Pilot_Rewriter:
         self.remove_cte(expression)
         self.remove_duplicate(expression)
         self.sqlserver_replace_group_by(expression)
-                                                        
-        modified_query = expression.sql()
+        if self.database == SQLSERVER:        
+            modified_query = expression.sql(dialect='tsql')
+        else:
+            modified_query = expression.sql(dialect=self.database)
         new_query = self.replace_sample_method(modified_query)
         new_query = self.fix_parse(new_query)
         if self.database == SQLSERVER:
