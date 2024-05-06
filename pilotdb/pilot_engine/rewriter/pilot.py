@@ -686,7 +686,14 @@ class Pilot_Rewriter:
                         replacement = True
             if replacement:
                 new_group_by = []
-                for group_by_expression in group_by.args['expressions']:
+                group_arg = ''
+                if 'expressions' in group_by.args:
+                    group_expressions = group_by.args['expressions']
+                    group_arg = 'expressions'
+                elif 'rollup' in group_by.args:
+                    group_expressions = group_by.args['rollup']
+                    group_arg = 'rollup'
+                for group_by_expression in group_expressions:
                     if group_by_expression.find(exp.Column):
                         column_name = group_by_expression.find(exp.Column).this.this
                         if column_name[:7] == 'page_id':
@@ -696,7 +703,8 @@ class Pilot_Rewriter:
                             new_group_by.append(group_by_expression)
                     else:
                         new_group_by.append(group_by_expression)
-                group_by.set('expressions', new_group_by)
+                        
+                group_by.set(group_arg, new_group_by)
         
     def rewrite(self, original_query):
         if self.database == SQLSERVER:
@@ -731,6 +739,7 @@ class Pilot_Rewriter:
         elif self.database == POSTGRES:
             pattern = r"\b(INTERVAL) '(\d+)' (DAYS)\b"
             new_query = re.sub(pattern, r"\1 '\2 \3'", new_query)
+        print(self.result_mapping_list)
         return new_query
 
     def log_info(self):
