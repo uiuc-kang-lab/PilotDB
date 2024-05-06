@@ -283,6 +283,8 @@ class Sampling_Rewriter:
 
     def modify_having(self, expression):
         for having_expression in expression.find_all(exp.Having):
+            if not having_expression.parent.find(exp.TableSample):
+                continue
             if having_expression.find(exp.Sum) or having_expression.find(exp.Count):
                 agg_expression = having_expression.find(exp.AggFunc)
                 col = agg_expression.find(exp.Column)
