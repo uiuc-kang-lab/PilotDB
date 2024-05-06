@@ -163,7 +163,7 @@ class Sampling_Rewriter:
                 new_select_expression_list.append(select_expression)
                 continue
             if (select_expression.find(exp.Sum) or select_expression.find(exp.Count) or (select_expression.find(exp.Anonymous) 
-                    and select_expression.find(exp.Anonymous).this == 'COUNT_BIG')):
+                    and select_expression.find(exp.Anonymous).this.upper() == 'COUNT_BIG')):
                 agg_expression = select_expression.find(exp.AggFunc)
                 if not agg_expression:
                     agg_expression = select_expression.find(exp.Anonymous)
