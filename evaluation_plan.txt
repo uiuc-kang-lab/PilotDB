@@ -17,15 +17,20 @@ tpcds-10
 tpcds-13
 tpcds-15
 tpcds-18
+tpcds=25
 tpcds-26
 tpcds-27
+tpcds-29
 tpcds-32
 tpcds-40
 tpcds-45
 tpcds-48
+tpcds-50
 tpcds-62
 tpcds-69
+tpcds-76
 tpcds-92
+tpcds-96
 tpcds-99
 
 join after aggregate
