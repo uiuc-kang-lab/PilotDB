@@ -28,7 +28,6 @@ tpcds-48
 tpcds-50
 tpcds-62
 tpcds-69
-tpcds-76
 tpcds-92
 tpcds-96
 tpcds-99
@@ -45,6 +44,7 @@ tpcds-97
 
 union and aggregate after aggregate:
 tpcds-66
+tpcds-76
 tpcds-77
 tpcds-80
 
