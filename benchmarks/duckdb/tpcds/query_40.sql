@@ -28,8 +28,8 @@ WHERE i_current_price BETWEEN 0.99 AND 1.49
     AND i_item_sk = cs_item_sk
     AND cs_warehouse_sk = w_warehouse_sk
     AND cs_sold_date_sk = d_date_sk
-    AND d_date BETWEEN (cast ('2001-04-02' AS date) - 30 days)
-    AND (cast ('2001-04-02' AS date) + 30 days)
+    AND d_date BETWEEN (DATE '2001-04-02' - INTERVAL 30 DAY)
+    AND (DATE '2001-04-02' + INTERVAL 30 DAY)
 GROUP BY w_state,
     i_item_id
 ORDER BY w_state,
