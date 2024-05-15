@@ -5,6 +5,7 @@ import pandas.io.sql as sqlio
 def connect_to_db(db: str, user: str, host: str="localhost", password: str|None=None):
     conn_string = f'DRIVER={{ODBC Driver 18 for SQL Server}};SERVER={host};DATABASE={db};UID={user};PWD={password};TrustServerCertificate=yes;'
     conn = pyodbc.connect(conn_string)
+    conn.execute('DBCC DROPCLEANBUFFERS;')
     return conn
 
 def close_connection(conn):

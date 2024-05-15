@@ -83,13 +83,13 @@ def execute_aqp(query: Query, db_config: dict, pilot_sample_rate: float=0.05):
         logging.info(f"sampling execution time: {timer.check('sampling_query_execution')}")
     else:
         logging.info(f"final sample rate: {final_sample_rate}, pilot sampling is large enough")
-        logging.info(f"sampling execution time: {timer.check('sampling_query_execution')}")
         # FIXME: directly translate pilot results instead of running sampling again
         sampling_clause = get_sampling_clause(pilot_sample_rate, dbms)
         sampling_query = sampling_query.format(sampling_method=sampling_clause, sample_rate=pilot_sample_rate/100)
         for subquery_name, subquery_result in subquery_results.items():
             sampling_query = sampling_query.replace(subquery_name, subquery_result)
         results_df = execute_query(conn, sampling_query, dbms)
+        logging.info(f"sampling execution time: {timer.check('sampling_query_execution')}")
     logging.info(f"aqp result:\n{results_df}")
 
     timer.stop()
