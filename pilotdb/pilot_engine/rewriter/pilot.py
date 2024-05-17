@@ -288,7 +288,7 @@ class Pilot_Rewriter:
                 elif select_expression.find(exp.Sum):
                     result_mapping[AGGREGATE] = SUM_OPERATOR
                     result_mapping[PAGE_SUM] = f"r{self.select_expression_count-1}"
-                elif select_expression.find(exp.Count) or select_expression.find(exp.Anonymous):
+                elif select_expression.find(exp.Count):
                     result_mapping[AGGREGATE] = COUNT_OPERATOR
                     result_mapping[PAGE_SIZE] = f"r{self.select_expression_count-1}"
                 elif select_expression.find(exp.Anonymous):
