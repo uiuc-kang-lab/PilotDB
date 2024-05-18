@@ -61,8 +61,8 @@ def execute_aqp(query: Query, db_config: dict, pilot_sample_rate: float=0.05):
         final_sample_rate = 1
         logging.info(f"fail to solve sample rate, fall back to original queries")
     elif final_sample_rate*100 > get_largest_sample_rate(dbms):
-        final_sample_rate = 1
         logging.info(f"too big sample rate {final_sample_rate*100}, fall back to original queries")
+        final_sample_rate = 1
     
     if final_sample_rate == 1:
         sampling_query = sampling_query.format(sampling_method="", sample_rate="1")
