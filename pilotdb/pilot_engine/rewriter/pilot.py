@@ -141,6 +141,7 @@ class Pilot_Rewriter:
             self.limit_value = int(expression.args['limit'].args['expression'].this)
 
         expression.set("limit", None)
+        # FIXME
         expression.set("order", None)
         # for having_expression in expression.find_all(exp.Having):
         #     having_expression.parent.set("having", None)
