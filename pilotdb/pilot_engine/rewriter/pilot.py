@@ -710,9 +710,11 @@ class Pilot_Rewriter:
         
     def rewrite(self, original_query):
         if self.database == SQLSERVER:
-            if "SELECT TOP 100" in original_query:
-                original_query = original_query.replace("TOP 100", "")
-                self.limit_value = 100
+            match = re.search(r'TOP (\d+)', original_query, re.IGNORECASE)
+            if match:
+                self.limit_value = int(match.group(1))  # The number x to be retrieved
+                original_query = re.sub(r'TOP \d+', '', original_query, flags=re.IGNORECASE)
+
         expression = sqlglot.parse_one(original_query)
         if self.parse_window(expression):
             return original_query
