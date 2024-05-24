@@ -8,7 +8,7 @@ import pandas as pd
 def connect_to_db(dbms: str, config: dict):
     if dbms == 'duckdb':
         # clean cache
-        if config["flush_memory"] == "True":
+        if config["flush_memory"] == True:
             os.system("sudo sync; echo 3 | sudo tee /proc/sys/vm/drop_caches")
         return duckdb_utils.connect_to_db(config["path"])
     elif dbms == 'postgres':
