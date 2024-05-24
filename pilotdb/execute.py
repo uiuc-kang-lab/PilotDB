@@ -34,35 +34,39 @@ def execute_aqp(query: Query, db_config: dict, pilot_sample_rate: float=0.05):
     setup_logging(log_file=get_log_file_path("logs", query.name, job_id))
     log_query_info(query, dbms)
     pq.log_info()
-
-    # execute subqueries
-    subquery_results = process_subqueries(dbms, conn, pq)
-
-    # execute pilot query
-    for subquery_name, subquery_result in subquery_results.items():
-        pilot_query = pilot_query.replace(subquery_name, subquery_result)
-    
-    if dbms != 'sqlserver':
-        logging.info(f"pilot query:\n{transpile(pilot_query, read=dbms, pretty=True)[0]}")
-
-    pilot_results = execute_query(conn, pilot_query, dbms)
-    # dump_results(result_file=get_result_file_path("./results", query.name, job_id, "pilot", dbms), 
-    #              results_df=pilot_results)
-    logging.info(f"pilot query executing time: {timer.check('pilot_query_execution')}")
-
-    # parse the results of pilot query
-    page_errors = aggregate_error_to_page_error(pq.result_mapping_list)
-    logging.info(f"converted page errors: {page_errors}")
-    final_sample_rate = estimate_final_rate(failure_prob=0.05, pilot_results=pilot_results, page_errors=page_errors,
-                                            group_cols=pq.group_cols, pilot_rate=pilot_sample_rate/100, limit=pq.limit_value)
-    logging.info(f"sample rate solving time: {timer.check('sampling_rate_solving')}")
-
-    if final_sample_rate == -1:
+    if get_query_plan(conn, query.query, dbms, pq.largest_table):
         final_sample_rate = 1
-        logging.info(f"fail to solve sample rate, fall back to original queries")
-    elif final_sample_rate*100 > get_largest_sample_rate(dbms):
-        logging.info(f"too big sample rate {final_sample_rate*100}, fall back to original queries")
-        final_sample_rate = 1
+        logging.info(f"retrieving query plan time: {timer.check('query_plan_time')}")
+        subquery_results = {}
+    else:      
+        # execute subqueries
+        subquery_results = process_subqueries(dbms, conn, pq)
+
+        # execute pilot query
+        for subquery_name, subquery_result in subquery_results.items():
+            pilot_query = pilot_query.replace(subquery_name, subquery_result)
+        
+        if dbms != 'sqlserver':
+            logging.info(f"pilot query:\n{transpile(pilot_query, read=dbms, pretty=True)[0]}")
+
+        pilot_results = execute_query(conn, pilot_query, dbms)
+        # dump_results(result_file=get_result_file_path("./results", query.name, job_id, "pilot", dbms), 
+        #              results_df=pilot_results)
+        logging.info(f"pilot query executing time: {timer.check('pilot_query_execution')}")
+
+        # parse the results of pilot query
+        page_errors = aggregate_error_to_page_error(pq.result_mapping_list)
+        logging.info(f"converted page errors: {page_errors}")
+        final_sample_rate = estimate_final_rate(failure_prob=0.05, pilot_results=pilot_results, page_errors=page_errors,
+                                                group_cols=pq.group_cols, pilot_rate=pilot_sample_rate/100, limit=pq.limit_value)
+        logging.info(f"sample rate solving time: {timer.check('sampling_rate_solving')}")
+
+        if final_sample_rate == -1:
+            final_sample_rate = 1
+            logging.info(f"fail to solve sample rate, fall back to original queries")
+        elif final_sample_rate*100 > get_largest_sample_rate(dbms):
+            logging.info(f"too big sample rate {final_sample_rate*100}, fall back to original queries")
+            final_sample_rate = 1
     
     if final_sample_rate == 1:
         sampling_query = sampling_query.format(sampling_method="", sample_rate="1")

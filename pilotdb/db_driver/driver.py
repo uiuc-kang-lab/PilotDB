@@ -48,3 +48,7 @@ def get_sampling_clause(rate: float, dbms: str) -> str|None:
         return f"TABLESAMPLE ({rate} PERCENT)"
     else:
         ValueError(f"Unknown DBMS: {dbms}")
+        
+def get_query_plan(conn, query: str, dbms: str, largest_table: str):
+    if dbms == 'sqlserver':
+        return sqlserver_utils.is_index_seek(conn, query, largest_table)
