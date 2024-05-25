@@ -1,0 +1,5 @@
+dbms: sqlserver
+dbname: clickhouse
+username: sa
+host: localhost
+password: Teng0707!
