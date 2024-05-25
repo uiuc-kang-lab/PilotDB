@@ -1,1 +1,7 @@
-SELECT UserID, SearchPhrase, COUNT(*) FROM hits GROUP BY UserID, SearchPhrase LIMIT 10;
+SELECT TOP 10
+  UserID,
+  SearchPhrase,
+  COUNT(*)
+FROM hits
+GROUP BY UserID,
+  SearchPhrase;
