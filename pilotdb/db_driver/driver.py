@@ -49,6 +49,8 @@ def get_sampling_clause(rate: float, dbms: str) -> str|None:
     else:
         ValueError(f"Unknown DBMS: {dbms}")
         
-def get_query_plan(conn, query: str, dbms: str, largest_table: str):
+def directly_run_exact(conn, query: str, pilot_query: str, dbms: str, largest_table: str):
     if dbms == 'sqlserver':
         return sqlserver_utils.is_index_seek(conn, query, largest_table)
+    elif dbms == 'postgres':
+        return postgres_utils.is_high_estimated_cost(conn, query, pilot_query)
