@@ -29,11 +29,11 @@ def dump_results(result_file: str, results_df: pd.DataFrame):
 
 def get_largest_sample_rate(dbms: str) -> float:
     if dbms == POSTGRES:
-        return 10
+        return 5
     elif dbms == DUCKDB:
         return 75
     elif dbms == SQLSERVER:
-        return 10
+        return 5
     else:
         return 10
     
