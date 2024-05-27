@@ -34,7 +34,7 @@ def execute_aqp(query: Query, db_config: dict, pilot_sample_rate: float=0.05):
     setup_logging(log_file=get_log_file_path("logs", query.name, job_id))
     log_query_info(query, dbms)
     pq.log_info()
-    if get_query_plan(conn, query.query, dbms, pq.largest_table):
+    if directly_run_exact(conn, query.query, pilot_query, dbms, pq.largest_table):
         final_sample_rate = 1
         logging.info(f"retrieving query plan time: {timer.check('query_plan_time')}")
         subquery_results = {}
