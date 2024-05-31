@@ -22,10 +22,10 @@ if __name__ == "__main__":
         query_str = f.read()
     
     if args.query == "ssb-1.1":
-        meta_path = "../../postgres/ssb/meta.json"
+        meta_path = "../../benchmarks/postgres/ssb/meta.json"
         db_config_path = "../../db_configs/postgres_ssb.yml"
     else:
-        meta_path = "../../postgres/tpch/meta.json"
+        meta_path = "../../benchmarks/postgres/tpch/meta.json"
         db_config_path = "../../db_configs/postgres_tpch.yml"
 
     with open(meta_path, "r") as f:
