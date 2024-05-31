@@ -55,9 +55,9 @@ def execute_aqp(query: Query, db_config: dict, pilot_sample_rate: float=0.05):
         logging.info(f"pilot query executing time: {timer.check('pilot_query_execution')}")
 
         # parse the results of pilot query
-        page_errors = aggregate_error_to_page_error(pq.result_mapping_list)
+        page_errors = aggregate_error_to_page_error(pq.result_mapping_list, required_error=query.error)
         logging.info(f"converted page errors: {page_errors}")
-        final_sample_rate = estimate_final_rate(failure_prob=0.05, pilot_results=pilot_results, page_errors=page_errors,
+        final_sample_rate = estimate_final_rate(failure_prob=query.failure_probability, pilot_results=pilot_results, page_errors=page_errors,
                                                 group_cols=pq.group_cols, pilot_rate=pilot_sample_rate/100, limit=pq.limit_value)
         logging.info(f"sample rate solving time: {timer.check('sampling_rate_solving')}")
 
@@ -67,7 +67,6 @@ def execute_aqp(query: Query, db_config: dict, pilot_sample_rate: float=0.05):
         elif final_sample_rate*100 > get_largest_sample_rate(dbms):
             logging.info(f"too big sample rate {final_sample_rate*100}, fall back to original queries")
             final_sample_rate = 1
-    
     if final_sample_rate == 1:
         sampling_query = sampling_query.format(sampling_method="", sample_rate="1")
         for subquery_name, subquery_result in subquery_results.items():
@@ -105,6 +104,7 @@ def execute_aqp(query: Query, db_config: dict, pilot_sample_rate: float=0.05):
     with open("all_results.jsonl", "a+") as f:
         result = {"query": query.name, "dbms": dbms, "pilot_sample_rate": pilot_sample_rate, "final_sample_rate": final_sample_rate,
                   "runtime": timer.get_records(),
+                  "error": query.error, "failure_probability": query.failure_probability,
                   "results_file": get_result_file_path("./results", query.name, job_id, "aqp", dbms)}
         f.write(json.dumps(result) + "\n")
 
@@ -154,6 +154,7 @@ def execute_exact(query: Query, db_config: dict):
 
     with open("all_results.jsonl", "a+") as f:
         result = {"query": query.name, "dbms": dbms, "runtime": timer.get_records(),
+                  "error": query.error, "failure_probability": query.failure_probability,
                   "results_file": get_result_file_path("./results", query.name, job_id, "exact", dbms)}
         f.write(json.dumps(result) + "\n")
 
