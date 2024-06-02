@@ -6,6 +6,7 @@ import yaml
 warnings.simplefilter(action='ignore', category=UserWarning)
 
 from pilotdb.execute import execute_aqp, execute_exact
+from pilotdb.execute_oracle import execute_oracle_aqp
 from pilotdb.query import Query
 
 if __name__ == "__main__":
@@ -38,3 +39,5 @@ if __name__ == "__main__":
         execute_aqp(query, db_config, args.pilot_sample_rate)
     elif args.process_mode == "exact":
         execute_exact(query, db_config)
+    elif args.process_mode == "oracle":
+        execute_oracle_aqp(query, db_config)
