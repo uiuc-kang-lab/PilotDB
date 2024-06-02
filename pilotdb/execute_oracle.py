@@ -134,7 +134,7 @@ def execute_sample_only(query: Query, sample_rate: float, db_config: dict):
     sampling_query = sq.rewrite(query.query) + ";"
 
     subquery_results = process_subqueries(dbms, conn, sq)
-    if final_sample_rate == 100:
+    if sample_rate == 100:
         sampling_query = sampling_query.format(sampling_method="", sample_rate="1")
     else:
         sampling_query = sampling_query.format(sampling_method=get_sampling_clause(sample_rate, dbms), 
