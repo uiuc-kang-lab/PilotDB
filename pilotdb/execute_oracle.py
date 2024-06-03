@@ -137,7 +137,7 @@ def execute_sample_only(query: Query, sample_rate: float, db_config: dict):
     if sample_rate == 100:
         sampling_query = sampling_query.format(sampling_method="", sample_rate="1")
     else:
-        sampling_query = sampling_query.format(sampling_method=get_sampling_clause(sample_rate, dbms), 
+        sampling_query = sampling_query.format(sampling_method=get_sampling_clause(sample_rate*100, dbms), 
                                             sample_rate=sample_rate)
     for subquery_name, subquery_result in subquery_results.items():
         sampling_query = sampling_query.replace(subquery_name, subquery_result)
