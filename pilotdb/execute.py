@@ -34,7 +34,11 @@ def execute_aqp(query: Query, db_config: dict, pilot_sample_rate: float=0.05):
     setup_logging(log_file=get_log_file_path("logs", query.name, job_id))
     log_query_info(query, dbms)
     pq.log_info()
-    if directly_run_exact(conn, query.query, pilot_query, dbms, pq.largest_table):
+    if not pq.is_rewritable:
+        final_sample_rate = 1
+        sampling_query = query.query
+        subquery_results = {}
+    elif directly_run_exact(conn, query.query, pilot_query, dbms, pq.largest_table):
         final_sample_rate = 1
         logging.info(f"retrieving query plan time: {timer.check('query_plan_time')}")
         subquery_results = {}
@@ -94,11 +98,11 @@ def execute_aqp(query: Query, db_config: dict, pilot_sample_rate: float=0.05):
             sampling_query = sampling_query.replace(subquery_name, subquery_result)
         results_df = execute_query(conn, sampling_query, dbms)
         logging.info(f"sampling execution time: {timer.check('sampling_query_execution')}")
-    logging.info(f"aqp result:\n{results_df}")
 
     timer.stop()
     close_connection(conn, dbms)
     
+    logging.info(f"aqp result:\n{results_df}")
     dump_results(result_file=get_result_file_path("./results", query.name, job_id, "aqp", dbms), 
                  results_df=results_df)
     
