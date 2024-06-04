@@ -6,38 +6,39 @@ import yaml
 warnings.simplefilter(action='ignore', category=UserWarning)
 
 from pilotdb.execute import execute_aqp, execute_exact
-from pilotdb.execute_oracle import execute_oracle_aqp
 from pilotdb.query import Query
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description='Run pilotdb on a benchmark query')
-    parser.add_argument('--benchmark', type=str, default="tpch", help='benchmark name')
-    parser.add_argument('--qid', type=str, default="1", help='query id')
+    parser = argparse.ArgumentParser(description='Run correctness experiments for pilotdb')
+    parser.add_argument('--query', type=str, default="tpch-6", help='query to run')
     parser.add_argument('--pilot_sample_rate', type=float, default=0.05, help='pilot sample rate')
-    parser.add_argument('--dbms', type=str, default='postgres', help='dbms')
-    parser.add_argument('--db_config_file', type=str, default='db_configs/postgres_tpch.yml', help='db config file')
     parser.add_argument('--process_mode', type=str, default='aqp', help='query mode')
     parser.add_argument('--error', type=float, default=0.05, help='error rate')
     parser.add_argument('--failure_probability', type=float, default=0.05, help='failure probability')
 
     args = parser.parse_args()
 
-    with open(f"benchmarks/{args.dbms}/{args.benchmark}/query_{args.qid}.sql", "r") as f:
+    with open(f"{args.query}.sql", "r") as f:
         query_str = f.read()
     
-    with open(f"benchmarks/{args.dbms}/{args.benchmark}/meta.json", "r") as f:
+    if args.query == "ssb-1.1":
+        meta_path = "../../benchmarks/postgres/ssb/meta.json"
+        db_config_path = "../../db_configs/postgres_ssb.yml"
+    else:
+        meta_path = "../../benchmarks/postgres/tpch/meta.json"
+        db_config_path = "../../db_configs/postgres_tpch.yml"
+
+    with open(meta_path, "r") as f:
         meta = json.load(f)
 
-    query = Query(name=f"{args.benchmark}-{args.qid}", query=query_str,
+    query = Query(name=args.query, query=query_str,
                   table_cols=meta["table_cols"], table_size=meta["table_size"],
                   error=args.error, failure_probability=args.failure_probability)
     
-    with open(args.db_config_file, "r") as f:
+    with open(db_config_path, "r") as f:
         db_config = yaml.safe_load(f)
 
     if args.process_mode == "aqp":
         execute_aqp(query, db_config, args.pilot_sample_rate)
     elif args.process_mode == "exact":
         execute_exact(query, db_config)
-    elif args.process_mode == "oracle":
-        execute_oracle_aqp(query, db_config)
