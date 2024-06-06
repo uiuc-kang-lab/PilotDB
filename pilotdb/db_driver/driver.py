@@ -50,6 +50,14 @@ def get_sampling_clause(rate: float, dbms: str) -> str|None:
         return f"TABLESAMPLE ({rate} PERCENT)"
     else:
         ValueError(f"Unknown DBMS: {dbms}")
+
+def get_uniform_sampling_clause(rate: float, dbms: str) -> str|None:
+    if dbms == "duckdb":
+        return f"TABLESAMPLE bernoulli({rate}%)"
+    elif dbms == "postgres":
+        return f"TABLESAMPLE ({rate})"
+    else:
+        ValueError(f"Unknown DBMS: {dbms}")
         
 def directly_run_exact(conn, query: str, pilot_query: str, dbms: str, largest_table: str):
     if dbms == 'sqlserver':

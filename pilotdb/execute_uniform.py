@@ -19,9 +19,10 @@ import importlib.util
 import sys
 
 def uniform_rewriter(dbms: str, query_name: str):
-    spec = importlib.util.spec_from_file_location("query_rewriter", "benchmarks/sqlserver/uniform/tpch-1.py")
+    spec = importlib.util.spec_from_file_location("query_rewriter", f"benchmarks/{dbms}/uniform/{query_name}.py")
     query_rewriter = importlib.util.module_from_spec(spec)
     sys.modules["query_rewriter"] = query_rewriter
+    spec.loader.exec_module(query_rewriter)
     return query_rewriter
 
 def execute_uniform(query: Query, db_config: dict, pilot_sample_rate: float=0.05):
@@ -35,7 +36,7 @@ def execute_uniform(query: Query, db_config: dict, pilot_sample_rate: float=0.05
 
     sq = Sampling_Rewriter(query.table_cols, query.table_size, dbms)
     sampling_query = sq.rewrite(query.query) + ";"
-    sampling_clause = get_sampling_clause(pilot_sample_rate, dbms)
+    sampling_clause = get_uniform_sampling_clause(pilot_sample_rate, dbms)
     pilot_query = pilot_query.format(sampling_method=sampling_clause)
 
     # start execution
@@ -91,7 +92,7 @@ def execute_uniform(query: Query, db_config: dict, pilot_sample_rate: float=0.05
     elif final_sample_rate*100 > pilot_sample_rate:
         final_sample_rate = round(final_sample_rate*100, 2)
         logging.info(f"final sample rate: {final_sample_rate}")
-        sampling_clause = get_sampling_clause(final_sample_rate, dbms)
+        sampling_clause = get_uniform_sampling_clause(final_sample_rate, dbms)
         sampling_query = sampling_query.format(sampling_method=sampling_clause, sample_rate=final_sample_rate/100)
         for subquery_name, subquery_result in subquery_results.items():
             sampling_query = sampling_query.replace(subquery_name, subquery_result)
@@ -101,7 +102,7 @@ def execute_uniform(query: Query, db_config: dict, pilot_sample_rate: float=0.05
     else:
         logging.info(f"final sample rate: {final_sample_rate}, pilot sampling is large enough")
         # FIXME: directly translate pilot results instead of running sampling again
-        sampling_clause = get_sampling_clause(pilot_sample_rate, dbms)
+        sampling_clause = get_uniform_sampling_clause(pilot_sample_rate, dbms)
         sampling_query = sampling_query.format(sampling_method=sampling_clause, sample_rate=pilot_sample_rate/100)
         for subquery_name, subquery_result in subquery_results.items():
             sampling_query = sampling_query.replace(subquery_name, subquery_result)
