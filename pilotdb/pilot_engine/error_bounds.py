@@ -126,5 +126,23 @@ def estimate_final_rate(failure_prob: float, pilot_results: pd.DataFrame, page_e
         return -1
     return max(candidate_sample_rate)
 
+def estimate_final_rate_uniform(failure_prob: float, pilot_results: pd.DataFrame, 
+                                page_errors: Dict, 
+                                pilot_rate: float=0.0001):
+    max_sample_rate = 0
+    for group_id, row in pilot_results.iterrows():
+        for col, error in page_errors.items():
+            if col == "size":
+                sample_size = row[col].iloc[0]
+                final_sample_rate = get_bernoulli_N_sample_rate(error, failure_prob, failure_prob, pilot_rate, sample_size)
+                max_sample_rate = max(max_sample_rate, final_sample_rate)
+            else:
+                sample_mean = row[col].iloc[0]
+                sample_std = row[col.replace("avg", "std")].iloc[0]
+                sample_size = row["size"].iloc[0]
+                final_sample_size = get_mean_sample_size(error, failure_prob, failure_prob, pilot_rate, sample_mean, sample_std, sample_size)
+                final_sample_rate = get_sample_rate(failure_prob, final_sample_size, pilot_rate, sample_size)
+            max_sample_rate = max(max_sample_rate, final_sample_rate)
+    return max_sample_rate
 if __name__ == "__main__":
     print(get_sample_rate(0.025, 300, 0.0001, 30))

@@ -12,7 +12,7 @@ select
     stdev(l_discount) as std_5,
     COUNT_BIG(*) as sample_size
 from
-    lineitem
+    lineitem {sampling_method}
 where
     l_shipdate <= DATEADD(day, -90, '1998-12-01')
 group by
@@ -24,12 +24,14 @@ order by
 """
 
 results_mapping = [
-    {"agg": "sum", "mean": "avg_1", "std": "std_1", "size": "sample_size"},
-    {"agg": "sum", "mean": "avg_2", "std": "std_2", "size": "sample_size"},
-    {"agg": "sum", "mean": "avg_3", "std": "std_3", "size": "sample_size"},
-    {"agg": "sum", "mean": "avg_4", "std": "std_4", "size": "sample_size"},
-    {"agg": "avg", "avg": "avg_3", "std": "std_3"},
-    {"agg": "avg", "avg": "avg_4", "std": "std_4"},
-    {"agg": "avg", "avg": "avg_5", "std": "std_5"},
-    {"agg": "count", "size": "sample_size"}
+    {"aggregate": "sum", "mean": "avg_1", "std": "std_1", "size": "sample_size"},
+    {"aggregate": "sum", "mean": "avg_2", "std": "std_2", "size": "sample_size"},
+    {"aggregate": "sum", "mean": "avg_3", "std": "std_3", "size": "sample_size"},
+    {"aggregate": "sum", "mean": "avg_4", "std": "std_4", "size": "sample_size"},
+    {"aggregate": "avg", "avg": "avg_3", "std": "std_3"},
+    {"aggregate": "avg", "avg": "avg_4", "std": "std_4"},
+    {"aggregate": "avg", "avg": "avg_5", "std": "std_5"},
+    {"aggregate": "count", "size": "sample_size"}
 ]
+
+subquery_dict = []

@@ -7,6 +7,7 @@ warnings.simplefilter(action='ignore', category=UserWarning)
 
 from pilotdb.execute import execute_aqp, execute_exact
 from pilotdb.execute_oracle import execute_oracle_aqp
+from pilotdb.execute_uniform import execute_uniform
 from pilotdb.query import Query
 
 if __name__ == "__main__":
@@ -41,3 +42,5 @@ if __name__ == "__main__":
         execute_exact(query, db_config)
     elif args.process_mode == "oracle":
         execute_oracle_aqp(query, db_config)
+    elif args.process_mode == "uniform":
+        execute_uniform(query, db_config)
