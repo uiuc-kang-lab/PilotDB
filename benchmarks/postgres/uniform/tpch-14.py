@@ -1,10 +1,18 @@
 pilot_query = '''
 select
-    100.00 * sum(case
+    avg(case
         when p_type like 'PROMO%'
             then l_extendedprice * (1 - l_discount)
         else 0
-    end) / sum(l_extendedprice * (1 - l_discount)) as promo_revenue
+    end) as avg_1,
+    stdev(case
+        when p_type like 'PROMO%'
+            then l_extendedprice * (1 - l_discount)
+        else 0
+    end) as std_1,
+    avg(l_extendedprice * (1 - l_discount)) as avg_2,
+    stdev(l_extendedprice * (1 - l_discount)) as std_2,
+    count(*) as sample_size
 from
     lineitem,
     part
@@ -15,8 +23,7 @@ where
 '''
 
 results_mapping = [
-    {"aggregate": "sum", "mean": "avg_1", "std": "std_1", "size": "sample_size"},
-    {"aggregate": "sum", "mean": "avg_2", "std": "std_2", "size": "sample_size"}
+    {"aggregate": "div", "first_element": "avg_1", "second_element": "avg_2", "size": "sample_size"}
 ]
 
 subquery_dict = []

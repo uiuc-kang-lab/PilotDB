@@ -1,11 +1,17 @@
 pilot_query = '''
 select
     o_year,
-    sum(case
+    avg(case
         when nation = 'BRAZIL' then volume
         else 0
-    end),
-    sum(volume) as mkt_share
+    end) as avg_1,
+    stdev(case
+        when nation = 'BRAZIL' then volume
+        else 0
+    end) as std_1,
+    avg(volume) as avg_2,
+    stdev(volume) as std_2,
+    count(*) as sample_size
 from
     (
         select
@@ -40,7 +46,7 @@ order by
 '''
 
 results_mapping = [
-    {"aggregate": "sum", "mean": "avg_1", "std": "std_1", "size": "sample_size"}
+    {"aggregate": "div", "first_element": "avg_1", "second_element": "avg_2", "size": "sample_size"}
 ]
 
 subquery_dict = []
