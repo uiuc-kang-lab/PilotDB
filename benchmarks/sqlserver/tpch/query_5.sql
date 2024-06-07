@@ -16,8 +16,8 @@ where
     and s_nationkey = n_nationkey
     and n_regionkey = r_regionkey
     and r_name = 'ASIA'
-    and o_orderdate >= date '1994-01-01'
-    and o_orderdate < date '1994-01-01' + interval '1' year
+    AND o_orderdate >= '1994-01-01'
+    AND o_orderdate < DATEADD(year, 1, '1994-01-01')
 group by
     n_name
 order by
