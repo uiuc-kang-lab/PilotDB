@@ -1,0 +1,3 @@
+dbms: duckdb
+path: /mydata/data/clickbench.duckdb
+flush_memory: True
