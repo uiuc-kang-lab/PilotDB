@@ -1,7 +1,7 @@
 pilot_query = '''
 select
     avg(l_extendedprice* (1 - l_discount)) as avg_1,
-    stdev(l_extendedprice* (1 - l_discount)) as std_1
+    stddev(l_extendedprice* (1 - l_discount)) as std_1
 from
     lineitem {sampling_method},
     part
