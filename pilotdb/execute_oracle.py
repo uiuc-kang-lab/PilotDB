@@ -4,7 +4,7 @@ from pilotdb.utils.timer import Timer
 from pilotdb.db_driver.driver import *
 from pilotdb.pilot_engine.commons import *
 from pilotdb.pilot_engine.rewriter.pilot import Pilot_Rewriter
-from pilotdb.pilot_engine.error_bounds import estimate_final_rate
+from pilotdb.pilot_engine.error_bounds import estimate_final_rate, estimate_final_rate_oracle_tpch1
 from pilotdb.pilot_engine.rewriter.sampling import Sampling_Rewriter
 from pilotdb.pilot_engine.utils import aggregate_error_to_page_error
 from pilotdb.utils.utils import setup_logging, dump_results, get_largest_sample_rate
@@ -42,24 +42,107 @@ def execute_oracle_aqp(query: Query, db_config: dict, pilot_sample_rate: float=1
         final_sample_rate = 100
         logging.info(f"retrieving query plan time: {timer.check('query_plan_time')}")
         subquery_results = {}
-    else:      
-        # execute subqueries
-        subquery_results = process_subqueries(dbms, conn, pq)
+    else:
+        if query.name == "tpch-1" and (dbms == POSTGRES or dbms == SQLSERVER):
+            if dbms == POSTGRES:
+                pilot_query = """
+SELECT
+    AVG(r2) AS avg_1,
+    STDDEV(r2) AS std_1,
+    AVG(r3) AS avg_2,
+    STDDEV(r3) AS std_2,
+    AVG(r4) AS avg_3,
+    STDDEV(r4) AS std_3,
+    AVG(r5) AS avg_4,
+    STDDEV(r5) AS std_4,
+    AVG(r8) AS avg_1,
+    STDDEV(r8) AS std_5,
+    AVG(r9) AS avg_6,
+    STDDEV(r9) AS std_6,
+    COUNT(*) AS n_page
+FROM (
+    SELECT 
+        l_returnflag AS r0, 
+        l_linestatus AS r1, 
+        SUM(l_quantity) AS r2, 
+        SUM(l_extendedprice) AS r3, 
+        SUM(l_extendedprice * (1 - l_discount)) AS r4, 
+        SUM(l_extendedprice * (1 - l_discount) * (1 + l_tax)) AS r5, 
+        SUM(l_discount) AS r8, 
+        COUNT(*) AS r9, 
+        CAST((CAST(CAST(lineitem.ctid AS TEXT) AS point))[0] AS INT) AS page_id_0 
+    FROM lineitem TABLESAMPLE SYSTEM (0.05) 
+    WHERE l_shipdate <= CAST('1998-12-01' AS DATE) - INTERVAL '90' DAY 
+    GROUP BY l_returnflag, l_linestatus, page_id_0
+)
+GROUP BY l_returnflag, l_linestatus;
+"""
+            else:
+                pilot_query = """
+SELECT
+    AVG(r2) AS avg_1,
+    STDDEV(r2) AS std_1,
+    AVG(r3) AS avg_2,
+    STDDEV(r3) AS std_2,
+    AVG(r4) AS avg_3,
+    STDDEV(r4) AS std_3,
+    AVG(r5) AS avg_4,
+    STDDEV(r5) AS std_4,
+    AVG(r8) AS avg_1,
+    STDDEV(r8) AS std_5,
+    AVG(r9) AS avg_6,
+    STDDEV(r9) AS std_6,
+    COUNT(*) AS n_page
+FROM (
+    SELECT 
+        l_returnflag AS r0, 
+        l_linestatus AS r1, 
+        SUM(l_quantity) AS r2, 
+        SUM(l_extendedprice) AS r3, 
+        SUM(l_extendedprice * (1 - l_discount)) AS r4, 
+        SUM(l_extendedprice * (1 - l_discount) * (1 + l_tax)) AS r5, 
+        SUM(l_discount) AS r8, 
+        COUNT_BIG(*) AS r9, 
+        CAST(CAST(SUBSTRING(lineitem.%%physloc%%, 6, 1)
+                    + SUBSTRING(lineitem.%%physloc%%, 5, 1) AS int) AS VARCHAR) 
+                    + '||' + CAST(CAST(SUBSTRING(lineitem.%%physloc%%, 4, 1) 
+                    + SUBSTRING(lineitem.%%physloc%%, 3, 1) + SUBSTRING(lineitem.%%physloc%%, 2, 1) 
+                    + SUBSTRING(lineitem.%%physloc%%, 1, 1) AS int) AS VARCHAR) AS page_id_0 
+    FROM lineitem TABLESAMPLE (0.05 PERCENT) 
+    WHERE l_shipdate <= CAST('1998-12-01' AS DATE) - INTERVAL '90' DAY 
+    GROUP BY l_returnflag, l_linestatus, 
+        CAST(CAST(SUBSTRING(lineitem.%%physloc%%, 6, 1)
+                    + SUBSTRING(lineitem.%%physloc%%, 5, 1) AS int) AS VARCHAR) 
+                    + '||' + CAST(CAST(SUBSTRING(lineitem.%%physloc%%, 4, 1) 
+                    + SUBSTRING(lineitem.%%physloc%%, 3, 1) + SUBSTRING(lineitem.%%physloc%%, 2, 1) 
+                    + SUBSTRING(lineitem.%%physloc%%, 1, 1) AS int) AS VARCHAR);
 
-        # execute pilot query
-        for subquery_name, subquery_result in subquery_results.items():
-            pilot_query = pilot_query.replace(subquery_name, subquery_result)
-        
-        logging.info(f"pilot query:\n{pilot_query}")
+)
+GROUP BY l_returnflag, l_linestatus;
+"""
+            logging.info(f"pilot query:\n{pilot_query}")
+            pilot_results = execute_query(conn, pilot_query, dbms)
+            logging.info(f"pilot query executing time: {timer.check('pilot_query_execution')}")
+            final_sample_rate = estimate_final_rate_oracle_tpch1(pilot_results)
+            
+        else:
+            # execute subqueries
+            subquery_results = process_subqueries(dbms, conn, pq)
 
-        pilot_results = execute_query(conn, pilot_query, dbms)
-        logging.info(f"pilot query executing time: {timer.check('pilot_query_execution')}")
+            # execute pilot query
+            for subquery_name, subquery_result in subquery_results.items():
+                pilot_query = pilot_query.replace(subquery_name, subquery_result)
+            
+            logging.info(f"pilot query:\n{pilot_query}")
 
-        # parse the results of pilot query
-        page_errors = aggregate_error_to_page_error(pq.result_mapping_list)
-        logging.info(f"converted page errors: {page_errors}")
-        final_sample_rate = estimate_final_rate(failure_prob=0.05, pilot_results=pilot_results, page_errors=page_errors,
-                                                group_cols=pq.group_cols, pilot_rate=pilot_sample_rate/100, limit=pq.limit_value)
+            pilot_results = execute_query(conn, pilot_query, dbms)
+            logging.info(f"pilot query executing time: {timer.check('pilot_query_execution')}")
+
+            # parse the results of pilot query
+            page_errors = aggregate_error_to_page_error(pq.result_mapping_list)
+            logging.info(f"converted page errors: {page_errors}")
+            final_sample_rate = estimate_final_rate(failure_prob=0.05, pilot_results=pilot_results, page_errors=page_errors,
+                                                    group_cols=pq.group_cols, pilot_rate=pilot_sample_rate/100, limit=pq.limit_value)
         logging.info(f"sample rate solving time: {timer.check('sampling_rate_solving')}")
 
         if final_sample_rate == -1:
