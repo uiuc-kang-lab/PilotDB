@@ -48,6 +48,6 @@ if __name__ == "__main__":
     elif args.process_mode == "sample":
         with open(f"./sample_rate.json", "r") as f:
             meta = json.load(f)
-        sample_rate_list = meta[db_config["dbms"]][db_config["dbname"]][f'query_{args.qid}']
+        sample_rate_list = meta[db_config["dbms"]][args.benchmark][f'query_{args.qid}']
         for sample_rate in sample_rate_list:
             execute_sample(query, sample_rate, db_config)
