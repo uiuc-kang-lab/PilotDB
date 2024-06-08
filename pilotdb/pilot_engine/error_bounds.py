@@ -73,7 +73,7 @@ def get_sample_rate(fp: float, sample_size: int, pilot_sample_rate: float, pilot
 def get_bernoulli_N_sample_rate(error, fp: float, fp1: float, pilot_sample_rate: float, pilot_sample_size: int):
     bernoulli_N_lb = get_bernoulli_N_lb(pilot_sample_size, pilot_sample_rate, fp1)
     z_val = norm.ppf(1-fp/2)
-    return 1 / (1 + error**2 * bernoulli_N_lb**3 / z_val**2)
+    return 1 / (1 + error**2 * bernoulli_N_lb / z_val**2)
 
 def estimate_final_rate(failure_prob: float, pilot_results: pd.DataFrame, page_errors: Dict, group_cols: List[str], 
                         pilot_rate: float=0.0001, limit: int|None=None):
@@ -92,6 +92,7 @@ def estimate_final_rate(failure_prob: float, pilot_results: pd.DataFrame, page_e
     n_groups = df.shape[0] if len(group_cols) > 0 else 1
     n_est = n_groups * (n_page_stats * 3 + page_size_stats*2 + 1)
     candidate_sample_rate = []
+    print(df)
     try:
         fp = 1 - math.pow(1-failure_prob, 1/n_est)
         for col, error in page_errors.items():
@@ -113,6 +114,7 @@ def estimate_final_rate(failure_prob: float, pilot_results: pd.DataFrame, page_e
                     sample_size = df[page_stats_cols[0]].iloc[2]
                     final_sample_rate = get_bernoulli_N_sample_rate(error, fp, fp, pilot_rate, sample_size)
                     candidate_sample_rate.append(final_sample_rate)
+                    print(f"final_sample_rate for {col}: {final_sample_rate}")
                 else:
                     sample_mean = df[col].iloc[0]
                     sample_std = df[col].iloc[1]
@@ -120,6 +122,8 @@ def estimate_final_rate(failure_prob: float, pilot_results: pd.DataFrame, page_e
                     final_sample_size = get_mean_sample_size(error, fp, fp, fp, sample_mean, sample_std, sample_size)
                     final_sample_rate = get_sample_rate(fp, final_sample_size, pilot_rate, sample_size)
                     candidate_sample_rate.append(final_sample_rate)
+                    print(f"final_sample_size for {col}: {final_sample_size}")
+                    print(f"final_sample_rate for {col}: {final_sample_rate}")
 
     except Exception as e:
         logging.info(f"fail to estimate final sample rate due to {e}")
