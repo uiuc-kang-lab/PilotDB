@@ -2,7 +2,7 @@ pilot_query = '''
 select
     n_name,
     avg(l_extendedprice * (1 - l_discount)) as avg_1,
-    stdev(l_extendedprice * (1 - l_discount)) as std_1,
+    stddev(l_extendedprice * (1 - l_discount)) as std_1,
 from
     customer,
     orders,

@@ -3,7 +3,7 @@ select
     nation,
     o_year,
     avg(amount) as avg_1,
-    stdev(amount) as std_1,
+    stddev(amount) as std_1,
 from
     (
         select

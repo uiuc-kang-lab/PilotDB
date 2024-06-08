@@ -4,7 +4,7 @@ select
     cust_nation,
     l_year,
     avg(volume) as avg_1,
-    stdev(volume) as std_1
+    stddev(volume) as std_1
 from
     (
         select

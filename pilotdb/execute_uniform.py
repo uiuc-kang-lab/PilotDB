@@ -70,7 +70,7 @@ def execute_uniform(query: Query, db_config: dict, pilot_sample_rate: float=0.05
     logging.info(f"pilot query executing time: {timer.check('pilot_query_execution')}")
 
     # parse the results of pilot query
-    errors = aggregate_error_uniform(pq.result_mapping_list, required_error=query.error)
+    errors = aggregate_error_uniform(pq.results_mapping, required_error=query.error)
     logging.info(f"converted page errors: {errors}")
     final_sample_rate = estimate_final_rate_uniform(failure_prob=query.failure_probability, pilot_results=pilot_results, page_errors=errors,
                                                     pilot_rate=pilot_sample_rate/100)

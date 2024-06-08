@@ -55,7 +55,7 @@ def get_uniform_sampling_clause(rate: float, dbms: str) -> str|None:
     if dbms == "duckdb":
         return f"TABLESAMPLE bernoulli({rate}%)"
     elif dbms == "postgres":
-        return f"TABLESAMPLE ({rate})"
+        return f"TABLESAMPLE BERNOULLI ({rate})"
     else:
         ValueError(f"Unknown DBMS: {dbms}")
         

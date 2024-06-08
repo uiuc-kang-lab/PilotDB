@@ -13,13 +13,13 @@ select
             then 1
         else 0
     end) as avg_2,
-    stdev(case
+    stddev(case
         when o_orderpriority = '1-URGENT'
             or o_orderpriority = '2-HIGH'
             then 1
         else 0
     end) as std_1,
-    stdev(case
+    stddev(case
         when o_orderpriority <> '1-URGENT'
             and o_orderpriority <> '2-HIGH'
             then 1
