@@ -34,7 +34,11 @@ def execute_oracle_aqp(query: Query, db_config: dict, pilot_sample_rate: float=1
     setup_logging(log_file=get_log_file_path("logs", query.name, job_id))
     log_query_info(query, dbms)
     pq.log_info()
-    if dbms == SQLSERVER and directly_run_exact(conn, query.query, pilot_query, dbms, pq.largest_table):
+    if dbms == DUCKDB and not pq.is_rewritable:
+        final_sample_rate = 100
+        sampling_query = query.query
+        subquery_results = {}
+    elif dbms == SQLSERVER and directly_run_exact(conn, query.query, pilot_query, dbms, pq.largest_table):
         final_sample_rate = 100
         logging.info(f"retrieving query plan time: {timer.check('query_plan_time')}")
         subquery_results = {}

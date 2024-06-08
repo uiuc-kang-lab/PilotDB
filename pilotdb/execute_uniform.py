@@ -4,9 +4,9 @@ from pilotdb.utils.timer import Timer
 from pilotdb.db_driver.driver import *
 from pilotdb.pilot_engine.commons import *
 from pilotdb.pilot_engine.rewriter.pilot import Pilot_Rewriter
-from pilotdb.pilot_engine.error_bounds import estimate_final_rate
+from pilotdb.pilot_engine.error_bounds import estimate_final_rate_uniform
 from pilotdb.pilot_engine.rewriter.sampling import Sampling_Rewriter
-from pilotdb.pilot_engine.utils import aggregate_error_to_page_error
+from pilotdb.pilot_engine.utils import aggregate_error_uniform
 from pilotdb.utils.utils import setup_logging, dump_results, get_largest_sample_rate
 
 import json
@@ -15,17 +15,28 @@ import logging
 import pandas as pd
 from typing import Dict
 from sqlglot import transpile
+import importlib.util
+import sys
 
-def execute_aqp(query: Query, db_config: dict, pilot_sample_rate: float=0.05):
+def uniform_rewriter(dbms: str, query_name: str):
+    spec = importlib.util.spec_from_file_location("query_rewriter", f"benchmarks/{dbms}/uniform/{query_name}.py")
+    query_rewriter = importlib.util.module_from_spec(spec)
+    sys.modules["query_rewriter"] = query_rewriter
+    spec.loader.exec_module(query_rewriter)
+    return query_rewriter
+
+def execute_uniform(query: Query, db_config: dict, pilot_sample_rate: float=0.05):
     # prepare the query and db
     dbms = db_config["dbms"]
     conn = connect_to_db(dbms, db_config)
     
-    pq = Pilot_Rewriter(query.table_cols, query.table_size, dbms)
+    # FIXME: query rewriter for uniform sampling
+    pq = uniform_rewriter(dbms, query.name)
+    pilot_query = pq.pilot_query + ";"
+
     sq = Sampling_Rewriter(query.table_cols, query.table_size, dbms)
-    pilot_query = pq.rewrite(query.query) + ";"
     sampling_query = sq.rewrite(query.query) + ";"
-    sampling_clause = get_sampling_clause(pilot_sample_rate, dbms)
+    sampling_clause = get_uniform_sampling_clause(pilot_sample_rate, dbms)
     pilot_query = pilot_query.format(sampling_method=sampling_clause)
 
     # start execution
@@ -33,44 +44,44 @@ def execute_aqp(query: Query, db_config: dict, pilot_sample_rate: float=0.05):
     job_id = str(int(timer.start()*100))
     setup_logging(log_file=get_log_file_path("logs", query.name, job_id))
     log_query_info(query, dbms)
-    pq.log_info()
-    if dbms == DUCKDB and not pq.is_rewritable:
+    # pq.log_info()
+    # if not pq.is_rewritable:
+    #     final_sample_rate = 1
+    #     sampling_query = query.query
+    #     subquery_results = {}
+    # elif directly_run_exact(conn, query.query, pilot_query, dbms, pq.largest_table):
+    #     final_sample_rate = 1
+    #     logging.info(f"retrieving query plan time: {timer.check('query_plan_time')}")
+    #     subquery_results = {}
+    # else:      
+    # execute subqueries
+    subquery_results = process_subqueries(dbms, conn, pq)
+
+    # execute pilot query
+    for subquery_name, subquery_result in subquery_results.items():
+        pilot_query = pilot_query.replace(subquery_name, subquery_result)
+    
+    if dbms != 'sqlserver':
+        logging.info(f"pilot query:\n{transpile(pilot_query, read=dbms, pretty=True)[0]}")
+
+    pilot_results = execute_query(conn, pilot_query, dbms)
+    # dump_results(result_file=get_result_file_path("./results", query.name, job_id, "pilot", dbms), 
+    #              results_df=pilot_results)
+    logging.info(f"pilot query executing time: {timer.check('pilot_query_execution')}")
+
+    # parse the results of pilot query
+    errors = aggregate_error_uniform(pq.results_mapping, required_error=query.error)
+    logging.info(f"converted page errors: {errors}")
+    final_sample_rate = estimate_final_rate_uniform(failure_prob=query.failure_probability, pilot_results=pilot_results, page_errors=errors,
+                                                    pilot_rate=pilot_sample_rate/100)
+    logging.info(f"sample rate solving time: {timer.check('sampling_rate_solving')}")
+
+    if final_sample_rate == -1:
         final_sample_rate = 1
-        sampling_query = query.query
-        subquery_results = {}
-    elif directly_run_exact(conn, query.query, pilot_query, dbms, pq.largest_table):
+        logging.info(f"fail to solve sample rate, fall back to original queries")
+    elif final_sample_rate*100 > get_largest_sample_rate(dbms):
+        logging.info(f"too big sample rate {final_sample_rate*100}, fall back to original queries")
         final_sample_rate = 1
-        logging.info(f"retrieving query plan time: {timer.check('query_plan_time')}")
-        subquery_results = {}
-    else:      
-        # execute subqueries
-        subquery_results = process_subqueries(dbms, conn, pq)
-
-        # execute pilot query
-        for subquery_name, subquery_result in subquery_results.items():
-            pilot_query = pilot_query.replace(subquery_name, subquery_result)
-        
-        if dbms != 'sqlserver':
-            logging.info(f"pilot query:\n{transpile(pilot_query, read=dbms, pretty=True)[0]}")
-
-        pilot_results = execute_query(conn, pilot_query, dbms)
-        # dump_results(result_file=get_result_file_path("./results", query.name, job_id, "pilot", dbms), 
-        #              results_df=pilot_results)
-        logging.info(f"pilot query executing time: {timer.check('pilot_query_execution')}")
-
-        # parse the results of pilot query
-        page_errors = aggregate_error_to_page_error(pq.result_mapping_list, required_error=query.error)
-        logging.info(f"converted page errors: {page_errors}")
-        final_sample_rate = estimate_final_rate(failure_prob=query.failure_probability, pilot_results=pilot_results, page_errors=page_errors,
-                                                group_cols=pq.group_cols, pilot_rate=pilot_sample_rate/100, limit=pq.limit_value)
-        logging.info(f"sample rate solving time: {timer.check('sampling_rate_solving')}")
-
-        if final_sample_rate == -1:
-            final_sample_rate = 1
-            logging.info(f"fail to solve sample rate, fall back to original queries")
-        elif final_sample_rate*100 > get_largest_sample_rate(dbms):
-            logging.info(f"too big sample rate {final_sample_rate*100}, fall back to original queries")
-            final_sample_rate = 1
     if final_sample_rate == 1:
         sampling_query = sampling_query.format(sampling_method="", sample_rate="1")
         for subquery_name, subquery_result in subquery_results.items():
@@ -81,7 +92,7 @@ def execute_aqp(query: Query, db_config: dict, pilot_sample_rate: float=0.05):
     elif final_sample_rate*100 > pilot_sample_rate:
         final_sample_rate = round(final_sample_rate*100, 2)
         logging.info(f"final sample rate: {final_sample_rate}")
-        sampling_clause = get_sampling_clause(final_sample_rate, dbms)
+        sampling_clause = get_uniform_sampling_clause(final_sample_rate, dbms)
         sampling_query = sampling_query.format(sampling_method=sampling_clause, sample_rate=final_sample_rate/100)
         for subquery_name, subquery_result in subquery_results.items():
             sampling_query = sampling_query.replace(subquery_name, subquery_result)
@@ -91,7 +102,7 @@ def execute_aqp(query: Query, db_config: dict, pilot_sample_rate: float=0.05):
     else:
         logging.info(f"final sample rate: {final_sample_rate}, pilot sampling is large enough")
         # FIXME: directly translate pilot results instead of running sampling again
-        sampling_clause = get_sampling_clause(pilot_sample_rate, dbms)
+        sampling_clause = get_uniform_sampling_clause(pilot_sample_rate, dbms)
         sampling_query = sampling_query.format(sampling_method=sampling_clause, sample_rate=pilot_sample_rate/100)
         for subquery_name, subquery_result in subquery_results.items():
             sampling_query = sampling_query.replace(subquery_name, subquery_result)
@@ -102,14 +113,14 @@ def execute_aqp(query: Query, db_config: dict, pilot_sample_rate: float=0.05):
     close_connection(conn, dbms)
     
     logging.info(f"aqp result:\n{results_df}")
-    dump_results(result_file=get_result_file_path("./results", query.name, job_id, "aqp", dbms), 
+    dump_results(result_file=get_result_file_path("./results", query.name, job_id, "uniform", dbms), 
                  results_df=results_df)
     
     with open("all_results.jsonl", "a+") as f:
         result = {"query": query.name, "dbms": dbms, "pilot_sample_rate": pilot_sample_rate, "final_sample_rate": final_sample_rate,
                   "runtime": timer.get_records(),
                   "error": query.error, "failure_probability": query.failure_probability,
-                  "results_file": get_result_file_path("./results", query.name, job_id, "aqp", dbms)}
+                  "results_file": get_result_file_path("./results", query.name, job_id, "uniform", dbms)}
         f.write(json.dumps(result) + "\n")
 
     return results_df, timer.get_records()
