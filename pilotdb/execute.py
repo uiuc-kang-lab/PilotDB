@@ -34,7 +34,7 @@ def execute_aqp(query: Query, db_config: dict, pilot_sample_rate: float=0.05):
     setup_logging(log_file=get_log_file_path("logs", query.name, job_id))
     log_query_info(query, dbms)
     pq.log_info()
-    if not pq.is_rewritable:
+    if dbms == DUCKDB and not pq.is_rewritable:
         final_sample_rate = 1
         sampling_query = query.query
         subquery_results = {}

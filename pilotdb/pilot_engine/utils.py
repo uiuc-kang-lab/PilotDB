@@ -74,7 +74,7 @@ def aggregate_error_uniform(column_mapping: List[Dict], required_error: float=0.
             if aggregate[ROW_MEAN] in errors:
                 errors[aggregate[ROW_MEAN]] = min(errors[aggregate[ROW_MEAN]], page_required_error)
             else:
-                errors[aggregate[PAGE_SUM]] = page_required_error
+                errors[aggregate[ROW_MEAN]] = page_required_error
 
             if ROW_COUNT in errors:
                 errors[aggregate[ROW_COUNT]] = min(errors[aggregate[ROW_COUNT]], page_required_error)
@@ -93,7 +93,7 @@ def aggregate_error_uniform(column_mapping: List[Dict], required_error: float=0.
             page_required_error = min(1-math.sqrt(1-required_error), 
                                       math.sqrt(required_error+1)-1)
 
-            if aggregate[PAGE_SIZE] in errors:
+            if aggregate[ROW_COUNT] in errors:
                 errors[aggregate[ROW_COUNT]] = min(errors[aggregate[ROW_COUNT]], page_required_error)
             else:
                 errors[aggregate[ROW_COUNT]] = page_required_error

@@ -19,9 +19,10 @@ import importlib.util
 import sys
 
 def uniform_rewriter(dbms: str, query_name: str):
-    spec = importlib.util.spec_from_file_location("query_rewriter", "benchmarks/sqlserver/uniform/tpch-1.py")
+    spec = importlib.util.spec_from_file_location("query_rewriter", f"benchmarks/{dbms}/uniform/{query_name}.py")
     query_rewriter = importlib.util.module_from_spec(spec)
     sys.modules["query_rewriter"] = query_rewriter
+    spec.loader.exec_module(query_rewriter)
     return query_rewriter
 
 def execute_uniform(query: Query, db_config: dict, pilot_sample_rate: float=0.05):
@@ -71,7 +72,7 @@ def execute_uniform(query: Query, db_config: dict, pilot_sample_rate: float=0.05
     logging.info(f"pilot query executing time: {timer.check('pilot_query_execution')}")
 
     # parse the results of pilot query
-    errors = aggregate_error_uniform(pq.result_mapping_list, required_error=query.error)
+    errors = aggregate_error_uniform(pq.results_mapping, required_error=query.error)
     logging.info(f"converted page errors: {errors}")
     final_sample_rate = estimate_final_rate_uniform(failure_prob=query.failure_probability, pilot_results=pilot_results, page_errors=errors,
                                                     pilot_rate=pilot_sample_rate/100)
@@ -93,7 +94,7 @@ def execute_uniform(query: Query, db_config: dict, pilot_sample_rate: float=0.05
     elif final_sample_rate*100 > pilot_sample_rate:
         final_sample_rate = round(final_sample_rate*100, 2)
         logging.info(f"final sample rate: {final_sample_rate}")
-        sampling_clause = get_sampling_clause(final_sample_rate, dbms)
+        sampling_clause = get_uniform_sampling_clause(final_sample_rate, dbms)
         sampling_query = sampling_query.format(sampling_method=sampling_clause, sample_rate=final_sample_rate/100)
         for subquery_name, subquery_result in subquery_results.items():
             sampling_query = sampling_query.replace(subquery_name, subquery_result)
@@ -103,7 +104,7 @@ def execute_uniform(query: Query, db_config: dict, pilot_sample_rate: float=0.05
     else:
         logging.info(f"final sample rate: {final_sample_rate}, pilot sampling is large enough")
         # FIXME: directly translate pilot results instead of running sampling again
-        sampling_clause = get_sampling_clause(pilot_sample_rate, dbms)
+        sampling_clause = get_uniform_sampling_clause(pilot_sample_rate, dbms)
         sampling_query = sampling_query.format(sampling_method=sampling_clause, sample_rate=pilot_sample_rate/100)
         for subquery_name, subquery_result in subquery_results.items():
             sampling_query = sampling_query.replace(subquery_name, subquery_result)

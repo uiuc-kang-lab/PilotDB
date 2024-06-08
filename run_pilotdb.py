@@ -8,6 +8,7 @@ warnings.simplefilter(action='ignore', category=UserWarning)
 from pilotdb.execute import execute_aqp, execute_exact
 from pilotdb.execute_oracle import execute_oracle_aqp
 from pilotdb.execute_uniform import execute_uniform
+from pilotdb.execute_sample import execute_sample
 from pilotdb.query import Query
 
 if __name__ == "__main__":
@@ -44,3 +45,9 @@ if __name__ == "__main__":
         execute_oracle_aqp(query, db_config)
     elif args.process_mode == "uniform":
         execute_uniform(query, db_config)
+    elif args.process_mode == "sample":
+        with open(f"./sample_rate.json", "r") as f:
+            meta = json.load(f)
+        sample_rate_list = meta[db_config["dbms"]][db_config["dbname"]][f'query_{args.qid}']
+        for sample_rate in sample_rate_list:
+            execute_sample(query, sample_rate, db_config)
