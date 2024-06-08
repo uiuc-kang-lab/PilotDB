@@ -150,11 +150,11 @@ def estimate_final_rate_uniform(failure_prob: float, pilot_results: pd.DataFrame
     return max_sample_rate
 
 def estimate_final_rate_oracle_tpch1(pilot_results: pd.DataFrame):
-    columns = ["avg_1", "avg_2", "avg_3", "avg_4", "avg_5"]
+    columns = ["avg_1", "avg_2", "avg_3", "avg_4", "avg_5", "avg_6"]
     max_sample_rate = 0
     n_groups = len(pilot_results)
     fp = 1 - math.pow(1-0.05, 1/n_groups/len(columns)/4)
-    for row in pilot_results.iterrows():
+    for it, row in pilot_results.iterrows():
         for col in columns:
             sample_mean = row[col]
             sample_std = row[col.replace("avg", "std")]
