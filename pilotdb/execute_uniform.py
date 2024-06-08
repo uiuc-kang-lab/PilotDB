@@ -35,7 +35,7 @@ def execute_uniform(query: Query, db_config: dict, pilot_sample_rate: float=0.05
 
     sq = Sampling_Rewriter(query.table_cols, query.table_size, dbms)
     sampling_query = sq.rewrite(query.query) + ";"
-    sampling_clause = get_sampling_clause(pilot_sample_rate, dbms)
+    sampling_clause = get_uniform_sampling_clause(pilot_sample_rate, dbms)
     pilot_query = pilot_query.format(sampling_method=sampling_clause)
 
     # start execution
@@ -62,6 +62,8 @@ def execute_uniform(query: Query, db_config: dict, pilot_sample_rate: float=0.05
     
     if dbms != 'sqlserver':
         logging.info(f"pilot query:\n{transpile(pilot_query, read=dbms, pretty=True)[0]}")
+    else:
+        logging.info(f"pilot query {pilot_query}")
 
     pilot_results = execute_query(conn, pilot_query, dbms)
     # dump_results(result_file=get_result_file_path("./results", query.name, job_id, "pilot", dbms), 
