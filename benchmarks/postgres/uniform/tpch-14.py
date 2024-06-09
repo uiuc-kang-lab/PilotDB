@@ -5,16 +5,16 @@ select
             then l_extendedprice * (1 - l_discount)
         else 0
     end) as avg_1,
-    stdev(case
+    stddev(case
         when p_type like 'PROMO%'
             then l_extendedprice * (1 - l_discount)
         else 0
     end) as std_1,
     avg(l_extendedprice * (1 - l_discount)) as avg_2,
-    stdev(l_extendedprice * (1 - l_discount)) as std_2,
+    stddev(l_extendedprice * (1 - l_discount)) as std_2,
     count(*) as sample_size
 from
-    lineitem,
+    lineitem {sampling_method},
     part
 where
     l_partkey = p_partkey

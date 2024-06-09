@@ -24,7 +24,8 @@ select
             and o_orderpriority <> '2-HIGH'
             then 1
         else 0
-    end) as std_2
+    end) as std_2,
+    COUNT(*) as sample_size
 from
     orders,
     lineitem {sampling_method}

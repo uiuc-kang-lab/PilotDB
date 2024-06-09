@@ -5,12 +5,12 @@ select
         when nation = 'BRAZIL' then volume
         else 0
     end) as avg_1,
-    stdev(case
+    stddev(case
         when nation = 'BRAZIL' then volume
         else 0
     end) as std_1,
     avg(volume) as avg_2,
-    stdev(volume) as std_2,
+    stddev(volume) as std_2,
     count(*) as sample_size
 from
     (
@@ -21,7 +21,7 @@ from
         from
             part,
             supplier,
-            lineitem,
+            lineitem {sampling_method},
             orders,
             customer,
             nation n1,

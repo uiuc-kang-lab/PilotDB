@@ -62,13 +62,17 @@ def _solve_quadratic(a, b, c):
     return (-b - math.sqrt(b**2 - 4*a*c)) / (2*a), (-b + math.sqrt(b**2 - 4*a*c)) / (2*a)
 
 def get_sample_rate(fp: float, sample_size: int, pilot_sample_rate: float, pilot_sample_size: int):
-    bernoulli_N_lb = get_bernoulli_N_lb(pilot_sample_size, pilot_sample_rate, fp)
-    assert sample_size < bernoulli_N_lb, f"{sample_size} is too big"
-    z_val = norm.ppf(1-fp)
-    p = _solve_quadratic(a=bernoulli_N_lb**2 + z_val**2 * bernoulli_N_lb,
-                          b=-(2*bernoulli_N_lb*sample_size + z_val**2 * bernoulli_N_lb),
-                          c=sample_size**2)[1]
-    return p
+    try:
+        bernoulli_N_lb = get_bernoulli_N_lb(pilot_sample_size, pilot_sample_rate, fp)
+        assert sample_size < bernoulli_N_lb, f"{sample_size} is too big"
+        z_val = norm.ppf(1-fp)
+        p = _solve_quadratic(a=bernoulli_N_lb**2 + z_val**2 * bernoulli_N_lb,
+                            b=-(2*bernoulli_N_lb*sample_size + z_val**2 * bernoulli_N_lb),
+                            c=sample_size**2)[1]
+        return p
+    except Exception as e:
+        logging.info(f"fail to estimate final sample rate due to {e}")
+        return -1
 
 def get_bernoulli_N_sample_rate(error, fp: float, fp1: float, pilot_sample_rate: float, pilot_sample_size: int):
     bernoulli_N_lb = get_bernoulli_N_lb(pilot_sample_size, pilot_sample_rate, fp1)

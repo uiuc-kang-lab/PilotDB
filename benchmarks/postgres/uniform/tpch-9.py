@@ -4,6 +4,7 @@ select
     o_year,
     avg(amount) as avg_1,
     stddev(amount) as std_1,
+    COUNT(*) as sample_size
 from
     (
         select

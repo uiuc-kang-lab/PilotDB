@@ -4,7 +4,8 @@ select
     cust_nation,
     l_year,
     avg(volume) as avg_1,
-    stddev(volume) as std_1
+    stddev(volume) as std_1,
+    COUNT(*) as sample_size
 from
     (
         select

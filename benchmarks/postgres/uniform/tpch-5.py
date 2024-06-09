@@ -3,6 +3,7 @@ select
     n_name,
     avg(l_extendedprice * (1 - l_discount)) as avg_1,
     stddev(l_extendedprice * (1 - l_discount)) as std_1,
+    COUNT(*) as sample_size
 from
     customer,
     orders,
@@ -21,9 +22,7 @@ where
     and o_orderdate >= date '1994-01-01'
     and o_orderdate < date '1994-01-01' + interval '1' year
 group by
-    n_name
-order by
-    revenue desc;
+    n_name;
 '''
 
 results_mapping = [

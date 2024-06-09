@@ -1,7 +1,8 @@
 pilot_query = '''
 select
     avg(l_extendedprice* (1 - l_discount)) as avg_1,
-    stddev(l_extendedprice* (1 - l_discount)) as std_1
+    stddev(l_extendedprice* (1 - l_discount)) as std_1,
+    COUNT(*) as sample_size
 from
     lineitem {sampling_method},
     part
