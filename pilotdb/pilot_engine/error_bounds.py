@@ -62,17 +62,13 @@ def _solve_quadratic(a, b, c):
     return (-b - math.sqrt(b**2 - 4*a*c)) / (2*a), (-b + math.sqrt(b**2 - 4*a*c)) / (2*a)
 
 def get_sample_rate(fp: float, sample_size: int, pilot_sample_rate: float, pilot_sample_size: int):
-    try:
-        bernoulli_N_lb = get_bernoulli_N_lb(pilot_sample_size, pilot_sample_rate, fp)
-        assert sample_size < bernoulli_N_lb, f"{sample_size} is too big"
-        z_val = norm.ppf(1-fp)
-        p = _solve_quadratic(a=bernoulli_N_lb**2 + z_val**2 * bernoulli_N_lb,
-                            b=-(2*bernoulli_N_lb*sample_size + z_val**2 * bernoulli_N_lb),
-                            c=sample_size**2)[1]
-        return p
-    except Exception as e:
-        logging.info(f"fail to estimate final sample rate due to {e}")
-        return -1
+    bernoulli_N_lb = get_bernoulli_N_lb(pilot_sample_size, pilot_sample_rate, fp)
+    assert sample_size < bernoulli_N_lb, f"{sample_size} is too big"
+    z_val = norm.ppf(1-fp)
+    p = _solve_quadratic(a=bernoulli_N_lb**2 + z_val**2 * bernoulli_N_lb,
+                        b=-(2*bernoulli_N_lb*sample_size + z_val**2 * bernoulli_N_lb),
+                        c=sample_size**2)[1]
+    return p
 
 def get_bernoulli_N_sample_rate(error, fp: float, fp1: float, pilot_sample_rate: float, pilot_sample_size: int):
     bernoulli_N_lb = get_bernoulli_N_lb(pilot_sample_size, pilot_sample_rate, fp1)
@@ -137,20 +133,24 @@ def estimate_final_rate(failure_prob: float, pilot_results: pd.DataFrame, page_e
 def estimate_final_rate_uniform(failure_prob: float, pilot_results: pd.DataFrame, 
                                 page_errors: Dict, 
                                 pilot_rate: float=0.0001):
-    max_sample_rate = 0
-    for group_id, row in pilot_results.iterrows():
-        for col, error in page_errors.items():
-            if col == "size":
-                sample_size = row[col]
-                final_sample_rate = get_bernoulli_N_sample_rate(error, failure_prob, failure_prob, pilot_rate, sample_size)
+    try:
+        max_sample_rate = 0
+        for group_id, row in pilot_results.iterrows():
+            for col, error in page_errors.items():
+                if col == "size":
+                    sample_size = row[col]
+                    final_sample_rate = get_bernoulli_N_sample_rate(error, failure_prob, failure_prob, pilot_rate, sample_size)
+                    max_sample_rate = max(max_sample_rate, final_sample_rate)
+                else:
+                    sample_mean = row[col]
+                    sample_std = row[col.replace("avg", "std")]
+                    sample_size = row["sample_size"]
+                    final_sample_size = get_mean_sample_size(error, failure_prob, failure_prob, pilot_rate, sample_mean, sample_std, sample_size)
+                    final_sample_rate = get_sample_rate(failure_prob, final_sample_size, pilot_rate, sample_size)
                 max_sample_rate = max(max_sample_rate, final_sample_rate)
-            else:
-                sample_mean = row[col]
-                sample_std = row[col.replace("avg", "std")]
-                sample_size = row["sample_size"]
-                final_sample_size = get_mean_sample_size(error, failure_prob, failure_prob, pilot_rate, sample_mean, sample_std, sample_size)
-                final_sample_rate = get_sample_rate(failure_prob, final_sample_size, pilot_rate, sample_size)
-            max_sample_rate = max(max_sample_rate, final_sample_rate)
+    except Exception as e:
+        logging.info(f"fail to estimate final sample rate due to {e}")
+        return -1
     return max_sample_rate
 
 def estimate_final_rate_oracle_tpch1(pilot_results: pd.DataFrame):
