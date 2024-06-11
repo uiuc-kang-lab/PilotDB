@@ -1,6 +1,7 @@
 pilot_query = """
 SELECT AVG(UserID) AS avg_1,
-stddev(UserID) AS std_1
+stddev(UserID) AS std_1,
+COUNT(*) AS sample_size
 FROM hits {sampling_method};
 """
 
