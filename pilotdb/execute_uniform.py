@@ -34,8 +34,12 @@ def execute_uniform(query: Query, db_config: dict, pilot_sample_rate: float=0.05
     pq = uniform_rewriter(dbms, query.name)
     pilot_query = pq.pilot_query + ";"
 
-    sq = Sampling_Rewriter(query.table_cols, query.table_size, dbms)
-    sampling_query = sq.rewrite(query.query) + ";"
+    if dbms == SQLSERVER:
+        sampling_query = pq.sampling_query
+    else:
+        sq = Sampling_Rewriter(query.table_cols, query.table_size, dbms)
+        sampling_query = sq.rewrite(query.query) + ";"
+
     sampling_clause = get_uniform_sampling_clause(pilot_sample_rate, dbms)
     pilot_query = pilot_query.format(sampling_method=sampling_clause)
 
@@ -44,17 +48,7 @@ def execute_uniform(query: Query, db_config: dict, pilot_sample_rate: float=0.05
     job_id = str(int(timer.start()*100))
     setup_logging(log_file=get_log_file_path("logs", query.name, job_id))
     log_query_info(query, dbms)
-    # pq.log_info()
-    # if not pq.is_rewritable:
-    #     final_sample_rate = 1
-    #     sampling_query = query.query
-    #     subquery_results = {}
-    # elif directly_run_exact(conn, query.query, pilot_query, dbms, pq.largest_table):
-    #     final_sample_rate = 1
-    #     logging.info(f"retrieving query plan time: {timer.check('query_plan_time')}")
-    #     subquery_results = {}
-    # else:      
-    # execute subqueries
+
     subquery_results = process_subqueries(dbms, conn, pq)
 
     # execute pilot query
