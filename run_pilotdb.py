@@ -8,6 +8,7 @@ warnings.simplefilter(action='ignore', category=UserWarning)
 from pilotdb.execute import execute_aqp, execute_exact
 from pilotdb.execute_oracle import execute_oracle_aqp
 from pilotdb.execute_uniform import execute_uniform
+from pilotdb.execute_uniform_ss import execute_uniform_ss
 from pilotdb.execute_sample import execute_sample
 from pilotdb.query import Query
 
@@ -44,7 +45,13 @@ if __name__ == "__main__":
     elif args.process_mode == "oracle":
         execute_oracle_aqp(query, db_config)
     elif args.process_mode == "uniform":
-        execute_uniform(query, db_config)
+        if db_config['dbms'] == 'sqlserver':
+            with open(f"benchmarks/{args.dbms}/uniform/uniform_sample_rate.jsonl", "r") as f:
+                sample_rate_list = json.load(f)
+            for sample_rate in sample_rate_list[f"{args.benchmark}-{args.qid}"]:
+                execute_uniform_ss(query, db_config, sample_rate)
+        else:
+            execute_uniform(query, db_config)
     elif args.process_mode == "sample":
         with open(f"./sample_rate.json", "r") as f:
             meta = json.load(f)

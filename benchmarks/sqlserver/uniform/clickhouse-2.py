@@ -6,7 +6,7 @@ AND {sampling_method};
 """
 
 sampling_query = '''
-SELECT COUNT(*) / {sample_rate}
+SELECT COUNT_BIG(*) / {sample_rate}
 FROM hits
 WHERE AdvEngineID <> 0
 AND {sampling_method};
