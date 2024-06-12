@@ -1,0 +1,5 @@
+,supp_nation,cust_nation,l_year,revenue
+0,FRANCE                   ,GERMANY                  ,1995.0,52814207781.2621
+1,FRANCE                   ,GERMANY                  ,1996.0,52927406249.4576
+2,GERMANY                  ,FRANCE                   ,1995.0,52996123948.2686
+3,GERMANY                  ,FRANCE                   ,1996.0,53032009178.3806
