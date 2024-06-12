@@ -1,0 +1,35 @@
+{
+    "table_cols": {
+        "hits": [
+            "WatchID",
+            "Title",
+            "EventTime",
+            "EventDate",
+            "CounterID",
+            "ClientIP",
+            "RegionID",
+            "UserID",
+            "URL",
+            "Referer",
+            "IsRefresh",
+            "ResolutionWidth",
+            "MobilePhone",
+            "MobilePhoneModel",
+            "TraficSourceID",
+            "SearchEngineID",
+            "SearchPhrase",
+            "AdvEngineID",
+            "WindowClientWidth",
+            "WindowClientHeight",
+            "IsLink",
+            "IsDownload",
+            "HID",
+            "DontCountHits",
+            "RefererHash",
+            "URLHash"
+        ]
+    },
+    "table_size": [
+        "hits"
+    ]
+}

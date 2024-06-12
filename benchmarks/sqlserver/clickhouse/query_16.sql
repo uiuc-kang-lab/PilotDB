@@ -1,0 +1,6 @@
+SELECT TOP 10
+  UserID,
+  COUNT(*)
+FROM hits
+GROUP BY UserID
+ORDER BY COUNT(*) DESC;

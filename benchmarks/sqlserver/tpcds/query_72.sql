@@ -31,7 +31,7 @@ FROM catalog_sales
   )
 WHERE d1.d_week_seq = d2.d_week_seq
   AND inv_quantity_on_hand < cs_quantity
-  AND d3.d_date > d1.d_date + 5
+  AND d3.d_date > DATEADD(day, 5, d1.d_date)
   AND hd_buy_potential = '501-1000'
   AND d1.d_year = 2002
   AND cd_marital_status = 'W'

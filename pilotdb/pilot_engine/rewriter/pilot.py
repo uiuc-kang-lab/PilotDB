@@ -141,6 +141,8 @@ class Pilot_Rewriter:
             self.limit_value = int(expression.args['limit'].args['expression'].this)
 
         expression.set("limit", None)
+        expression.set("offset", None)
+        # FIXME
         expression.set("order", None)
         # for having_expression in expression.find_all(exp.Having):
         #     having_expression.parent.set("having", None)
@@ -706,13 +708,20 @@ class Pilot_Rewriter:
                         new_group_by.append(group_by_expression)
                         
                 group_by.set(group_arg, new_group_by)
-        
+
     def rewrite(self, original_query):
         if self.database == SQLSERVER:
-            if "SELECT TOP 100" in original_query:
-                original_query = original_query.replace("TOP 100", "")
-                self.limit_value = 100
+            match = re.search(r'TOP (\d+)', original_query, re.IGNORECASE)
+            if match:
+                self.limit_value = int(match.group(1))  # The number x to be retrieved
+                original_query = re.sub(r'TOP \d+', '', original_query, flags=re.IGNORECASE)
         expression = sqlglot.parse_one(original_query)
+        # Simple count query in duckdb
+        if self.database == DUCKDB:
+            if not expression.find(exp.Column):
+                self.is_rewritable = False
+                return original_query
+
         if self.parse_window(expression):
             return original_query
         self.find_alias(expression)

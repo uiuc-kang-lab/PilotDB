@@ -12,6 +12,8 @@ def connect_to_db(dbms: str, config: dict):
             os.system("sudo sync; echo 3 | sudo tee /proc/sys/vm/drop_caches")
         return duckdb_utils.connect_to_db(config["path"])
     elif dbms == 'postgres':
+        os.system("pg_ctl -D /mydata/ps/ps stop; sudo sync; echo 3 | sudo tee /proc/sys/vm/drop_caches; pg_ctl -D /mydata/ps/ps start")
+        os.system("sleep 2")
         return postgres_utils.connect_to_db(config["dbname"], config["username"], config["host"], config["port"], 
                                             config["password"])
     elif dbms == 'sqlserver':
@@ -46,6 +48,16 @@ def get_sampling_clause(rate: float, dbms: str) -> str|None:
         return f"TABLESAMPLE SYSTEM ({rate})"
     elif dbms == "sqlserver":
         return f"TABLESAMPLE ({rate} PERCENT)"
+    else:
+        ValueError(f"Unknown DBMS: {dbms}")
+
+def get_uniform_sampling_clause(rate: float, dbms: str) -> str|None:
+    if dbms == "duckdb":
+        return f"TABLESAMPLE bernoulli({rate}%)"
+    elif dbms == "postgres":
+        return f"TABLESAMPLE BERNOULLI ({rate})"
+    elif dbms == 'sqlserver':
+        return f"ABS(CHECKSUM(NewId())) % 1000000 < {rate}"
     else:
         ValueError(f"Unknown DBMS: {dbms}")
         

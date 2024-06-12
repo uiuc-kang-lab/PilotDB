@@ -303,9 +303,11 @@ class Sampling_Rewriter:
     def rewrite(self, original_query):
         include_limit = False
         if self.database == SQLSERVER:
-            if "SELECT TOP 100" in original_query:
-                original_query = original_query.replace("TOP 100", "")
+            match = re.search(r'TOP (\d+)', original_query, re.IGNORECASE)
+            if match:
+                limit_value = int(match.group(1))  # The number x to be retrieved
                 include_limit = True
+                original_query = re.sub(r'TOP \d+', '', original_query, flags=re.IGNORECASE)
                 
         expression = sqlglot.parse_one(original_query)
         self.find_alias(expression)
@@ -324,6 +326,6 @@ class Sampling_Rewriter:
             new_query = re.sub(pattern, r"\1 '\2 \3'", new_query)
         
         if include_limit:
-            new_query = "SELECT TOP 100 " + new_query[6:]
+            new_query = f"SELECT TOP {limit_value} " + new_query[6:]
         return new_query
 

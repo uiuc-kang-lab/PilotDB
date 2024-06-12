@@ -26,5 +26,3 @@ def is_high_estimated_cost(conn, query: str, pilot_query: str):
         return True
     else:
         return False
-         
-     
