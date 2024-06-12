@@ -31,17 +31,20 @@ def execute_uniform(query: Query, db_config: dict, pilot_sample_rate: float=0.05
     conn = connect_to_db(dbms, db_config)
     
     # FIXME: query rewriter for uniform sampling
-    pq = uniform_rewriter(dbms, query.name)
-    pilot_query = pq.pilot_query + ";"
 
     if dbms == SQLSERVER:
+        pq = uniform_rewriter(dbms, query.name)
+        pilot_query = pq.pilot_query + ";"
         sampling_query = pq.sampling_query
+        sampling_clause = get_uniform_sampling_clause(pilot_sample_rate, dbms)
+        pilot_query = pilot_query.format(sampling_method=sampling_clause)
     else:
+        pq = uniform_rewriter(dbms, query.name)
+        pilot_query = pq.pilot_query + ";"
         sq = Sampling_Rewriter(query.table_cols, query.table_size, dbms)
         sampling_query = sq.rewrite(query.query) + ";"
-
-    sampling_clause = get_uniform_sampling_clause(pilot_sample_rate, dbms)
-    pilot_query = pilot_query.format(sampling_method=sampling_clause)
+        sampling_clause = get_uniform_sampling_clause(pilot_sample_rate, dbms)
+        pilot_query = pilot_query.format(sampling_method=sampling_clause)
 
     # start execution
     timer = Timer()
@@ -79,9 +82,10 @@ def execute_uniform(query: Query, db_config: dict, pilot_sample_rate: float=0.05
         logging.info(f"too big sample rate {final_sample_rate*100}, fall back to original queries")
         final_sample_rate = 1
     if final_sample_rate == 1:
-        sampling_query = sampling_query.format(sampling_method="", sample_rate="1")
-        for subquery_name, subquery_result in subquery_results.items():
-            sampling_query = sampling_query.replace(subquery_name, subquery_result)
+        # sampling_query = sampling_query.format(sampling_method="", sample_rate="1")
+        # for subquery_name, subquery_result in subquery_results.items():
+        #     sampling_query = sampling_query.replace(subquery_name, subquery_result)
+        sampling_query = query.query
         logging.info(f"sampling query:\n{sampling_query}")
         results_df = execute_query(conn, sampling_query, dbms)
         logging.info(f"sampling execution time: {timer.check('sampling_query_execution')}")

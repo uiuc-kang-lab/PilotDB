@@ -57,7 +57,7 @@ def get_uniform_sampling_clause(rate: float, dbms: str) -> str|None:
     elif dbms == "postgres":
         return f"TABLESAMPLE BERNOULLI ({rate})"
     elif dbms == 'sqlserver':
-        return f"ABS(CHECKSUM(NewId())) % 1000000 < {rate}"
+        return f"{rate / 100}"
     else:
         ValueError(f"Unknown DBMS: {dbms}")
         

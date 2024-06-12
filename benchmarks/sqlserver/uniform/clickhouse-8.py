@@ -1,8 +1,9 @@
 pilot_query = """
 SELECT AdvEngineID,
   COUNT(*) AS sample_size
-FROM hits {sampling_method}
+FROM hits
 WHERE AdvEngineID <> 0
+AND RAND(CHECKSUM(NEWID())) < {sampling_method}
 GROUP BY AdvEngineID;
 """
 

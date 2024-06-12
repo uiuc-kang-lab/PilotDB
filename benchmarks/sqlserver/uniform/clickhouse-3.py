@@ -1,11 +1,17 @@
 pilot_query = """
-SELECT AVG(CAST(AdvEngineID AS BIGINT)) as avg_1, 
-COUNT_BIG(*) AS sample_size, 
-AVG(CAST(ResolutionWidth AS BIGINT)) as avg_2,
-stdev(CAST(AdvEngineID AS BIGINT)) as std_1,
-stdev(CAST(ResolutionWidth AS BIGINT)) as std_2
-FROM hits 
-WHERE {sampling_method};
+WITH RandomSample AS (
+    SELECT AdvEngineID,
+           ResolutionWidth,
+           RAND(CHECKSUM(NEWID())) AS rand_value
+    FROM hits
+)
+SELECT AVG(CAST(AdvEngineID AS BIGINT)) AS avg_1, 
+       COUNT_BIG(*) AS sample_size, 
+       AVG(CAST(ResolutionWidth AS BIGINT)) AS avg_2,
+       STDEV(CAST(AdvEngineID AS BIGINT)) AS std_1,
+       STDEV(CAST(ResolutionWidth AS BIGINT)) AS std_2
+FROM RandomSample
+WHERE rand_value < {sampling_method}
 """
 
 
@@ -14,7 +20,7 @@ SELECT SUM(CAST(AdvEngineID AS BIGINT)) / {sample_rate},
   COUNT_BIG(*) / {sample_rate},
   AVG(CAST(ResolutionWidth AS BIGINT))
 FROM hits
-where {sampling_method};
+where RAND(CHECKSUM(NEWID())) < {sampling_method};
 """
 
 results_mapping = [

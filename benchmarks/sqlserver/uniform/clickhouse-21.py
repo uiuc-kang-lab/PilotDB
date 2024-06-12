@@ -1,7 +1,8 @@
 pilot_query = """
 SELECT COUNT(*) AS sample_size
-FROM hits {sampling_method}
-WHERE URL LIKE '%google%';
+FROM hits
+WHERE URL LIKE '%google%'
+AND RAND(CHECKSUM(NEWID())) < {sampling_method};
 """
 
 sampling_query = '''
