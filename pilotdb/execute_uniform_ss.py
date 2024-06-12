@@ -43,6 +43,7 @@ def execute_uniform_ss(query: Query, db_config: dict, sample_rate: float):
         sampling_query = sampling_query.format(sampling_method=sampling_clause, 
                                             sample_rate=rate/1000000)
     else:
+        rate = 100 * 1000000
         sampling_query = query.query
     start = time.time()
     job_id = str(int(start*100))
