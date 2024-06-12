@@ -3,7 +3,7 @@ SELECT AVG(AdvEngineID) as avg_1,
 COUNT(*) AS sample_size, 
 AVG(ResolutionWidth) as avg_2,
 stddev(AdvEngineID) as std_1,
-stddev(ResolutionWidth) as std_2,
+stddev(ResolutionWidth) as std_2
 FROM hits {sampling_method};
 """
 

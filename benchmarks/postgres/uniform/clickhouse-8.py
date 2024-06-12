@@ -1,7 +1,9 @@
 pilot_query = """
-SELECT COUNT(*) as sample_size
+SELECT AdvEngineID,
+  COUNT(*) AS sample_size
 FROM hits {sampling_method}
-WHERE AdvEngineID <> 0;
+WHERE AdvEngineID <> 0
+GROUP BY AdvEngineID;
 """
 
 results_mapping = [
