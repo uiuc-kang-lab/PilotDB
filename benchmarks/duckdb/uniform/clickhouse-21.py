@@ -1,6 +1,6 @@
 pilot_query = """
 SELECT COUNT(*) AS sample_size
-FROM hits{sampling_method}
+FROM hits {sampling_method}
 WHERE URL LIKE '%google%';
 """
 
