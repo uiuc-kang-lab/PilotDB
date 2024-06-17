@@ -6,7 +6,7 @@ from
     (
         select
             department,
-            order_hour_of_day,
+            order_hour_of_day
         from
             orders,
             departments,
@@ -20,7 +20,7 @@ from
     ) as profit
 group by
     department,
-    order_hour_of_day,
+    order_hour_of_day
 order by
    department,
     order_hour_of_day desc;

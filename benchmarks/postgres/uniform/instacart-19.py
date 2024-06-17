@@ -2,7 +2,7 @@ pilot_query = """
 select
     count(*) as sample_size
 from
-    order_products {sampling_method}, 
+    order_products {sampling_method},
     products
 where
     (

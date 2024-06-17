@@ -6,7 +6,7 @@ select
 from
     products,
     orders,
-    order_products,
+    order_products {sampling_method},
     departments
 where
     orders.order_id = order_products.order_id
