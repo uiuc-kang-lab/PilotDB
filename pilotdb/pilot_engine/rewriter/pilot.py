@@ -295,7 +295,7 @@ class Pilot_Rewriter:
                     result_mapping[AGGREGATE] = COUNT_OPERATOR
                     result_mapping[PAGE_SIZE] = f"r{self.select_expression_count-1}"
                 elif select_expression.find(exp.Anonymous):
-                    if select_expression.find(exp.Anonymous).this == 'COUNT_BIG':
+                    if select_expression.find(exp.Anonymous).this.upper() == 'COUNT_BIG':
                         result_mapping[AGGREGATE] = COUNT_OPERATOR
                         result_mapping[PAGE_SIZE] = f"r{self.select_expression_count-1}"
                 elif isinstance(select_expression, exp.Expression) \
