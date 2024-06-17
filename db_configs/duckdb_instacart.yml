@@ -1,0 +1,3 @@
+dbms: duckdb
+path: /mydata/duckdb/instacart.duckdb
+flush_memory: True

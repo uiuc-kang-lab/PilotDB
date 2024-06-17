@@ -1,0 +1,37 @@
+{
+    "table_cols": {
+        "orders": [
+            "order_id",
+            "user_id",
+            "eval_set",
+            "order_number",
+            "order_dow",
+            "order_hour_of_day",
+            "days_since_prior_order"
+        ],
+        "aisles":[
+            "aisle_id",
+            "aisle"
+        ],
+        "departments":[
+            "department_id",
+            "department"
+        ],
+        "products":[
+            "product_id",
+            "product_name",
+            "aisle_id",
+            "department_id"
+        ],
+        "order_products":[
+            "order_id",
+            "product_id",
+            "add_to_cat_order",
+            "reordered"
+        ]
+    },
+    "table_size": [
+        "order_products",
+        "orders"
+    ]
+}
