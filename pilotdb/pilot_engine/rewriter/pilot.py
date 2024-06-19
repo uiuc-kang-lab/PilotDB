@@ -506,7 +506,7 @@ class Pilot_Rewriter:
     def subquery_in_from(self, expression, is_union=False, is_join=False):
         self.subquery_in_where(expression, self.table_cols)
         self.add_table_sample(expression)
-        if expression.find(exp.AggFunc) or (expression.find(exp.Anonymous).this.upper() == 'COUNT_BIG'):
+        if expression.find(exp.AggFunc) or (expression.find(exp.Anonymous) and expression.find(exp.Anonymous).this.upper() == 'COUNT_BIG'):
             self.add_page_id(expression, True, True, is_union, is_join)
         else:
             self.add_page_id(expression, False, True, is_union, is_join)
@@ -517,7 +517,7 @@ class Pilot_Rewriter:
     def primary_query_rewriter(self, expression, is_union=False, level=0, is_join=False):
         contains_agg = False
         for select_expression in expression.args["expressions"]:
-            if select_expression.find(exp.AggFunc)  or (select_expression.find(exp.Anonymous).this.upper() == 'COUNT_BIG'):
+            if select_expression.find(exp.AggFunc)  or (select_expression.find(exp.Anonymous) and select_expression.find(exp.Anonymous).this.upper() == 'COUNT_BIG'):
                 contains_agg = True
                 break
         if contains_agg:
@@ -553,7 +553,7 @@ class Pilot_Rewriter:
             is_aggregate = False
             is_star = False
             for select_expression in expression.args["expressions"]:
-                if select_expression.find(exp.AggFunc) or (select_expression.find(exp.Anonymous).this.upper() == 'COUNT_BIG'):
+                if select_expression.find(exp.AggFunc) or (select_expression.find(exp.Anonymous) and select_expression.find(exp.Anonymous).this.upper() == 'COUNT_BIG'):
                     is_aggregate = True
                 if select_expression.find(exp.Star):
                     is_star = True
@@ -580,7 +580,7 @@ class Pilot_Rewriter:
             is_aggregate = False
 
             for select_expression in expression.args["expressions"]:
-                if select_expression.find(exp.AggFunc) or (select_expression.find(exp.Anonymous).this.upper() == 'COUNT_BIG'):
+                if select_expression.find(exp.AggFunc) or (select_expression.find(exp.Anonymous) and select_expression.find(exp.Anonymous).this.upper() == 'COUNT_BIG'):
                     is_aggregate = True
             if is_aggregate:
                 self.add_page_id(expression, add_group_by=True, page_id=False)
