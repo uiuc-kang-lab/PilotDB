@@ -63,7 +63,7 @@ def _solve_quadratic(a, b, c):
 
 def get_sample_rate(fp: float, sample_size: int, pilot_sample_rate: float, pilot_sample_size: int):
     if pilot_sample_rate > 0.9:
-        bernoulli_N_lb = sample_size
+        bernoulli_N_lb = pilot_sample_size
     else:
         bernoulli_N_lb = get_bernoulli_N_lb(pilot_sample_size, pilot_sample_rate, fp)
     assert sample_size <= bernoulli_N_lb, f"{sample_size} is too big"
