@@ -13,15 +13,15 @@ do
             --benchmark tpch \
             --qid $qid \
             --pilot_sample_rate 0.05 \
-            --dbms sqlserver \
-            --db_config_file /users/teng77/PilotDB/db_configs/sqlserver_t p ch.yml \
+            --dbms duckdb \
+            --db_config_file /users/teng77/PilotDB/db_configs/duckdb_t p ch.yml \
             --process_mode aqp
     done
     python run_pilotdb.py \
         --benchmark tpch \
         --qid $qid \
-        --dbms sqlserver \
-        --db_config_file /users/teng77/PilotDB/db_configs/sqlserver_tpch.yml \
+        --dbms duckdb \
+        --db_config_file /users/teng77/PilotDB/db_configs/duckdb_tpch.yml \
         --process_mode exact
     curl -d "query $qid successful" ntfy.sh/tpchps
 done
