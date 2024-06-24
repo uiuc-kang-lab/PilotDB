@@ -1,0 +1,12 @@
+{
+    "pilot_query": "SELECT SUM(l_extendedprice * l_discount) AS r0, 'page_id_0:' + CAST(CAST(SUBSTRING(lineitem.%%physloc%%, 6, 1)\n                    + SUBSTRING(lineitem.%%physloc%%, 5, 1) AS int) AS VARCHAR) \n                    + '||' + CAST(CAST(SUBSTRING(lineitem.%%physloc%%, 4, 1) \n                    + SUBSTRING(lineitem.%%physloc%%, 3, 1) + SUBSTRING(lineitem.%%physloc%%, 2, 1) \n                    + SUBSTRING(lineitem.%%physloc%%, 1, 1) AS int) AS VARCHAR) AS page_id_0 FROM lineitem {sampling_method} WHERE l_shipdate >= '1994-01-01' AND l_shipdate < DATEADD(YEAR, 1, '1994-01-01') AND l_discount BETWEEN 0.06 - 0.01 AND 0.06 + 0.01 AND l_quantity < 24 GROUP BY 'page_id_0:' + CAST(CAST(SUBSTRING(lineitem.%%physloc%%, 6, 1)\n                    + SUBSTRING(lineitem.%%physloc%%, 5, 1) AS int) AS VARCHAR) \n                    + '||' + CAST(CAST(SUBSTRING(lineitem.%%physloc%%, 4, 1) \n                    + SUBSTRING(lineitem.%%physloc%%, 3, 1) + SUBSTRING(lineitem.%%physloc%%, 2, 1) \n                    + SUBSTRING(lineitem.%%physloc%%, 1, 1) AS int) AS VARCHAR)",
+    "results_mapping": [
+        {
+            "aggregate": "sum",
+            "page_sum": "r0"
+        }
+    ],
+    "subquery_dict": {},
+    "limit_value": null,
+    "group_cols": []
+}

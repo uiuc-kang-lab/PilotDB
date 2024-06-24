@@ -1,0 +1,16 @@
+{
+    "pilot_query": "SELECT c_nation AS r0, s_nation AS r1, d_year AS r2, SUM(CAST(lo_revenue AS BIGINT)) AS r3, 'page_id_0:' + CAST(CAST(SUBSTRING(lineorder.%%physloc%%, 6, 1)\n                    + SUBSTRING(lineorder.%%physloc%%, 5, 1) AS int) AS VARCHAR) \n                    + '||' + CAST(CAST(SUBSTRING(lineorder.%%physloc%%, 4, 1) \n                    + SUBSTRING(lineorder.%%physloc%%, 3, 1) + SUBSTRING(lineorder.%%physloc%%, 2, 1) \n                    + SUBSTRING(lineorder.%%physloc%%, 1, 1) AS int) AS VARCHAR) AS page_id_0 FROM customer, lineorder {sampling_method}, supplier, dates WHERE lo_custkey = c_custkey AND lo_suppkey = s_suppkey AND lo_orderdate = d_datekey AND c_region = 'ASIA' AND s_region = 'ASIA' AND d_year >= 1992 AND d_year <= 1997 GROUP BY c_nation, s_nation, d_year, 'page_id_0:' + CAST(CAST(SUBSTRING(lineorder.%%physloc%%, 6, 1)\n                    + SUBSTRING(lineorder.%%physloc%%, 5, 1) AS int) AS VARCHAR) \n                    + '||' + CAST(CAST(SUBSTRING(lineorder.%%physloc%%, 4, 1) \n                    + SUBSTRING(lineorder.%%physloc%%, 3, 1) + SUBSTRING(lineorder.%%physloc%%, 2, 1) \n                    + SUBSTRING(lineorder.%%physloc%%, 1, 1) AS int) AS VARCHAR)",
+    "results_mapping": [
+        {
+            "aggregate": "sum",
+            "page_sum": "r3"
+        }
+    ],
+    "subquery_dict": {},
+    "limit_value": null,
+    "group_cols": [
+        "r0",
+        "r1",
+        "r2"
+    ]
+}

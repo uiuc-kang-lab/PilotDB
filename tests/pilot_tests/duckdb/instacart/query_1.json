@@ -1,0 +1,14 @@
+{
+    "pilot_query": "SELECT reordered AS r0, COUNT(*) AS r1, 'page_id_0:' || FLOOR(order_products.rowid / 2048) AS page_id_0 FROM order_products {sampling_method} WHERE add_to_cat_order <= 5 GROUP BY reordered, page_id_0",
+    "results_mapping": [
+        {
+            "aggregate": "count",
+            "page_size": "r1"
+        }
+    ],
+    "subquery_dict": {},
+    "limit_value": null,
+    "group_cols": [
+        "r0"
+    ]
+}

@@ -1,0 +1,12 @@
+{
+    "pilot_query": "SELECT 100.00 * SUM(CASE WHEN product_name LIKE 'Organic%' THEN 1 ELSE 0 END) / COUNT_BIG(*) AS r0, 'page_id_0:' + CAST(CAST(SUBSTRING(order_products.%%physloc%%, 6, 1)\n                    + SUBSTRING(order_products.%%physloc%%, 5, 1) AS int) AS VARCHAR) \n                    + '||' + CAST(CAST(SUBSTRING(order_products.%%physloc%%, 4, 1) \n                    + SUBSTRING(order_products.%%physloc%%, 3, 1) + SUBSTRING(order_products.%%physloc%%, 2, 1) \n                    + SUBSTRING(order_products.%%physloc%%, 1, 1) AS int) AS VARCHAR) AS page_id_0 FROM order_products {sampling_method}, orders, products WHERE order_products.product_id = products.product_id AND orders.order_id = order_products.order_id AND order_hour_of_day >= 8 AND order_hour_of_day < 12 GROUP BY 'page_id_0:' + CAST(CAST(SUBSTRING(order_products.%%physloc%%, 6, 1)\n                    + SUBSTRING(order_products.%%physloc%%, 5, 1) AS int) AS VARCHAR) \n                    + '||' + CAST(CAST(SUBSTRING(order_products.%%physloc%%, 4, 1) \n                    + SUBSTRING(order_products.%%physloc%%, 3, 1) + SUBSTRING(order_products.%%physloc%%, 2, 1) \n                    + SUBSTRING(order_products.%%physloc%%, 1, 1) AS int) AS VARCHAR)",
+    "results_mapping": [
+        {
+            "aggregate": "sum",
+            "page_sum": "r0"
+        }
+    ],
+    "subquery_dict": {},
+    "limit_value": null,
+    "group_cols": []
+}

@@ -1,0 +1,12 @@
+{
+    "pilot_query": "SELECT COUNT(*) AS r0, 'page_id_0:' || CAST((CAST(CAST(hits.ctid AS TEXT) AS point))[0] AS INT) AS page_id_0 FROM hits {sampling_method} WHERE URL LIKE '%google%' GROUP BY page_id_0",
+    "results_mapping": [
+        {
+            "aggregate": "count",
+            "page_size": "r0"
+        }
+    ],
+    "subquery_dict": {},
+    "limit_value": null,
+    "group_cols": []
+}

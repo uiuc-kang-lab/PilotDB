@@ -1,0 +1,15 @@
+{
+    "pilot_query": "SELECT o_year AS r0, SUM(CASE WHEN nation = 'BRAZIL' THEN volume ELSE 0 END) AS r1, SUM(volume) AS r2, page_id_0 FROM (SELECT YEAR(o_orderdate) AS o_year, l_extendedprice * (1 - l_discount) AS volume, n2.n_name AS nation, 'page_id_0:' + CAST(CAST(SUBSTRING(lineitem.%%physloc%%, 6, 1)\n                    + SUBSTRING(lineitem.%%physloc%%, 5, 1) AS int) AS VARCHAR) \n                    + '||' + CAST(CAST(SUBSTRING(lineitem.%%physloc%%, 4, 1) \n                    + SUBSTRING(lineitem.%%physloc%%, 3, 1) + SUBSTRING(lineitem.%%physloc%%, 2, 1) \n                    + SUBSTRING(lineitem.%%physloc%%, 1, 1) AS int) AS VARCHAR) AS page_id_0 FROM part, supplier, lineitem {sampling_method}, orders, customer, nation AS n1, nation AS n2, region WHERE p_partkey = l_partkey AND s_suppkey = l_suppkey AND l_orderkey = o_orderkey AND o_custkey = c_custkey AND c_nationkey = n1.n_nationkey AND n1.n_regionkey = r_regionkey AND r_name = 'AMERICA' AND s_nationkey = n2.n_nationkey AND o_orderdate BETWEEN '1995-01-01' AND '1996-12-31' AND p_type = 'ECONOMY ANODIZED STEEL') AS all_nations GROUP BY o_year, page_id_0",
+    "results_mapping": [
+        {
+            "aggregate": "div",
+            "first_element": "r1",
+            "second_element": "r2"
+        }
+    ],
+    "subquery_dict": {},
+    "limit_value": null,
+    "group_cols": [
+        "r0"
+    ]
+}

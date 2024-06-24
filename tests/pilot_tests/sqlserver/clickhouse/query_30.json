@@ -1,0 +1,368 @@
+{
+    "pilot_query": "SELECT SUM(ResolutionWidth) AS r0, SUM(ResolutionWidth + 1) AS r1, SUM(ResolutionWidth + 2) AS r2, SUM(ResolutionWidth + 3) AS r3, SUM(ResolutionWidth + 4) AS r4, SUM(ResolutionWidth + 5) AS r5, SUM(ResolutionWidth + 6) AS r6, SUM(ResolutionWidth + 7) AS r7, SUM(ResolutionWidth + 8) AS r8, SUM(ResolutionWidth + 9) AS r9, SUM(ResolutionWidth + 10) AS r10, SUM(ResolutionWidth + 11) AS r11, SUM(ResolutionWidth + 12) AS r12, SUM(ResolutionWidth + 13) AS r13, SUM(ResolutionWidth + 14) AS r14, SUM(ResolutionWidth + 15) AS r15, SUM(ResolutionWidth + 16) AS r16, SUM(ResolutionWidth + 17) AS r17, SUM(ResolutionWidth + 18) AS r18, SUM(ResolutionWidth + 19) AS r19, SUM(ResolutionWidth + 20) AS r20, SUM(ResolutionWidth + 21) AS r21, SUM(ResolutionWidth + 22) AS r22, SUM(ResolutionWidth + 23) AS r23, SUM(ResolutionWidth + 24) AS r24, SUM(ResolutionWidth + 25) AS r25, SUM(ResolutionWidth + 26) AS r26, SUM(ResolutionWidth + 27) AS r27, SUM(ResolutionWidth + 28) AS r28, SUM(ResolutionWidth + 29) AS r29, SUM(ResolutionWidth + 30) AS r30, SUM(ResolutionWidth + 31) AS r31, SUM(ResolutionWidth + 32) AS r32, SUM(ResolutionWidth + 33) AS r33, SUM(ResolutionWidth + 34) AS r34, SUM(ResolutionWidth + 35) AS r35, SUM(ResolutionWidth + 36) AS r36, SUM(ResolutionWidth + 37) AS r37, SUM(ResolutionWidth + 38) AS r38, SUM(ResolutionWidth + 39) AS r39, SUM(ResolutionWidth + 40) AS r40, SUM(ResolutionWidth + 41) AS r41, SUM(ResolutionWidth + 42) AS r42, SUM(ResolutionWidth + 43) AS r43, SUM(ResolutionWidth + 44) AS r44, SUM(ResolutionWidth + 45) AS r45, SUM(ResolutionWidth + 46) AS r46, SUM(ResolutionWidth + 47) AS r47, SUM(ResolutionWidth + 48) AS r48, SUM(ResolutionWidth + 49) AS r49, SUM(ResolutionWidth + 50) AS r50, SUM(ResolutionWidth + 51) AS r51, SUM(ResolutionWidth + 52) AS r52, SUM(ResolutionWidth + 53) AS r53, SUM(ResolutionWidth + 54) AS r54, SUM(ResolutionWidth + 55) AS r55, SUM(ResolutionWidth + 56) AS r56, SUM(ResolutionWidth + 57) AS r57, SUM(ResolutionWidth + 58) AS r58, SUM(ResolutionWidth + 59) AS r59, SUM(ResolutionWidth + 60) AS r60, SUM(ResolutionWidth + 61) AS r61, SUM(ResolutionWidth + 62) AS r62, SUM(ResolutionWidth + 63) AS r63, SUM(ResolutionWidth + 64) AS r64, SUM(ResolutionWidth + 65) AS r65, SUM(ResolutionWidth + 66) AS r66, SUM(ResolutionWidth + 67) AS r67, SUM(ResolutionWidth + 68) AS r68, SUM(ResolutionWidth + 69) AS r69, SUM(ResolutionWidth + 70) AS r70, SUM(ResolutionWidth + 71) AS r71, SUM(ResolutionWidth + 72) AS r72, SUM(ResolutionWidth + 73) AS r73, SUM(ResolutionWidth + 74) AS r74, SUM(ResolutionWidth + 75) AS r75, SUM(ResolutionWidth + 76) AS r76, SUM(ResolutionWidth + 77) AS r77, SUM(ResolutionWidth + 78) AS r78, SUM(ResolutionWidth + 79) AS r79, SUM(ResolutionWidth + 80) AS r80, SUM(ResolutionWidth + 81) AS r81, SUM(ResolutionWidth + 82) AS r82, SUM(ResolutionWidth + 83) AS r83, SUM(ResolutionWidth + 84) AS r84, SUM(ResolutionWidth + 85) AS r85, SUM(ResolutionWidth + 86) AS r86, SUM(ResolutionWidth + 87) AS r87, SUM(ResolutionWidth + 88) AS r88, SUM(ResolutionWidth + 89) AS r89, 'page_id_0:' + CAST(CAST(SUBSTRING(hits.%%physloc%%, 6, 1)\n                    + SUBSTRING(hits.%%physloc%%, 5, 1) AS int) AS VARCHAR) \n                    + '||' + CAST(CAST(SUBSTRING(hits.%%physloc%%, 4, 1) \n                    + SUBSTRING(hits.%%physloc%%, 3, 1) + SUBSTRING(hits.%%physloc%%, 2, 1) \n                    + SUBSTRING(hits.%%physloc%%, 1, 1) AS int) AS VARCHAR) AS page_id_0 FROM hits {sampling_method} GROUP BY 'page_id_0:' + CAST(CAST(SUBSTRING(hits.%%physloc%%, 6, 1)\n                    + SUBSTRING(hits.%%physloc%%, 5, 1) AS int) AS VARCHAR) \n                    + '||' + CAST(CAST(SUBSTRING(hits.%%physloc%%, 4, 1) \n                    + SUBSTRING(hits.%%physloc%%, 3, 1) + SUBSTRING(hits.%%physloc%%, 2, 1) \n                    + SUBSTRING(hits.%%physloc%%, 1, 1) AS int) AS VARCHAR)",
+    "results_mapping": [
+        {
+            "aggregate": "sum",
+            "page_sum": "r0"
+        },
+        {
+            "aggregate": "sum",
+            "page_sum": "r1"
+        },
+        {
+            "aggregate": "sum",
+            "page_sum": "r2"
+        },
+        {
+            "aggregate": "sum",
+            "page_sum": "r3"
+        },
+        {
+            "aggregate": "sum",
+            "page_sum": "r4"
+        },
+        {
+            "aggregate": "sum",
+            "page_sum": "r5"
+        },
+        {
+            "aggregate": "sum",
+            "page_sum": "r6"
+        },
+        {
+            "aggregate": "sum",
+            "page_sum": "r7"
+        },
+        {
+            "aggregate": "sum",
+            "page_sum": "r8"
+        },
+        {
+            "aggregate": "sum",
+            "page_sum": "r9"
+        },
+        {
+            "aggregate": "sum",
+            "page_sum": "r10"
+        },
+        {
+            "aggregate": "sum",
+            "page_sum": "r11"
+        },
+        {
+            "aggregate": "sum",
+            "page_sum": "r12"
+        },
+        {
+            "aggregate": "sum",
+            "page_sum": "r13"
+        },
+        {
+            "aggregate": "sum",
+            "page_sum": "r14"
+        },
+        {
+            "aggregate": "sum",
+            "page_sum": "r15"
+        },
+        {
+            "aggregate": "sum",
+            "page_sum": "r16"
+        },
+        {
+            "aggregate": "sum",
+            "page_sum": "r17"
+        },
+        {
+            "aggregate": "sum",
+            "page_sum": "r18"
+        },
+        {
+            "aggregate": "sum",
+            "page_sum": "r19"
+        },
+        {
+            "aggregate": "sum",
+            "page_sum": "r20"
+        },
+        {
+            "aggregate": "sum",
+            "page_sum": "r21"
+        },
+        {
+            "aggregate": "sum",
+            "page_sum": "r22"
+        },
+        {
+            "aggregate": "sum",
+            "page_sum": "r23"
+        },
+        {
+            "aggregate": "sum",
+            "page_sum": "r24"
+        },
+        {
+            "aggregate": "sum",
+            "page_sum": "r25"
+        },
+        {
+            "aggregate": "sum",
+            "page_sum": "r26"
+        },
+        {
+            "aggregate": "sum",
+            "page_sum": "r27"
+        },
+        {
+            "aggregate": "sum",
+            "page_sum": "r28"
+        },
+        {
+            "aggregate": "sum",
+            "page_sum": "r29"
+        },
+        {
+            "aggregate": "sum",
+            "page_sum": "r30"
+        },
+        {
+            "aggregate": "sum",
+            "page_sum": "r31"
+        },
+        {
+            "aggregate": "sum",
+            "page_sum": "r32"
+        },
+        {
+            "aggregate": "sum",
+            "page_sum": "r33"
+        },
+        {
+            "aggregate": "sum",
+            "page_sum": "r34"
+        },
+        {
+            "aggregate": "sum",
+            "page_sum": "r35"
+        },
+        {
+            "aggregate": "sum",
+            "page_sum": "r36"
+        },
+        {
+            "aggregate": "sum",
+            "page_sum": "r37"
+        },
+        {
+            "aggregate": "sum",
+            "page_sum": "r38"
+        },
+        {
+            "aggregate": "sum",
+            "page_sum": "r39"
+        },
+        {
+            "aggregate": "sum",
+            "page_sum": "r40"
+        },
+        {
+            "aggregate": "sum",
+            "page_sum": "r41"
+        },
+        {
+            "aggregate": "sum",
+            "page_sum": "r42"
+        },
+        {
+            "aggregate": "sum",
+            "page_sum": "r43"
+        },
+        {
+            "aggregate": "sum",
+            "page_sum": "r44"
+        },
+        {
+            "aggregate": "sum",
+            "page_sum": "r45"
+        },
+        {
+            "aggregate": "sum",
+            "page_sum": "r46"
+        },
+        {
+            "aggregate": "sum",
+            "page_sum": "r47"
+        },
+        {
+            "aggregate": "sum",
+            "page_sum": "r48"
+        },
+        {
+            "aggregate": "sum",
+            "page_sum": "r49"
+        },
+        {
+            "aggregate": "sum",
+            "page_sum": "r50"
+        },
+        {
+            "aggregate": "sum",
+            "page_sum": "r51"
+        },
+        {
+            "aggregate": "sum",
+            "page_sum": "r52"
+        },
+        {
+            "aggregate": "sum",
+            "page_sum": "r53"
+        },
+        {
+            "aggregate": "sum",
+            "page_sum": "r54"
+        },
+        {
+            "aggregate": "sum",
+            "page_sum": "r55"
+        },
+        {
+            "aggregate": "sum",
+            "page_sum": "r56"
+        },
+        {
+            "aggregate": "sum",
+            "page_sum": "r57"
+        },
+        {
+            "aggregate": "sum",
+            "page_sum": "r58"
+        },
+        {
+            "aggregate": "sum",
+            "page_sum": "r59"
+        },
+        {
+            "aggregate": "sum",
+            "page_sum": "r60"
+        },
+        {
+            "aggregate": "sum",
+            "page_sum": "r61"
+        },
+        {
+            "aggregate": "sum",
+            "page_sum": "r62"
+        },
+        {
+            "aggregate": "sum",
+            "page_sum": "r63"
+        },
+        {
+            "aggregate": "sum",
+            "page_sum": "r64"
+        },
+        {
+            "aggregate": "sum",
+            "page_sum": "r65"
+        },
+        {
+            "aggregate": "sum",
+            "page_sum": "r66"
+        },
+        {
+            "aggregate": "sum",
+            "page_sum": "r67"
+        },
+        {
+            "aggregate": "sum",
+            "page_sum": "r68"
+        },
+        {
+            "aggregate": "sum",
+            "page_sum": "r69"
+        },
+        {
+            "aggregate": "sum",
+            "page_sum": "r70"
+        },
+        {
+            "aggregate": "sum",
+            "page_sum": "r71"
+        },
+        {
+            "aggregate": "sum",
+            "page_sum": "r72"
+        },
+        {
+            "aggregate": "sum",
+            "page_sum": "r73"
+        },
+        {
+            "aggregate": "sum",
+            "page_sum": "r74"
+        },
+        {
+            "aggregate": "sum",
+            "page_sum": "r75"
+        },
+        {
+            "aggregate": "sum",
+            "page_sum": "r76"
+        },
+        {
+            "aggregate": "sum",
+            "page_sum": "r77"
+        },
+        {
+            "aggregate": "sum",
+            "page_sum": "r78"
+        },
+        {
+            "aggregate": "sum",
+            "page_sum": "r79"
+        },
+        {
+            "aggregate": "sum",
+            "page_sum": "r80"
+        },
+        {
+            "aggregate": "sum",
+            "page_sum": "r81"
+        },
+        {
+            "aggregate": "sum",
+            "page_sum": "r82"
+        },
+        {
+            "aggregate": "sum",
+            "page_sum": "r83"
+        },
+        {
+            "aggregate": "sum",
+            "page_sum": "r84"
+        },
+        {
+            "aggregate": "sum",
+            "page_sum": "r85"
+        },
+        {
+            "aggregate": "sum",
+            "page_sum": "r86"
+        },
+        {
+            "aggregate": "sum",
+            "page_sum": "r87"
+        },
+        {
+            "aggregate": "sum",
+            "page_sum": "r88"
+        },
+        {
+            "aggregate": "sum",
+            "page_sum": "r89"
+        }
+    ],
+    "subquery_dict": {},
+    "limit_value": null,
+    "group_cols": []
+}

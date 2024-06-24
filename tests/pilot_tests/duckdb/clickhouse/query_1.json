@@ -1,0 +1,7 @@
+{
+    "pilot_query": "SELECT COUNT(*) FROM hits;\n",
+    "results_mapping": [],
+    "subquery_dict": {},
+    "limit_value": null,
+    "group_cols": []
+}

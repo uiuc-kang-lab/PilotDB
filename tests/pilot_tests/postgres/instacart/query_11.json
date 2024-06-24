@@ -1,0 +1,14 @@
+{
+    "pilot_query": "SELECT products.product_id AS r0, COUNT(*) AS r1, 'page_id_0:' || CAST((CAST(CAST(order_products.ctid AS TEXT) AS point))[0] AS INT) AS page_id_0 FROM products, order_products {sampling_method}, departments WHERE products.product_id = order_products.product_id AND products.department_id = departments.department_id AND department = 'breakfast' GROUP BY products.product_id, page_id_0",
+    "results_mapping": [
+        {
+            "aggregate": "count",
+            "page_size": "r1"
+        }
+    ],
+    "subquery_dict": {},
+    "limit_value": null,
+    "group_cols": [
+        "r0"
+    ]
+}

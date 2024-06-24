@@ -1,0 +1,15 @@
+{
+    "pilot_query": "SELECT d_year AS r0, c_nation AS r1, SUM(lo_revenue - lo_supplycost) AS r2, 'page_id_0:' || CAST((CAST(CAST(lineorder.ctid AS TEXT) AS point))[0] AS INT) AS page_id_0 FROM dates, customer, supplier, part, lineorder {sampling_method} WHERE lo_custkey = c_custkey AND lo_suppkey = s_suppkey AND lo_partkey = p_partkey AND lo_orderdate = d_datekey AND c_region = 'AMERICA' AND s_region = 'AMERICA' AND (p_mfgr = 'MFGR#1' OR p_mfgr = 'MFGR#2') GROUP BY d_year, c_nation, page_id_0",
+    "results_mapping": [
+        {
+            "aggregate": "sum",
+            "page_sum": "r2"
+        }
+    ],
+    "subquery_dict": {},
+    "limit_value": null,
+    "group_cols": [
+        "r0",
+        "r1"
+    ]
+}

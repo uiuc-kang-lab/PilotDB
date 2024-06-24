@@ -1,0 +1,21 @@
+{
+    "pilot_query": "SELECT SUM(AdvEngineID) AS r0, COUNT(*) AS r1, SUM(ResolutionWidth) AS r2, 'page_id_0:' || FLOOR(hits.rowid / 2048) AS page_id_0 FROM hits {sampling_method} GROUP BY page_id_0",
+    "results_mapping": [
+        {
+            "aggregate": "sum",
+            "page_sum": "r0"
+        },
+        {
+            "aggregate": "count",
+            "page_size": "r1"
+        },
+        {
+            "aggregate": "avg",
+            "page_sum": "r2",
+            "page_size": "r1"
+        }
+    ],
+    "subquery_dict": {},
+    "limit_value": null,
+    "group_cols": []
+}
