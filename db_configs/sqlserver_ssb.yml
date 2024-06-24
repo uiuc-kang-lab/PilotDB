@@ -2,4 +2,4 @@ dbms: sqlserver
 dbname: ssb1t
 username: sa
 host: localhost
-password: Teng0707!
+password: password

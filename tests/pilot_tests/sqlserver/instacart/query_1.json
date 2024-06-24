@@ -1,0 +1,14 @@
+{
+    "pilot_query": "SELECT reordered AS r0, COUNT_BIG(*) AS r1, 'page_id_0:' + CAST(CAST(SUBSTRING(order_products.%%physloc%%, 6, 1)\n                    + SUBSTRING(order_products.%%physloc%%, 5, 1) AS int) AS VARCHAR) \n                    + '||' + CAST(CAST(SUBSTRING(order_products.%%physloc%%, 4, 1) \n                    + SUBSTRING(order_products.%%physloc%%, 3, 1) + SUBSTRING(order_products.%%physloc%%, 2, 1) \n                    + SUBSTRING(order_products.%%physloc%%, 1, 1) AS int) AS VARCHAR) AS page_id_0 FROM order_products {sampling_method} WHERE add_to_cat_order <= 5 GROUP BY reordered, 'page_id_0:' + CAST(CAST(SUBSTRING(order_products.%%physloc%%, 6, 1)\n                    + SUBSTRING(order_products.%%physloc%%, 5, 1) AS int) AS VARCHAR) \n                    + '||' + CAST(CAST(SUBSTRING(order_products.%%physloc%%, 4, 1) \n                    + SUBSTRING(order_products.%%physloc%%, 3, 1) + SUBSTRING(order_products.%%physloc%%, 2, 1) \n                    + SUBSTRING(order_products.%%physloc%%, 1, 1) AS int) AS VARCHAR)",
+    "results_mapping": [
+        {
+            "aggregate": "count",
+            "page_size": "r1"
+        }
+    ],
+    "subquery_dict": {},
+    "limit_value": null,
+    "group_cols": [
+        "r0"
+    ]
+}

@@ -62,8 +62,11 @@ def _solve_quadratic(a, b, c):
     return (-b - math.sqrt(b**2 - 4*a*c)) / (2*a), (-b + math.sqrt(b**2 - 4*a*c)) / (2*a)
 
 def get_sample_rate(fp: float, sample_size: int, pilot_sample_rate: float, pilot_sample_size: int):
-    bernoulli_N_lb = get_bernoulli_N_lb(pilot_sample_size, pilot_sample_rate, fp)
-    assert sample_size < bernoulli_N_lb, f"{sample_size} is too big"
+    if pilot_sample_rate > 0.9:
+        bernoulli_N_lb = pilot_sample_size
+    else:
+        bernoulli_N_lb = get_bernoulli_N_lb(pilot_sample_size, pilot_sample_rate, fp)
+    assert sample_size <= bernoulli_N_lb, f"{sample_size} is too big"
     z_val = norm.ppf(1-fp)
     p = _solve_quadratic(a=bernoulli_N_lb**2 + z_val**2 * bernoulli_N_lb,
                         b=-(2*bernoulli_N_lb*sample_size + z_val**2 * bernoulli_N_lb),

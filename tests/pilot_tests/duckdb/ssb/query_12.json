@@ -1,0 +1,16 @@
+{
+    "pilot_query": "SELECT d_year AS r0, s_nation AS r1, p_category AS r2, SUM(lo_revenue - lo_supplycost) AS r3, 'page_id_0:' || FLOOR(lineorder.rowid / 2048) AS page_id_0 FROM dates, customer, supplier, part, lineorder {sampling_method} WHERE lo_custkey = c_custkey AND lo_suppkey = s_suppkey AND lo_partkey = p_partkey AND lo_orderdate = d_datekey AND c_region = 'AMERICA' AND s_region = 'AMERICA' AND (d_year = 1997 OR d_year = 1998) AND (p_mfgr = 'MFGR#1' OR p_mfgr = 'MFGR#2') GROUP BY d_year, s_nation, p_category, page_id_0",
+    "results_mapping": [
+        {
+            "aggregate": "sum",
+            "page_sum": "r3"
+        }
+    ],
+    "subquery_dict": {},
+    "limit_value": null,
+    "group_cols": [
+        "r0",
+        "r1",
+        "r2"
+    ]
+}

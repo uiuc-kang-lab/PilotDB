@@ -1,0 +1,15 @@
+{
+    "pilot_query": "SELECT department AS r0, order_hour_of_day AS r1, COUNT(*) AS r2, page_id_0 FROM (SELECT department, order_hour_of_day, 'page_id_0:' || FLOOR(order_products.rowid / 2048) AS page_id_0 FROM orders, departments, products, order_products {sampling_method} WHERE orders.order_id = order_products.order_id AND products.product_id = order_products.product_id AND products.department_id = departments.department_id AND product_name LIKE '%green%') AS profit GROUP BY department, order_hour_of_day, page_id_0",
+    "results_mapping": [
+        {
+            "aggregate": "count",
+            "page_size": "r2"
+        }
+    ],
+    "subquery_dict": {},
+    "limit_value": null,
+    "group_cols": [
+        "r0",
+        "r1"
+    ]
+}

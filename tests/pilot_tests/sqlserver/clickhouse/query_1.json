@@ -1,0 +1,12 @@
+{
+    "pilot_query": "SELECT COUNT_BIG(*) AS r0, 'page_id_0:' + CAST(CAST(SUBSTRING(hits.%%physloc%%, 6, 1)\n                    + SUBSTRING(hits.%%physloc%%, 5, 1) AS int) AS VARCHAR) \n                    + '||' + CAST(CAST(SUBSTRING(hits.%%physloc%%, 4, 1) \n                    + SUBSTRING(hits.%%physloc%%, 3, 1) + SUBSTRING(hits.%%physloc%%, 2, 1) \n                    + SUBSTRING(hits.%%physloc%%, 1, 1) AS int) AS VARCHAR) AS page_id_0 FROM hits {sampling_method} GROUP BY 'page_id_0:' + CAST(CAST(SUBSTRING(hits.%%physloc%%, 6, 1)\n                    + SUBSTRING(hits.%%physloc%%, 5, 1) AS int) AS VARCHAR) \n                    + '||' + CAST(CAST(SUBSTRING(hits.%%physloc%%, 4, 1) \n                    + SUBSTRING(hits.%%physloc%%, 3, 1) + SUBSTRING(hits.%%physloc%%, 2, 1) \n                    + SUBSTRING(hits.%%physloc%%, 1, 1) AS int) AS VARCHAR)",
+    "results_mapping": [
+        {
+            "aggregate": "count",
+            "page_size": "r0"
+        }
+    ],
+    "subquery_dict": {},
+    "limit_value": null,
+    "group_cols": []
+}

@@ -1,0 +1,15 @@
+{
+    "pilot_query": "SELECT department AS r0, order_hour_of_day AS r1, COUNT_BIG(*) AS r2, page_id_0 FROM (SELECT department, orders.order_hour_of_day AS order_hour_of_day, 'page_id_0:' + CAST(CAST(SUBSTRING(order_products.%%physloc%%, 6, 1)\n                    + SUBSTRING(order_products.%%physloc%%, 5, 1) AS int) AS VARCHAR) \n                    + '||' + CAST(CAST(SUBSTRING(order_products.%%physloc%%, 4, 1) \n                    + SUBSTRING(order_products.%%physloc%%, 3, 1) + SUBSTRING(order_products.%%physloc%%, 2, 1) \n                    + SUBSTRING(order_products.%%physloc%%, 1, 1) AS int) AS VARCHAR) AS page_id_0 FROM aisles, order_products {sampling_method}, orders, products, departments WHERE aisles.aisle_id = products.aisle_id AND products.product_id = order_products.product_id AND orders.order_id = order_products.order_id AND departments.department_id = products.department_id AND (department = 'international' OR department = 'meat seafood') AND order_hour_of_day >= 15 AND order_hour_of_day <= 18) AS shipping GROUP BY department, order_hour_of_day, page_id_0",
+    "results_mapping": [
+        {
+            "aggregate": "count",
+            "page_size": "r2"
+        }
+    ],
+    "subquery_dict": {},
+    "limit_value": null,
+    "group_cols": [
+        "r0",
+        "r1"
+    ]
+}

@@ -1,0 +1,12 @@
+{
+    "pilot_query": "SELECT SUM(CAST(lo_extendedprice AS BIGINT) * CAST(lo_discount AS BIGINT)) AS r0, 'page_id_0:' + CAST(CAST(SUBSTRING(lineorder.%%physloc%%, 6, 1)\n                    + SUBSTRING(lineorder.%%physloc%%, 5, 1) AS int) AS VARCHAR) \n                    + '||' + CAST(CAST(SUBSTRING(lineorder.%%physloc%%, 4, 1) \n                    + SUBSTRING(lineorder.%%physloc%%, 3, 1) + SUBSTRING(lineorder.%%physloc%%, 2, 1) \n                    + SUBSTRING(lineorder.%%physloc%%, 1, 1) AS int) AS VARCHAR) AS page_id_0 FROM lineorder {sampling_method}, dates WHERE lo_orderdate = d_datekey AND d_yearmonth = 'Jan1994' AND lo_discount BETWEEN 4 AND 6 AND lo_quantity BETWEEN 26 AND 35 GROUP BY 'page_id_0:' + CAST(CAST(SUBSTRING(lineorder.%%physloc%%, 6, 1)\n                    + SUBSTRING(lineorder.%%physloc%%, 5, 1) AS int) AS VARCHAR) \n                    + '||' + CAST(CAST(SUBSTRING(lineorder.%%physloc%%, 4, 1) \n                    + SUBSTRING(lineorder.%%physloc%%, 3, 1) + SUBSTRING(lineorder.%%physloc%%, 2, 1) \n                    + SUBSTRING(lineorder.%%physloc%%, 1, 1) AS int) AS VARCHAR)",
+    "results_mapping": [
+        {
+            "aggregate": "sum",
+            "page_sum": "r0"
+        }
+    ],
+    "subquery_dict": {},
+    "limit_value": null,
+    "group_cols": []
+}

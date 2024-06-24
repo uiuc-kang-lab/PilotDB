@@ -1,0 +1,13 @@
+{
+    "pilot_query": "SELECT 100.00 * SUM(CASE WHEN product_name LIKE 'Organic%' THEN 1 ELSE 0 END) AS r0, COUNT(*) AS r1, 'page_id_0:' || CAST((CAST(CAST(order_products.ctid AS TEXT) AS point))[0] AS INT) AS page_id_0 FROM order_products {sampling_method}, orders, products WHERE order_products.product_id = products.product_id AND orders.order_id = order_products.order_id AND order_hour_of_day >= 8 AND order_hour_of_day < 12 GROUP BY page_id_0",
+    "results_mapping": [
+        {
+            "aggregate": "div",
+            "first_element": "r0",
+            "second_element": "r1"
+        }
+    ],
+    "subquery_dict": {},
+    "limit_value": null,
+    "group_cols": []
+}

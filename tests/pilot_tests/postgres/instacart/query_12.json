@@ -1,0 +1,18 @@
+{
+    "pilot_query": "SELECT order_dow AS r0, SUM(CASE WHEN reordered = 1 THEN 1 ELSE 0 END) AS r1, SUM(CASE WHEN reordered = 0 THEN 1 ELSE 0 END) AS r2, 'page_id_0:' || CAST((CAST(CAST(order_products.ctid AS TEXT) AS point))[0] AS INT) AS page_id_0 FROM orders, order_products {sampling_method} WHERE orders.order_id = order_products.order_id AND add_to_cat_order <= 2 AND order_hour_of_day >= 12 AND order_hour_of_day < 18 GROUP BY order_dow, page_id_0",
+    "results_mapping": [
+        {
+            "aggregate": "sum",
+            "page_sum": "r1"
+        },
+        {
+            "aggregate": "sum",
+            "page_sum": "r2"
+        }
+    ],
+    "subquery_dict": {},
+    "limit_value": null,
+    "group_cols": [
+        "r0"
+    ]
+}

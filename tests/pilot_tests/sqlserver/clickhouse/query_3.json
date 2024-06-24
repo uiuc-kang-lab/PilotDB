@@ -1,0 +1,21 @@
+{
+    "pilot_query": "SELECT SUM(AdvEngineID) AS r0, COUNT_BIG(*) AS r1, SUM(ResolutionWidth) AS r2, COUNT_BIG(*) AS r3, 'page_id_0:' + CAST(CAST(SUBSTRING(hits.%%physloc%%, 6, 1)\n                    + SUBSTRING(hits.%%physloc%%, 5, 1) AS int) AS VARCHAR) \n                    + '||' + CAST(CAST(SUBSTRING(hits.%%physloc%%, 4, 1) \n                    + SUBSTRING(hits.%%physloc%%, 3, 1) + SUBSTRING(hits.%%physloc%%, 2, 1) \n                    + SUBSTRING(hits.%%physloc%%, 1, 1) AS int) AS VARCHAR) AS page_id_0 FROM hits {sampling_method} GROUP BY 'page_id_0:' + CAST(CAST(SUBSTRING(hits.%%physloc%%, 6, 1)\n                    + SUBSTRING(hits.%%physloc%%, 5, 1) AS int) AS VARCHAR) \n                    + '||' + CAST(CAST(SUBSTRING(hits.%%physloc%%, 4, 1) \n                    + SUBSTRING(hits.%%physloc%%, 3, 1) + SUBSTRING(hits.%%physloc%%, 2, 1) \n                    + SUBSTRING(hits.%%physloc%%, 1, 1) AS int) AS VARCHAR)",
+    "results_mapping": [
+        {
+            "aggregate": "sum",
+            "page_sum": "r0"
+        },
+        {
+            "aggregate": "count",
+            "page_size": "r1"
+        },
+        {
+            "aggregate": "avg",
+            "page_sum": "r2",
+            "page_size": "r3"
+        }
+    ],
+    "subquery_dict": {},
+    "limit_value": null,
+    "group_cols": []
+}
