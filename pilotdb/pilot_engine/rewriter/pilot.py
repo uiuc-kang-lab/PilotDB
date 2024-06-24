@@ -70,71 +70,30 @@ class Pilot_Rewriter:
 
     def extract_page_id(self, is_union=False, is_join=False):
         if self.database == POSTGRES:
-            if is_union:
-                if is_join:
-                    expresion = f"'page_id_{self.page_id_rank}:' || ({self.largest_table}.ctid::text::point)[0]::int as page_id_1"
-                    self.page_id_rank += 1
-                    self.page_id_count = 2
-                else:
-                    expresion = f"'page_id_{self.page_id_rank}:' || ({self.largest_table}.ctid::text::point)[0]::int as page_id_0"
-                    self.page_id_rank += 1
-                    self.page_id_count = 1
-            else:
-                expresion = f"'page_id_{self.page_id_rank}:' || ({self.largest_table}.ctid::text::point)[0]::int as page_id_{self.page_id_count}"
-                self.page_id_rank += 1
-                self.page_id_count += 1
+            expresion = f"'page_id_{self.page_id_rank}:' || ({self.largest_table}.ctid::text::point)[0]::int as page_id_{self.page_id_count}"
+            self.page_id_rank += 1
+            self.page_id_count += 1
             return sqlglot.parse_one(expresion)
         elif self.database == DUCKDB:
-            if is_union:
-                if is_join:
-                    expresion = f"'page_id_{self.page_id_rank}:' || floor({self.largest_table}.rowid/2048) as page_id_1"
-                    self.page_id_rank += 1
-                    self.page_id_count = 2
-                else:
-                    expresion = f"'page_id_{self.page_id_rank}:' || floor({self.largest_table}.rowid/2048) as page_id_0"
-                    self.page_id_rank += 1
-                    self.page_id_count = 1
-            else:
-                expresion = f"'page_id_{self.page_id_rank}:' || floor({self.largest_table}.rowid/2048) as page_id_{self.page_id_count}"
-                self.page_id_rank += 1
-                self.page_id_count += 1
+            expresion = f"'page_id_{self.page_id_rank}:' || floor({self.largest_table}.rowid/2048) as page_id_{self.page_id_count}"
+            self.page_id_rank += 1
+            self.page_id_count += 1
             return sqlglot.parse_one(expresion)
         elif self.database == SQLSERVER:
-            if is_union:
-                if is_join:
-                    expresion = f''''page_id_{self.page_id_rank}:' + CAST(CAST(SUBSTRING({self.largest_table}.%%physloc%%, 6, 1)
-                    + SUBSTRING({self.largest_table}.%%physloc%%, 5, 1) AS int) AS VARCHAR) 
-                    + '||' + CAST(CAST(SUBSTRING({self.largest_table}.%%physloc%%, 4, 1) 
-                    + SUBSTRING({self.largest_table}.%%physloc%%, 3, 1) + SUBSTRING({self.largest_table}.%%physloc%%, 2, 1) 
-                    + SUBSTRING({self.largest_table}.%%physloc%%, 1, 1) AS int) AS VARCHAR)'''
-                    self.sqlserver_alias2page_id['page_id_1'] = expresion
-                    expresion = f'''{expresion} AS page_id_1'''
-                    self.page_id_rank += 1
-                    self.page_id_count = 2
-                else:
-                    expresion = f''''page_id_{self.page_id_rank}:' + CAST(CAST(SUBSTRING({self.largest_table}.%%physloc%%, 6, 1)
-                    + SUBSTRING({self.largest_table}.%%physloc%%, 5, 1) AS int) AS VARCHAR) 
-                    + '||' + CAST(CAST(SUBSTRING({self.largest_table}.%%physloc%%, 4, 1) 
-                    + SUBSTRING({self.largest_table}.%%physloc%%, 3, 1) + SUBSTRING({self.largest_table}.%%physloc%%, 2, 1) 
-                    + SUBSTRING({self.largest_table}.%%physloc%%, 1, 1) AS int) AS VARCHAR)'''
-                    self.sqlserver_alias2page_id['page_id_0'] = expresion
-                    expresion = f'''{expresion} AS page_id_0'''
-                    self.page_id_rank += 1
-                    self.page_id_count = 1
-            else:
-                expresion = f''''page_id_{self.page_id_rank}:' + CAST(CAST(SUBSTRING({self.largest_table}.%%physloc%%, 6, 1)
-                    + SUBSTRING({self.largest_table}.%%physloc%%, 5, 1) AS int) AS VARCHAR) 
-                    + '||' + CAST(CAST(SUBSTRING({self.largest_table}.%%physloc%%, 4, 1) 
-                    + SUBSTRING({self.largest_table}.%%physloc%%, 3, 1) + SUBSTRING({self.largest_table}.%%physloc%%, 2, 1) 
-                    + SUBSTRING({self.largest_table}.%%physloc%%, 1, 1) AS int) AS VARCHAR)'''
-                self.sqlserver_alias2page_id[f'page_id_{self.page_id_count}'] = expresion
-                expresion = f'''{expresion} AS page_id_{self.page_id_count}'''
-                self.page_id_rank += 1
-                self.page_id_count += 1
+            expresion = f''''page_id_{self.page_id_rank}:' + CAST(CAST(SUBSTRING({self.largest_table}.%%physloc%%, 6, 1)
+                + SUBSTRING({self.largest_table}.%%physloc%%, 5, 1) AS int) AS VARCHAR) 
+                + '||' + CAST(CAST(SUBSTRING({self.largest_table}.%%physloc%%, 4, 1) 
+                + SUBSTRING({self.largest_table}.%%physloc%%, 3, 1) + SUBSTRING({self.largest_table}.%%physloc%%, 2, 1) 
+                + SUBSTRING({self.largest_table}.%%physloc%%, 1, 1) AS int) AS VARCHAR)'''
+            self.sqlserver_alias2page_id[f'page_id_{self.page_id_count}'] = expresion
+            expresion = f'''{expresion} AS page_id_{self.page_id_count}'''
+            self.page_id_rank += 1
+            self.page_id_count += 1
             sqlserver_page_id_mapping = f"sqlserver_page_id_mapping_{self.sqlserver_page_id_mapping_count}"
             self.sqlserver_page_id_mapping[sqlserver_page_id_mapping] = expresion
             self.sqlserver_page_id_mapping_count += 1
             return sqlglot.parse_one(sqlserver_page_id_mapping)
+
 
     def remove_clauses(self, expression):
         if expression.find(exp.Limit):
@@ -142,10 +101,7 @@ class Pilot_Rewriter:
 
         expression.set("limit", None)
         expression.set("offset", None)
-        # FIXME
         expression.set("order", None)
-        # for having_expression in expression.find_all(exp.Having):
-        #     having_expression.parent.set("having", None)
 
 
     def replace_star(self, expression):
@@ -203,18 +159,6 @@ class Pilot_Rewriter:
         for select_expression in expression.args["expressions"]:
             is_average = False
             temp_expressions = []
-            # if select_expression.find(exp.Case):
-            #     case_subquery = select_expression.find(exp.Case).args['ifs'][0].find(exp.If)
-            #     condition_subquery = case_subquery.this.this.this
-            #     subquery_str = f"subquery_{self.subquery_count}"
-            #     self.subquery_dict[subquery_str] = condition_subquery.sql()
-            #     self.subquery_count += 1
-            #     condition_subquery.replace(sqlglot.parse_one(subquery_str))
-            #     new_subquery1 = self.rewrite(case_subquery.args['true'].this.sql(), return_expression=True)
-            #     case_subquery.args['true'].this.replace(new_subquery1)
-            #     new_subquery2 = self.rewrite(case_subquery.parent.args['default'].this.sql(), return_expression=True)
-            #     case_subquery.parent.args['default'].this.replace(new_subquery2)
-            #     temp_expressions.append(select_expression)
             if select_expression.find(exp.Avg):
                 avg_expression = select_expression.find(exp.Avg)
                 sum_expression = exp.Sum(this=avg_expression.this)
@@ -669,9 +613,6 @@ class Pilot_Rewriter:
         return sql
     
     def sqlserver_replace_page_id(self, old_query):
-        # if self.page_id_rank == 1 and self.page_id_count == 1:
-        #     for key, value in self.sqlserver_alias2page_id.items():
-        #         old_query = old_query.replace(key, value)
         old_query = old_query.replace("COUNT(", "COUNT_BIG(")
         for key, value in self.sqlserver_page_id_mapping.items():
             old_query = old_query.replace(key, value)
