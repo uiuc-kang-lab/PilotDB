@@ -5,7 +5,7 @@ import os
 import xml.etree.ElementTree as ET
 from xml.dom import minidom
 
-def connect_to_db(db: str, user: str, host: str="localhost", password: str|None=None):
+def connect_to_db(db: str, user: str, host: str="127.0.0.1", password: str|None=None):
     conn_string = f'DRIVER={{ODBC Driver 18 for SQL Server}};SERVER={host};DATABASE={db};UID={user};PWD={password};TrustServerCertificate=yes;'
     conn = pyodbc.connect(conn_string)
     conn.execute('DBCC FREEPROCCACHE;')
