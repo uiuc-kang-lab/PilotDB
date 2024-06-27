@@ -70,25 +70,67 @@ class Pilot_Rewriter:
 
     def extract_page_id(self, is_union=False, is_join=False):
         if self.database == POSTGRES:
-            expresion = f"'page_id_{self.page_id_rank}:' || ({self.largest_table}.ctid::text::point)[0]::int as page_id_{self.page_id_count}"
-            self.page_id_rank += 1
-            self.page_id_count += 1
+            if is_union:
+                if is_join:
+                    expresion = f"'page_id_{self.page_id_rank}:' || ({self.largest_table}.ctid::text::point)[0]::int as page_id_1"
+                    self.page_id_rank += 1
+                    self.page_id_count = 2
+                else:
+                    expresion = f"'page_id_{self.page_id_rank}:' || ({self.largest_table}.ctid::text::point)[0]::int as page_id_0"
+                    self.page_id_rank += 1
+                    self.page_id_count = 1
+            else:
+                expresion = f"'page_id_{self.page_id_rank}:' || ({self.largest_table}.ctid::text::point)[0]::int as page_id_{self.page_id_count}"
+                self.page_id_rank += 1
+                self.page_id_count += 1
             return sqlglot.parse_one(expresion)
         elif self.database == DUCKDB:
-            expresion = f"'page_id_{self.page_id_rank}:' || floor({self.largest_table}.rowid/2048) as page_id_{self.page_id_count}"
-            self.page_id_rank += 1
-            self.page_id_count += 1
+            if is_union:
+                if is_join:
+                    expresion = f"'page_id_{self.page_id_rank}:' || floor({self.largest_table}.rowid/2048) as page_id_1"
+                    self.page_id_rank += 1
+                    self.page_id_count = 2
+                else:
+                    expresion = f"'page_id_{self.page_id_rank}:' || floor({self.largest_table}.rowid/2048) as page_id_0"
+                    self.page_id_rank += 1
+                    self.page_id_count = 1
+            else:
+                expresion = f"'page_id_{self.page_id_rank}:' || floor({self.largest_table}.rowid/2048) as page_id_{self.page_id_count}"
+                self.page_id_rank += 1
+                self.page_id_count += 1
             return sqlglot.parse_one(expresion)
         elif self.database == SQLSERVER:
-            expresion = f''''page_id_{self.page_id_rank}:' + CAST(CAST(SUBSTRING({self.largest_table}.%%physloc%%, 6, 1)
-                + SUBSTRING({self.largest_table}.%%physloc%%, 5, 1) AS int) AS VARCHAR) 
-                + '||' + CAST(CAST(SUBSTRING({self.largest_table}.%%physloc%%, 4, 1) 
-                + SUBSTRING({self.largest_table}.%%physloc%%, 3, 1) + SUBSTRING({self.largest_table}.%%physloc%%, 2, 1) 
-                + SUBSTRING({self.largest_table}.%%physloc%%, 1, 1) AS int) AS VARCHAR)'''
-            self.sqlserver_alias2page_id[f'page_id_{self.page_id_count}'] = expresion
-            expresion = f'''{expresion} AS page_id_{self.page_id_count}'''
-            self.page_id_rank += 1
-            self.page_id_count += 1
+            if is_union:
+                if is_join:
+                    expresion = f''''page_id_{self.page_id_rank}:' + CAST(CAST(SUBSTRING({self.largest_table}.%%physloc%%, 6, 1)
+                    + SUBSTRING({self.largest_table}.%%physloc%%, 5, 1) AS int) AS VARCHAR) 
+                    + '||' + CAST(CAST(SUBSTRING({self.largest_table}.%%physloc%%, 4, 1) 
+                    + SUBSTRING({self.largest_table}.%%physloc%%, 3, 1) + SUBSTRING({self.largest_table}.%%physloc%%, 2, 1) 
+                    + SUBSTRING({self.largest_table}.%%physloc%%, 1, 1) AS int) AS VARCHAR)'''
+                    self.sqlserver_alias2page_id['page_id_1'] = expresion
+                    expresion = f'''{expresion} AS page_id_1'''
+                    self.page_id_rank += 1
+                    self.page_id_count = 2
+                else:
+                    expresion = f''''page_id_{self.page_id_rank}:' + CAST(CAST(SUBSTRING({self.largest_table}.%%physloc%%, 6, 1)
+                    + SUBSTRING({self.largest_table}.%%physloc%%, 5, 1) AS int) AS VARCHAR) 
+                    + '||' + CAST(CAST(SUBSTRING({self.largest_table}.%%physloc%%, 4, 1) 
+                    + SUBSTRING({self.largest_table}.%%physloc%%, 3, 1) + SUBSTRING({self.largest_table}.%%physloc%%, 2, 1) 
+                    + SUBSTRING({self.largest_table}.%%physloc%%, 1, 1) AS int) AS VARCHAR)'''
+                    self.sqlserver_alias2page_id['page_id_0'] = expresion
+                    expresion = f'''{expresion} AS page_id_0'''
+                    self.page_id_rank += 1
+                    self.page_id_count = 1
+            else:
+                expresion = f''''page_id_{self.page_id_rank}:' + CAST(CAST(SUBSTRING({self.largest_table}.%%physloc%%, 6, 1)
+                    + SUBSTRING({self.largest_table}.%%physloc%%, 5, 1) AS int) AS VARCHAR) 
+                    + '||' + CAST(CAST(SUBSTRING({self.largest_table}.%%physloc%%, 4, 1) 
+                    + SUBSTRING({self.largest_table}.%%physloc%%, 3, 1) + SUBSTRING({self.largest_table}.%%physloc%%, 2, 1) 
+                    + SUBSTRING({self.largest_table}.%%physloc%%, 1, 1) AS int) AS VARCHAR)'''
+                self.sqlserver_alias2page_id[f'page_id_{self.page_id_count}'] = expresion
+                expresion = f'''{expresion} AS page_id_{self.page_id_count}'''
+                self.page_id_rank += 1
+                self.page_id_count += 1
             sqlserver_page_id_mapping = f"sqlserver_page_id_mapping_{self.sqlserver_page_id_mapping_count}"
             self.sqlserver_page_id_mapping[sqlserver_page_id_mapping] = expresion
             self.sqlserver_page_id_mapping_count += 1
@@ -689,7 +731,6 @@ class Pilot_Rewriter:
         elif self.database == POSTGRES:
             pattern = r"\b(INTERVAL) '(\d+)' (DAYS)\b"
             new_query = re.sub(pattern, r"\1 '\2 \3'", new_query)
-        print(self.result_mapping_list)
         return new_query
 
     def log_info(self):
