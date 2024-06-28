@@ -31,6 +31,7 @@ class Pilot_Rewriter:
         self.sqlserver_page_id_mapping_count = 0
         self.sqlserver_alias2page_id = {}
 
+        # return parameters
         self.res_2_page_id = {}
         self.result_mapping_list = []
         self.group_cols = []
@@ -625,33 +626,6 @@ class Pilot_Rewriter:
         expression.set("having", None)
         return expression
 
-    def parse_window(self, expression):
-        window = expression.find(exp.Window)
-        if window:
-            return True
-        stddev = expression.find(exp.StddevSamp)
-        if stddev:
-            return True
-        return False
-
-    def extract_res_2_page_id(self, expression):
-        if self.page_id_count > 1:
-            for select_expression in expression.args["expressions"]:
-                if select_expression.find(exp.Column):
-                    column = select_expression.find(exp.Column)
-                    if column.this.this in self.alias_2_page_id:
-                        self.res_2_page_id[select_expression.alias] = (
-                            self.alias_2_page_id[column.this.this]
-                        )
-                    else:
-                        for result_mapping in self.result_mapping_list:
-                            if result_mapping[AGGREGATE] == DIV_OPERATOR:
-                                self.res_2_page_id[result_mapping[FIRST_ELEMENT]] = (
-                                    "page_id_0"
-                                )
-                                self.res_2_page_id[result_mapping[SECOND_ELEMENT]] = (
-                                    "page_id_1"
-                                )
 
     def remove_cte(self, expression):
         remove_cte = True
@@ -763,8 +737,6 @@ class Pilot_Rewriter:
                 self.is_rewritable = False
                 return original_query
 
-        if self.parse_window(expression):
-            return original_query
         self.find_alias(expression)
         self.extract_cte(expression)
         self.find_all_aggregator(expression)
@@ -775,7 +747,6 @@ class Pilot_Rewriter:
         expression = self.rewrite_select_expression(expression)
 
         expression = self.primary_query_rewriter(expression)
-        self.extract_res_2_page_id(expression)
 
         self.remove_cte(expression)
         self.remove_duplicate(expression)
