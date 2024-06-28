@@ -3,12 +3,13 @@ from sqlglot import exp
 from pilotdb.pilot_engine.commons import *
 import re
 
+
 class Sampling_Rewriter:
     def __init__(self, table_cols, table_size, database):
         self.table_cols = table_cols
         self.table_size = table_size
         self.database = database
-        
+
         self.subquery_count = 0
         self.alias = {}
         self.table_alias = {}
@@ -19,9 +20,8 @@ class Sampling_Rewriter:
         self.aggregator_mapping = {}
         self.subquery_dict = {}
 
-
     def find_alias(self, expression):
-        alias_list = expression.find_all(exp.Alias,bfs=False)
+        alias_list = expression.find_all(exp.Alias, bfs=False)
         for alias in alias_list:
             self.alias[alias.alias] = alias.this
         for table in expression.find_all(exp.Table):
@@ -33,12 +33,10 @@ class Sampling_Rewriter:
 
         return None
 
-
     def extract_cte(self, expression):
         cte_list = expression.find_all(exp.CTE)
         for cte in cte_list:
             self.cte[cte.alias] = cte.this
-
 
     def find_all_aggregator(self, expression):
         for agg in expression.find_all(exp.AggFunc):
@@ -48,7 +46,6 @@ class Sampling_Rewriter:
                 table_set.add(column.table)
             if len(table_set) > 1:
                 self.single_sample = True
-        
 
     def find_all_tables(self, expression):
         table_list = []
@@ -58,7 +55,6 @@ class Sampling_Rewriter:
             for join in expression.args["joins"]:
                 table_list.append(join.find(exp.Table))
         return table_list
-
 
     def add_table_sample(self, expression):
         tablesample = (
@@ -86,13 +82,11 @@ class Sampling_Rewriter:
                         return True
         return False
 
-
     def extract_items(self, expression, type):
         extracted_items = []
         for item in expression.find_all(type):
             extracted_items.append(item)
         return extracted_items
-
 
     def subquery_in_where(self, expression, column_information):
         if "where" in expression.args:
@@ -158,19 +152,30 @@ class Sampling_Rewriter:
         new_select_expression_list = []
         for select_expression in expression.args["expressions"]:
             if select_expression.find(exp.Div):
-              div_operator = select_expression.find(exp.Div)
-              if div_operator.this.find(exp.AggFunc) and div_operator.expression.find(exp.AggFunc):
-                new_select_expression_list.append(select_expression)
-                continue
-            if (select_expression.find(exp.Sum) or select_expression.find(exp.Count) or (select_expression.find(exp.Anonymous) 
-                    and select_expression.find(exp.Anonymous).this.upper() == 'COUNT_BIG')):
+                div_operator = select_expression.find(exp.Div)
+                if div_operator.this.find(exp.AggFunc) and div_operator.expression.find(
+                    exp.AggFunc
+                ):
+                    new_select_expression_list.append(select_expression)
+                    continue
+            if (
+                select_expression.find(exp.Sum)
+                or select_expression.find(exp.Count)
+                or (
+                    select_expression.find(exp.Anonymous)
+                    and select_expression.find(exp.Anonymous).this.upper()
+                    == "COUNT_BIG"
+                )
+            ):
                 agg_expression = select_expression.find(exp.AggFunc)
                 if not agg_expression:
                     agg_expression = select_expression.find(exp.Anonymous)
                 col = agg_expression.find(exp.Column)
                 if col and col.this.this in self.alias:
                     original_agg_expression = self.alias[col.this.this]
-                    if original_agg_expression.find(exp.Sum) or original_agg_expression.find(exp.Count):
+                    if original_agg_expression.find(
+                        exp.Sum
+                    ) or original_agg_expression.find(exp.Count):
                         new_select_expression_list.append(select_expression)
                         continue
                 agg_expression_parent = agg_expression.parent
@@ -179,25 +184,24 @@ class Sampling_Rewriter:
                     expression="{sample_rate}",
                 )
                 if isinstance(agg_expression_parent, exp.Select):
-                  new_select_expression_list.append(new_div_expression)
+                    new_select_expression_list.append(new_div_expression)
                 else:
-                  agg_expression_parent.set("this", new_div_expression)
-                  new_select_expression_list.append(select_expression)
+                    agg_expression_parent.set("this", new_div_expression)
+                    new_select_expression_list.append(select_expression)
             else:
                 new_select_expression_list.append(select_expression)
         expression.set("expressions", new_select_expression_list)
-                
-                
+
     def subquery_in_from(self, expression, is_union=False, is_join=False):
         self.subquery_in_where(expression, self.table_cols)
         if self.add_table_sample(expression):
-          self.add_sample_rate(expression)
+            self.add_sample_rate(expression)
 
         return expression
 
-
-    def primary_query_rewriter(self, expression, is_union=False, level=0, is_join=False):
-
+    def primary_query_rewriter(
+        self, expression, is_union=False, level=0, is_join=False
+    ):
         if expression.find(exp.Union):
             is_union = True
         if expression.args["from"].find(exp.Subquery):
@@ -220,7 +224,9 @@ class Sampling_Rewriter:
             if "joins" in expression.args:
                 for join_expression in expression.args["joins"]:
                     if join_expression.find(exp.Select):
-                        self.primary_query_rewriter(join_expression.find(exp.Select), is_union, level + 1)
+                        self.primary_query_rewriter(
+                            join_expression.find(exp.Select), is_union, level + 1
+                        )
             self.add_sample_rate(expression)
 
         elif self.cte and expression.args["from"].this.this.this in self.cte:
@@ -235,51 +241,54 @@ class Sampling_Rewriter:
                         if join_expression.this.this.this in self.cte:
                             cte_expression = self.cte[join_expression.this.this.this]
                             if join_expression.this.this.this not in self.sampled_cte:
-                                self.primary_query_rewriter(cte_expression, is_union, level + 1, True)
-                                self.sampled_cte.add(join_expression.this.this.this)  
+                                self.primary_query_rewriter(
+                                    cte_expression, is_union, level + 1, True
+                                )
+                                self.sampled_cte.add(join_expression.this.this.this)
 
             self.add_sample_rate(expression)
         else:
             self.subquery_in_from(expression, is_union, is_join)
 
         return expression
-                   
 
     def remove_cte(self, expression):
         if expression.find(exp.With):
-          cte_alias_list = []
-          new_cte_expression_list = set()
-          for table in expression.args["from"].find_all(exp.Table):
-              if table.this.this in self.cte:
-                  cte_alias_list.append(table.this.this)
-                  new_cte_expression_list.add(self.cte[table.this.this].parent)
+            cte_alias_list = []
+            new_cte_expression_list = set()
+            for table in expression.args["from"].find_all(exp.Table):
+                if table.this.this in self.cte:
+                    cte_alias_list.append(table.this.this)
+                    new_cte_expression_list.add(self.cte[table.this.this].parent)
 
-          if "joins" in expression.args:
-              for join_expression in expression.args["joins"]:
-                  for table in join_expression.find_all(exp.Table):
-                      if table.this.this in self.cte:
-                          cte_alias_list.append(table.this.this)
-                          new_cte_expression_list.add(self.cte[table.this.this].parent)
+            if "joins" in expression.args:
+                for join_expression in expression.args["joins"]:
+                    for table in join_expression.find_all(exp.Table):
+                        if table.this.this in self.cte:
+                            cte_alias_list.append(table.this.this)
+                            new_cte_expression_list.add(
+                                self.cte[table.this.this].parent
+                            )
 
-          for cte_expression in new_cte_expression_list:
-              for cte_table in cte_expression.find_all(exp.Table):
-                  if cte_table.this.this in self.cte:
-                      cte_alias_list.append(cte_table.this.this)
-          new_ctes = []
-          for old_cte in expression.args["with"].expressions:
-              if old_cte.alias in cte_alias_list:
-                  new_ctes.append(old_cte)
-          if new_ctes:
-            new_with_expression = exp.With(expressions=new_ctes)
-            expression.set("with", new_with_expression)
-          else:
-            expression.set("with", None)
-
+            for cte_expression in new_cte_expression_list:
+                for cte_table in cte_expression.find_all(exp.Table):
+                    if cte_table.this.this in self.cte:
+                        cte_alias_list.append(cte_table.this.this)
+            new_ctes = []
+            for old_cte in expression.args["with"].expressions:
+                if old_cte.alias in cte_alias_list:
+                    new_ctes.append(old_cte)
+            if new_ctes:
+                new_with_expression = exp.With(expressions=new_ctes)
+                expression.set("with", new_with_expression)
+            else:
+                expression.set("with", None)
 
     def replace_sample_method(self, sql_query):
-        new_query = sql_query.replace("TABLESAMPLE SYSTEM (1 ROWS)", "{sampling_method}")
+        new_query = sql_query.replace(
+            "TABLESAMPLE SYSTEM (1 ROWS)", "{sampling_method}"
+        )
         return new_query
-
 
     def modify_having(self, expression):
         for having_expression in expression.find_all(exp.Having):
@@ -290,25 +299,27 @@ class Sampling_Rewriter:
                 col = agg_expression.find(exp.Column)
                 if col and col.this.this in self.alias:
                     original_agg_expression = self.alias[col.this.this]
-                    if original_agg_expression.find(exp.Sum) or original_agg_expression.find(exp.Count):
+                    if original_agg_expression.find(
+                        exp.Sum
+                    ) or original_agg_expression.find(exp.Count):
                         continue
                 agg_expression_parent = agg_expression.parent
                 new_div_expression = exp.Div(
-                    this=agg_expression,
-                    expression="{sample_rate}"
+                    this=agg_expression, expression="{sample_rate}"
                 )
                 agg_expression_parent.set("this", new_div_expression)
 
- 
     def rewrite(self, original_query):
         include_limit = False
         if self.database == SQLSERVER:
-            match = re.search(r'TOP (\d+)', original_query, re.IGNORECASE)
+            match = re.search(r"TOP (\d+)", original_query, re.IGNORECASE)
             if match:
                 limit_value = int(match.group(1))  # The number x to be retrieved
                 include_limit = True
-                original_query = re.sub(r'TOP \d+', '', original_query, flags=re.IGNORECASE)
-                
+                original_query = re.sub(
+                    r"TOP \d+", "", original_query, flags=re.IGNORECASE
+                )
+
         expression = sqlglot.parse_one(original_query)
         self.find_alias(expression)
         self.extract_cte(expression)
@@ -320,12 +331,11 @@ class Sampling_Rewriter:
         self.modify_having(expression)
         modified_query = expression.sql()
         new_query = self.replace_sample_method(modified_query)
-        
+
         if self.database == POSTGRES:
             pattern = r"\b(INTERVAL) '(\d+)' (DAYS)\b"
             new_query = re.sub(pattern, r"\1 '\2 \3'", new_query)
-        
+
         if include_limit:
             new_query = f"SELECT TOP {limit_value} " + new_query[6:]
         return new_query
-
