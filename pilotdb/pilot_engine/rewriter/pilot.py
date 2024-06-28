@@ -2,7 +2,6 @@ import logging
 import sqlglot
 from sqlglot import exp
 from pilotdb.pilot_engine.commons import *
-from pilotdb.pilot_engine.pilot_query import Query
 import re
 
 
@@ -145,22 +144,6 @@ class Pilot_Rewriter:
         expression.set("offset", None)
         expression.set("order", None)
 
-
-    def replace_star(self, expression):
-        new_expressions = []
-        for select_expression in expression.args["expressions"]:
-            if isinstance(select_expression, exp.Star):
-                for subquery in expression.find_all(exp.Subquery):
-                    for sub_select_expression in subquery.this.args["expressions"]:
-                        if sub_select_expression.find(exp.Alias):
-                            new_expressions.append(
-                                exp.Column(
-                                    this=exp.Identifier(
-                                        this=sub_select_expression.alias
-                                    )
-                                )
-                            )
-                expression.set("expressions", new_expressions)
 
     def rewrite_subtraction(self, expression):
         new_select_expression = []
@@ -709,7 +692,6 @@ class Pilot_Rewriter:
         self.find_alias(expression)
         self.extract_cte(expression)
         self.find_all_aggregator(expression)
-        self.replace_star(expression)
 
         self.remove_clauses(expression)
 
