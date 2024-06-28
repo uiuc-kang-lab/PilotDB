@@ -1,7 +1,8 @@
+import math
+from typing import Dict, List
+
 from pilotdb.pilot_engine.commons import *
 
-from typing import Dict, List
-import math
 
 def aggregate_error_to_page_error(column_mapping: List[Dict], required_error: float=0.05):
     page_errors = {}

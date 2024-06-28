@@ -1,8 +1,10 @@
 import logging
+import re
+
 import sqlglot
 from sqlglot import exp
+
 from pilotdb.pilot_engine.commons import *
-import re
 
 
 class Pilot_Rewriter:

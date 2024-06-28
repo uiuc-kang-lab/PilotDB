@@ -1,9 +1,11 @@
-import pyodbc
-import pandas as pd
-import pandas.io.sql as sqlio
 import os
 import xml.etree.ElementTree as ET
 from xml.dom import minidom
+
+import pandas as pd
+import pandas.io.sql as sqlio
+import pyodbc
+
 
 def connect_to_db(db: str, user: str, host: str="127.0.0.1", password: str|None=None):
     conn_string = f'DRIVER={{ODBC Driver 18 for SQL Server}};SERVER={host};DATABASE={db};UID={user};PWD={password};TrustServerCertificate=yes;'

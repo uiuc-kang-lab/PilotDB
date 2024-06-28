@@ -2,6 +2,7 @@ import logging
 from dataclasses import dataclass
 from typing import Dict, List
 
+
 @dataclass
 class Query:
     query: str                          # a query written in SQL

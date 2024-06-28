@@ -1,9 +1,11 @@
 
-from scipy.stats import t, chi2, norm
-from typing import Dict, List
-import math
-import pandas as pd
 import logging
+import math
+from typing import Dict, List
+
+import pandas as pd
+from scipy.stats import chi2, norm, t
+
 
 def get_mean_ub(sample_size: int, sample_mean: float, sample_std: float, failure_probability: float):
     t_val = t.ppf(1-failure_probability, sample_size-1)
