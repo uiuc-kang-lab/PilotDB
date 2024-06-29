@@ -4,6 +4,7 @@ import logging
 import sys
 import time
 from typing import Dict
+import warnings
 
 import pandas as pd
 from sqlglot import transpile
@@ -23,6 +24,8 @@ from pilotdb.utils.timer import Timer
 from pilotdb.utils.utils import (dump_results, get_largest_sample_rate,
                                  setup_logging)
 
+
+warnings.simplefilter(action="ignore", category=UserWarning)
 
 def execute_aqp(query: Query, db_config: dict, pilot_sample_rate: float = 0.05):
     # prepare the query and db
@@ -495,3 +498,80 @@ def process_subqueries(dbms, conn, pq) -> Dict[str, str]:
                     subquery_result = str(subquery_result)
             subquery_results[subquery_name] = subquery_result
     return subquery_results
+
+def connect(dbms: str, db_config: dict):
+    conn = connect_to_db(dbms, db_config)
+    return {"conn": conn, "dbms": dbms}
+
+def run(conn: dict, query: str, error: float, probability: float):
+    assert error > 0 and error < 1, f"Error rate should be between 0 and 1, but got {error}"
+    assert probability > 0 and probability < 1, f"Failure probability should be between 0 and 1, but got {probability}"
+    
+    _conn = conn["conn"]
+    _dbms = conn["dbms"]
+    _query = Query(
+        name="PilotDB-query",
+        query=query,
+        table_cols={},
+        table_size={},
+        error=error,
+        failure_probability=probability,
+    )
+
+    pq = Pilot_Rewriter(_query.table_cols, _query.table_size, _dbms)
+    sq = Sampling_Rewriter(_query.table_cols, _query.table_size, _dbms)
+    pilot_query = pq.rewrite(_query.query)
+    sampling_query = sq.rewrite(_query.query)
+    sampling_clause = get_sampling_clause(0.05, _dbms)
+    pilot_query = pilot_query.format(sampling_method=sampling_clause)
+
+    # ======= start execution =========
+    # execute subqueries
+    subquery_results = process_subqueries(_dbms, _conn, pq)
+    # execute pilot query
+    for subquery_name, subquery_result in subquery_results.items():
+        pilot_query = pilot_query.replace(subquery_name, subquery_result)
+    pilot_results = execute_query(_conn, pilot_query, _dbms)
+    # parse the results of pilot query
+    page_errors = aggregate_error_to_page_error(
+        pq.result_mapping_list, required_error=_query.error
+    )
+    final_sample_rate = estimate_final_rate(
+        failure_prob=_query.failure_probability,
+        pilot_results=pilot_results,
+        page_errors=page_errors,
+        group_cols=pq.group_cols,
+        pilot_rate=0.05 / 100,
+        limit=pq.limit_value,
+    )
+    if final_sample_rate == -1:
+        final_sample_rate = 1
+    elif final_sample_rate * 100 > get_largest_sample_rate(_dbms):
+        final_sample_rate = 1
+    if final_sample_rate == 1:
+        sampling_query = sampling_query.format(sampling_method="", sample_rate="1")
+        for subquery_name, subquery_result in subquery_results.items():
+            sampling_query = sampling_query.replace(subquery_name, subquery_result)
+        results_df = execute_query(_conn, sampling_query, _dbms)
+    elif final_sample_rate * 100 > 0.05:
+        final_sample_rate = round(final_sample_rate * 100, 2)
+        logging.info(f"final sample rate: {final_sample_rate}")
+        sampling_clause = get_sampling_clause(final_sample_rate, _dbms)
+        sampling_query = sampling_query.format(
+            sampling_method=sampling_clause, sample_rate=final_sample_rate / 100
+        )
+        for subquery_name, subquery_result in subquery_results.items():
+            sampling_query = sampling_query.replace(subquery_name, subquery_result)
+        results_df = execute_query(_conn, sampling_query, _dbms)
+    else:
+        sampling_clause = get_sampling_clause(0.05, _dbms)
+        sampling_query = sampling_query.format(
+            sampling_method=sampling_clause, sample_rate=0.05 / 100
+        )
+        for subquery_name, subquery_result in subquery_results.items():
+            sampling_query = sampling_query.replace(subquery_name, subquery_result)
+        results_df = execute_query(_conn, sampling_query, _dbms)
+    return results_df
+
+def close(conn: dict):
+    close_connection(conn["conn"], conn["dbms"])

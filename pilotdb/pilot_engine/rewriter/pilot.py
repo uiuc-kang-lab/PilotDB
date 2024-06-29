@@ -415,6 +415,7 @@ class Pilot_Rewriter:
         table_list = {
             table.this.this: table for table in self.find_all_tables(expression)
         }
+        self.largest_table = list(table_list.keys())[0]
         for largest_table in self.table_size:
             if largest_table in table_list:
                 if table_list[largest_table].find(exp.TableAlias):
@@ -426,14 +427,14 @@ class Pilot_Rewriter:
                 break
 
         for table in expression.args["from"].find_all(exp.Table):
-            if table.this.this == largest_table:
+            if table.this.this == self.largest_table:
                 tablesample.set("this", table)
                 expression.args["from"].set("this", tablesample)
                 return expression
         if "joins" in expression.args:
             for join in expression.args["joins"]:
                 for table in join.find_all(exp.Table):
-                    if table.this.this == largest_table:
+                    if table.this.this == self.largest_table:
                         table_parent = table.parent
                         tablesample.set("this", table)
                         table_parent.set("this", tablesample)

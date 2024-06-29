@@ -64,13 +64,14 @@ class Sampling_Rewriter:
         )
         table_list = [table.this.this for table in self.find_all_tables(expression)]
 
+        self.largest_table = table_list[0]
         for largest_table in self.table_size:
             if largest_table in table_list:
                 self.largest_table = largest_table
                 break
 
         for table in expression.args["from"].find_all(exp.Table):
-            if table.this.this == largest_table:
+            if table.this.this == self.largest_table:
                 tablesample.set("this", table)
                 expression.args["from"].set("this", tablesample)
                 return True
