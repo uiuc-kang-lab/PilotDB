@@ -1,5 +1,12 @@
 # PilotDB
 
+An online approximate query processing framework providing a priori error guarantees and up to 126$\times$ latency reduction.
+
+<p float="middle">
+    <img src="./.assets/aqp.jpg" width="200"/>
+    <em>Workflow of PilotDB</em>
+</p>
+
 ## Setup
 
 Install conda environment, DBMSs, and python packages
@@ -70,3 +77,10 @@ python run_pilotdb.py \
     --db_config_file <path_to_db_config> \
     --process_model exact
 ```
+
+## Evaluation
+<p float="middle">
+    <img src="./.assets/speedup_cdf_postgresql.jpg" width="170"/>
+    <img src="./.assets/error_tpch.jpg" width="197"/>
+    <img src="./.assets/speedup_error.jpg" width="176"/>
+</p>
