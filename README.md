@@ -18,14 +18,43 @@ Install conda environment, DBMSs, and python packages
 source install.sh
 ```
 
-Install PilotDB as a python package
+Install PilotDB as a Python package
 ```batch
 pip install -e .
 ```
 
 Setup the database configuration in `db_configs/<dbms_bench>.yml`
 
+## Interface and Demo
+We provide a Python interface to PilotDB.
+```python
+import pilotdb
+db_config = {
+    "dbms": "postgres", # or duckdb, sqlserver
+    "username": "tester",
+    "dbname": "testdb",
+    "host": "hostname",
+    "port": "dbport",
+    "password": "password"
+}
+conn = pilotdb.connect("postgres", db_config)
+result = pilotdb.run(
+    conn,
+    query="SELECT AVG(x) FROM T",
+    error=0.05,
+    probability=0.05 # the failure probability
+)
+pilotdb.close(conn)
+```
+
+The following demo shows the a priori error guarantees and query acceleration of PilotDB.
+<p float="middle">
+    <img src="./.assets/demo.jpg" width="1200"/>
+</p>
+
 ## Experiments
+We provide a set of scripts to replicate the experiments in our paper conveniently.
+
 To approximately execute TPC-H, Clickhouse, SSB or Instacart queries
 ```batch
 python run_pilotdb.py \
@@ -82,6 +111,10 @@ python run_pilotdb.py \
 ```
 
 ## Evaluation
+Below is a selected set of evaluation results about 
+1. speedups on PostgreSQL, 
+2. error guarantees on the TPC-H workload, 
+3. and performance V.S. errors.
 <p float="middle">
     <img src="./.assets/speedup_cdf_postgresql.jpg" width="255"/>
     <img src="./.assets/error_tpch.jpg" width="295"/>
