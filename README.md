@@ -120,3 +120,6 @@ Below is a selected set of evaluation results about
     <img src="./.assets/error_tpch.jpg" width="295"/>
     <img src="./.assets/speedup_error.jpg" width="264"/>
 </p>
+
+## Proofs
+We provide detailed proofs to all the theoretical statements derived in our paper, which can be found [here](./extended_report.pdf).
