@@ -8,6 +8,8 @@ import pilotdb.db_driver.sqlserver_utils as sqlserver_utils
 
 
 def connect_to_db(dbms: str, config: dict):
+    if "flush_memory" not in config:
+        config["flush_memory"] = False
     if dbms == 'duckdb':
         # clean cache
         if config["flush_memory"] == True:
