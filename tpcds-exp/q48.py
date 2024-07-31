@@ -1,0 +1,122 @@
+original_query = """
+SELECT sum (ss_quantity)
+FROM store_sales,
+ store,
+ customer_demographics,
+ customer_address,
+ date_dim
+WHERE s_store_sk = ss_store_sk
+ AND ss_sold_date_sk = d_date_sk
+ AND d_year = 1999
+ AND (
+   (
+     cd_demo_sk = ss_cdemo_sk
+     AND cd_marital_status = 'U'
+     AND cd_education_status = 'Primary'
+     AND ss_sales_price BETWEEN 100.00 AND 150.00
+   )
+   OR (
+     cd_demo_sk = ss_cdemo_sk
+     AND cd_marital_status = 'W'
+     AND cd_education_status = 'College'
+     AND ss_sales_price BETWEEN 50.00 AND 100.00
+   )
+   OR (
+     cd_demo_sk = ss_cdemo_sk
+     AND cd_marital_status = 'D'
+     AND cd_education_status = '2 yr Degree'
+     AND ss_sales_price BETWEEN 150.00 AND 200.00
+   )
+ )
+ AND (
+   (
+     ss_addr_sk = ca_address_sk
+     AND ca_country = 'United States'
+     AND ca_state IN ('MD', 'MN', 'IA')
+     AND ss_net_profit BETWEEN 0 AND 2000
+   )
+   OR (
+     ss_addr_sk = ca_address_sk
+     AND ca_country = 'United States'
+     AND ca_state IN ('VA', 'IL', 'TX')
+     AND ss_net_profit BETWEEN 150 AND 3000
+   )
+   OR (
+     ss_addr_sk = ca_address_sk
+     AND ca_country = 'United States'
+     AND ca_state IN ('MI', 'WI', 'IN')
+     AND ss_net_profit BETWEEN 50 AND 25000
+   )
+ );
+"""
+
+exp_query = """
+SELECT sum(page_sum) AS result,
+    count(*) page_count,
+
+    stddev_pop(page_sum) stddev_page_sum,
+    avg(page_sum) avg_page_sum,
+    CASE WHEN (avg(page_sum) = 0) THEN 0
+    ELSE (3*stddev_pop(page_sum)/avg(page_sum)/0.025)^2
+    END sample_page_count,
+
+    stddev_pop(page_size) stddev_page_size,
+    avg(page_size) avg_page_size,
+    CASE WHEN (avg(page_size) = 0) THEN 0
+    ELSE (3*stddev_pop(page_size)/avg(page_size)/0.025)^2
+    END sample_page_count_size
+FROM (
+SELECT sum(ss_quantity) page_sum,
+    count(*) page_size,
+    (store_sales.ctid::text::point)[0] page_id
+FROM store_sales,
+ store,
+ customer_demographics,
+ customer_address,
+ date_dim
+WHERE s_store_sk = ss_store_sk
+ AND ss_sold_date_sk = d_date_sk
+ AND d_year = 1999
+ AND (
+   (
+     cd_demo_sk = ss_cdemo_sk
+     AND cd_marital_status = 'U'
+     AND cd_education_status = 'Primary'
+     AND ss_sales_price BETWEEN 100.00 AND 150.00
+   )
+   OR (
+     cd_demo_sk = ss_cdemo_sk
+     AND cd_marital_status = 'W'
+     AND cd_education_status = 'College'
+     AND ss_sales_price BETWEEN 50.00 AND 100.00
+   )
+   OR (
+     cd_demo_sk = ss_cdemo_sk
+     AND cd_marital_status = 'D'
+     AND cd_education_status = '2 yr Degree'
+     AND ss_sales_price BETWEEN 150.00 AND 200.00
+   )
+ )
+ AND (
+   (
+     ss_addr_sk = ca_address_sk
+     AND ca_country = 'United States'
+     AND ca_state IN ('MD', 'MN', 'IA')
+     AND ss_net_profit BETWEEN 0 AND 2000
+   )
+   OR (
+     ss_addr_sk = ca_address_sk
+     AND ca_country = 'United States'
+     AND ca_state IN ('VA', 'IL', 'TX')
+     AND ss_net_profit BETWEEN 150 AND 3000
+   )
+   OR (
+     ss_addr_sk = ca_address_sk
+     AND ca_country = 'United States'
+     AND ca_state IN ('MI', 'WI', 'IN')
+     AND ss_net_profit BETWEEN 50 AND 25000
+   )
+ )
+GROUP BY page_id);
+
+"""
