@@ -1,0 +1,42 @@
+                                                                            QUERY PLAN                                                                            
+------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ Finalize GroupAggregate  (cost=141143876.73..141143887.34 rows=6 width=236) (actual time=861464.443..861540.344 rows=4 loops=1)
+   Group Key: l_returnflag, l_linestatus
+   ->  Gather Merge  (cost=141143876.73..141143885.03 rows=66 width=236) (actual time=861464.275..861540.237 rows=48 loops=1)
+         Workers Planned: 11
+         Workers Launched: 11
+         ->  Sort  (cost=141142876.52..141142876.53 rows=6 width=236) (actual time=861455.856..861455.860 rows=4 loops=12)
+               Sort Key: l_returnflag, l_linestatus
+               Sort Method: quicksort  Memory: 27kB
+               Worker 0:  Sort Method: quicksort  Memory: 27kB
+               Worker 1:  Sort Method: quicksort  Memory: 27kB
+               Worker 2:  Sort Method: quicksort  Memory: 27kB
+               Worker 3:  Sort Method: quicksort  Memory: 27kB
+               Worker 4:  Sort Method: quicksort  Memory: 27kB
+               Worker 5:  Sort Method: quicksort  Memory: 27kB
+               Worker 6:  Sort Method: quicksort  Memory: 27kB
+               Worker 7:  Sort Method: quicksort  Memory: 27kB
+               Worker 8:  Sort Method: quicksort  Memory: 27kB
+               Worker 9:  Sort Method: quicksort  Memory: 27kB
+               Worker 10:  Sort Method: quicksort  Memory: 27kB
+               ->  Partial HashAggregate  (cost=141142876.31..141142876.44 rows=6 width=236) (actual time=861455.765..861455.773 rows=4 loops=12)
+                     Group Key: l_returnflag, l_linestatus
+                     Batches: 1  Memory Usage: 24kB
+                     Worker 0:  Batches: 1  Memory Usage: 24kB
+                     Worker 1:  Batches: 1  Memory Usage: 24kB
+                     Worker 2:  Batches: 1  Memory Usage: 24kB
+                     Worker 3:  Batches: 1  Memory Usage: 24kB
+                     Worker 4:  Batches: 1  Memory Usage: 24kB
+                     Worker 5:  Batches: 1  Memory Usage: 24kB
+                     Worker 6:  Batches: 1  Memory Usage: 24kB
+                     Worker 7:  Batches: 1  Memory Usage: 24kB
+                     Worker 8:  Batches: 1  Memory Usage: 24kB
+                     Worker 9:  Batches: 1  Memory Usage: 24kB
+                     Worker 10:  Batches: 1  Memory Usage: 24kB
+                     ->  Parallel Seq Scan on lineitem  (cost=0.00..122336142.84 rows=537335242 width=25) (actual time=0.757..505977.886 rows=492965227 loops=12)
+                           Filter: (l_shipdate <= '1998-09-02 00:00:00'::timestamp without time zone)
+                           Rows Removed by Filter: 7033916
+ Planning Time: 5.001 ms
+ Execution Time: 861540.548 ms
+(38 rows)
+

@@ -1,0 +1,72 @@
+                                                                                   QUERY PLAN                                                                                    
+---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ GroupAggregate  (cost=129417528.23..129431356.72 rows=10024 width=272) (actual time=753013.886..756800.697 rows=4 loops=1)
+   Group Key: n1.n_name, n2.n_name, (EXTRACT(year FROM lineitem.l_shipdate))
+   ->  Gather Merge  (cost=129417528.23..129429747.64 rows=97248 width=252) (actual time=752241.616..755014.828 rows=5828738 loops=1)
+         Workers Planned: 11
+         Workers Launched: 11
+         ->  Sort  (cost=129416528.01..129416550.11 rows=8841 width=252) (actual time=752224.020..752349.397 rows=485728 loops=12)
+               Sort Key: n1.n_name, n2.n_name, (EXTRACT(year FROM lineitem.l_shipdate))
+               Sort Method: external merge  Disk: 39200kB
+               Worker 0:  Sort Method: external merge  Disk: 38680kB
+               Worker 1:  Sort Method: external merge  Disk: 37992kB
+               Worker 2:  Sort Method: external merge  Disk: 37992kB
+               Worker 3:  Sort Method: external merge  Disk: 37752kB
+               Worker 4:  Sort Method: external merge  Disk: 38440kB
+               Worker 5:  Sort Method: external merge  Disk: 38744kB
+               Worker 6:  Sort Method: external merge  Disk: 37632kB
+               Worker 7:  Sort Method: external merge  Disk: 38456kB
+               Worker 8:  Sort Method: external merge  Disk: 37952kB
+               Worker 9:  Sort Method: external merge  Disk: 37832kB
+               Worker 10:  Sort Method: external merge  Disk: 38344kB
+               ->  Parallel Hash Join  (cost=4080905.17..129415948.49 rows=8841 width=252) (actual time=15333.771..751797.134 rows=485728 loops=12)
+                     Hash Cond: (orders.o_custkey = customer.c_custkey)
+                     Join Filter: (((n1.n_name = 'FRANCE'::bpchar) AND (n2.n_name = 'GERMANY'::bpchar)) OR ((n1.n_name = 'GERMANY'::bpchar) AND (n2.n_name = 'FRANCE'::bpchar)))
+                     Rows Removed by Join Filter: 485497
+                     ->  Nested Loop  (cost=247791.19..125575462.64 rows=1948217 width=124) (actual time=641.727..729751.478 rows=12145073 loops=12)
+                           ->  Parallel Hash Join  (cost=247790.60..124572497.65 rows=1948217 width=128) (actual time=641.331..660496.219 rows=12145073 loops=12)
+                                 Hash Cond: (lineitem.l_suppkey = supplier.s_suppkey)
+                                 ->  Parallel Seq Scan on lineitem  (cost=0.00..123699816.20 rows=165598487 width=28) (actual time=0.390..600017.443 rows=151905939 loops=12)
+                                       Filter: ((l_shipdate >= '1995-01-01'::date) AND (l_shipdate <= '1996-12-31'::date))
+                                       Rows Removed by Filter: 348093204
+                                 ->  Parallel Hash  (cost=247496.49..247496.49 rows=23529 width=108) (actual time=640.738..640.753 rows=66646 loops=12)
+                                       Buckets: 1048576 (originally 131072)  Batches: 1 (originally 1)  Memory Usage: 65664kB
+                                       ->  Hash Join  (cost=12.58..247496.49 rows=23529 width=108) (actual time=0.428..592.470 rows=66646 loops=12)
+                                             Hash Cond: (supplier.s_nationkey = n1.n_nationkey)
+                                             ->  Parallel Seq Scan on supplier  (cost=0.00..242103.24 rows=1999924 width=8) (actual time=0.369..533.703 rows=833333 loops=12)
+                                             ->  Hash  (cost=12.55..12.55 rows=2 width=108) (actual time=0.022..0.027 rows=2 loops=12)
+                                                   Buckets: 1024  Batches: 1  Memory Usage: 9kB
+                                                   ->  Seq Scan on nation n1  (cost=0.00..12.55 rows=2 width=108) (actual time=0.015..0.017 rows=2 loops=12)
+                                                         Filter: ((n_name = 'FRANCE'::bpchar) OR (n_name = 'GERMANY'::bpchar))
+                                                         Rows Removed by Filter: 23
+                           ->  Memoize  (cost=0.59..2.44 rows=1 width=12) (actual time=0.005..0.005 rows=1 loops=145740881)
+                                 Cache Key: lineitem.l_orderkey
+                                 Cache Mode: logical
+                                 Hits: 1706915  Misses: 10730909  Evictions: 9805284  Overflows: 0  Memory Usage: 104857kB
+                                 Worker 0:  Hits: 1692371  Misses: 10622098  Evictions: 9696473  Overflows: 0  Memory Usage: 104857kB
+                                 Worker 1:  Hits: 1655539  Misses: 10397880  Evictions: 9472255  Overflows: 0  Memory Usage: 104857kB
+                                 Worker 2:  Hits: 1656645  Misses: 10398249  Evictions: 9472624  Overflows: 0  Memory Usage: 104857kB
+                                 Worker 3:  Hits: 1643677  Misses: 10321342  Evictions: 9395717  Overflows: 0  Memory Usage: 104857kB
+                                 Worker 4:  Hits: 1671849  Misses: 10503714  Evictions: 9578089  Overflows: 0  Memory Usage: 104857kB
+                                 Worker 5:  Hits: 1694024  Misses: 10638186  Evictions: 9712561  Overflows: 0  Memory Usage: 104857kB
+                                 Worker 6:  Hits: 1642097  Misses: 10318511  Evictions: 9392886  Overflows: 0  Memory Usage: 104857kB
+                                 Worker 7:  Hits: 1676257  Misses: 10532326  Evictions: 9606701  Overflows: 0  Memory Usage: 104857kB
+                                 Worker 8:  Hits: 1653033  Misses: 10386800  Evictions: 9461175  Overflows: 0  Memory Usage: 104857kB
+                                 Worker 9:  Hits: 1647904  Misses: 10371037  Evictions: 9445412  Overflows: 0  Memory Usage: 104857kB
+                                 Worker 10:  Hits: 1672756  Misses: 10506762  Evictions: 9581137  Overflows: 0  Memory Usage: 104857kB
+                                 ->  Index Scan using orders_pkey on orders  (cost=0.58..2.43 rows=1 width=12) (actual time=0.005..0.005 rows=1 loops=125727814)
+                                       Index Cond: (o_orderkey = lineitem.l_orderkey)
+                     ->  Parallel Hash  (cost=3830355.92..3830355.92 rows=220645 width=108) (actual time=14688.862..14688.871 rows=999531 loops=12)
+                           Buckets: 16777216 (originally 2097152)  Batches: 1 (originally 1)  Memory Usage: 997056kB
+                           ->  Hash Join  (cost=12.58..3830355.92 rows=220645 width=108) (actual time=0.385..13609.943 rows=999531 loops=12)
+                                 Hash Cond: (customer.c_nationkey = n2.n_nationkey)
+                                 ->  Parallel Seq Scan on customer  (cost=0.00..3779884.52 rows=18754852 width=8) (actual time=0.323..12679.898 rows=12500000 loops=12)
+                                 ->  Hash  (cost=12.55..12.55 rows=2 width=108) (actual time=0.047..0.048 rows=2 loops=12)
+                                       Buckets: 1024  Batches: 1  Memory Usage: 9kB
+                                       ->  Seq Scan on nation n2  (cost=0.00..12.55 rows=2 width=108) (actual time=0.036..0.038 rows=2 loops=12)
+                                             Filter: ((n_name = 'GERMANY'::bpchar) OR (n_name = 'FRANCE'::bpchar))
+                                             Rows Removed by Filter: 23
+ Planning Time: 9.724 ms
+ Execution Time: 756837.312 ms
+(68 rows)
+

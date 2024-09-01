@@ -1,0 +1,73 @@
+                                                                                        QUERY PLAN                                                                                        
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ Sort  (cost=125509169.53..125509169.95 rows=170 width=136) (actual time=1001427.300..1007477.079 rows=5 loops=1)
+   Sort Key: (sum((lineitem.l_extendedprice * ('1'::numeric - lineitem.l_discount)))) DESC
+   Sort Method: quicksort  Memory: 25kB
+   ->  Finalize GroupAggregate  (cost=125508721.07..125509163.23 rows=170 width=136) (actual time=1001299.062..1007477.037 rows=5 loops=1)
+         Group Key: nation.n_name
+         ->  Gather Merge  (cost=125508721.07..125509147.08 rows=1870 width=136) (actual time=1001258.997..1007476.986 rows=60 loops=1)
+               Workers Planned: 11
+               Workers Launched: 11
+               ->  Partial GroupAggregate  (cost=125507720.86..125507912.32 rows=170 width=136) (actual time=1001043.440..1001208.776 rows=5 loops=12)
+                     Group Key: nation.n_name
+                     ->  Sort  (cost=125507720.86..125507758.72 rows=15147 width=116) (actual time=1001002.709..1001049.581 rows=606859 loops=12)
+                           Sort Key: nation.n_name
+                           Sort Method: quicksort  Memory: 52097kB
+                           Worker 0:  Sort Method: quicksort  Memory: 51315kB
+                           Worker 1:  Sort Method: external merge  Disk: 29696kB
+                           Worker 2:  Sort Method: quicksort  Memory: 51567kB
+                           Worker 3:  Sort Method: quicksort  Memory: 52089kB
+                           Worker 4:  Sort Method: external merge  Disk: 29824kB
+                           Worker 5:  Sort Method: external merge  Disk: 29808kB
+                           Worker 6:  Sort Method: quicksort  Memory: 52051kB
+                           Worker 7:  Sort Method: external merge  Disk: 29856kB
+                           Worker 8:  Sort Method: quicksort  Memory: 52387kB
+                           Worker 9:  Sort Method: quicksort  Memory: 52377kB
+                           Worker 10:  Sort Method: quicksort  Memory: 51809kB
+                           ->  Nested Loop  (cost=249893.11..125506669.14 rows=15147 width=116) (actual time=999.982..1000599.453 rows=606859 loops=12)
+                                 Join Filter: (customer.c_nationkey = supplier.s_nationkey)
+                                 Rows Removed by Join Filter: 14561494
+                                 ->  Nested Loop  (cost=249892.54..124310652.14 rows=493689 width=128) (actual time=990.852..838746.713 rows=15168353 loops=12)
+                                       ->  Parallel Hash Join  (cost=249891.95..123274288.62 rows=3208643 width=132) (actual time=990.372..592128.692 rows=99985962 loops=12)
+                                             Hash Cond: (lineitem.l_suppkey = supplier.s_suppkey)
+                                             ->  Parallel Seq Scan on lineitem  (cost=0.00..120972469.47 rows=545469347 width=24) (actual time=0.409..320130.514 rows=499999142 loops=12)
+                                             ->  Parallel Hash  (cost=249744.90..249744.90 rows=11764 width=116) (actual time=989.747..989.775 rows=166635 loops=12)
+                                                   Buckets: 2097152 (originally 65536)  Batches: 1 (originally 1)  Memory Usage: 173408kB
+                                                   ->  Hash Join  (cost=24.31..249744.90 rows=11764 width=116) (actual time=0.314..782.496 rows=166635 loops=12)
+                                                         Hash Cond: (supplier.s_nationkey = nation.n_nationkey)
+                                                         ->  Parallel Seq Scan on supplier  (cost=0.00..242103.24 rows=1999924 width=8) (actual time=0.188..713.715 rows=833333 loops=12)
+                                                         ->  Hash  (cost=24.29..24.29 rows=1 width=108) (actual time=0.108..0.117 rows=5 loops=12)
+                                                               Buckets: 1024  Batches: 1  Memory Usage: 9kB
+                                                               ->  Hash Join  (cost=12.14..24.29 rows=1 width=108) (actual time=0.102..0.113 rows=5 loops=12)
+                                                                     Hash Cond: (nation.n_regionkey = region.r_regionkey)
+                                                                     ->  Seq Scan on nation  (cost=0.00..11.70 rows=170 width=112) (actual time=0.034..0.040 rows=25 loops=12)
+                                                                     ->  Hash  (cost=12.12..12.12 rows=1 width=4) (actual time=0.051..0.053 rows=1 loops=12)
+                                                                           Buckets: 1024  Batches: 1  Memory Usage: 9kB
+                                                                           ->  Seq Scan on region  (cost=0.00..12.12 rows=1 width=4) (actual time=0.044..0.044 rows=1 loops=12)
+                                                                                 Filter: (r_name = 'ASIA'::bpchar)
+                                                                                 Rows Removed by Filter: 4
+                                       ->  Memoize  (cost=0.59..2.44 rows=1 width=12) (actual time=0.002..0.002 rows=0 loops=1199831542)
+                                             Cache Key: lineitem.l_orderkey
+                                             Cache Mode: logical
+                                             Hits: 31322184  Misses: 68289165  Evictions: 66934375  Overflows: 0  Memory Usage: 104857kB
+                                             Worker 0:  Hits: 30770074  Misses: 67082862  Evictions: 65728553  Overflows: 0  Memory Usage: 104857kB
+                                             Worker 1:  Hits: 31744535  Misses: 69221487  Evictions: 67867465  Overflows: 0  Memory Usage: 104857kB
+                                             Worker 2:  Hits: 30897391  Misses: 67381607  Evictions: 66027783  Overflows: 0  Memory Usage: 104857kB
+                                             Worker 3:  Hits: 31381472  Misses: 68394753  Evictions: 67040204  Overflows: 0  Memory Usage: 104857kB
+                                             Worker 4:  Hits: 31915703  Misses: 69553157  Evictions: 68199399  Overflows: 0  Memory Usage: 104857kB
+                                             Worker 5:  Hits: 31848825  Misses: 69417558  Evictions: 68063224  Overflows: 0  Memory Usage: 104857kB
+                                             Worker 6:  Hits: 31285596  Misses: 68211227  Evictions: 66857005  Overflows: 0  Memory Usage: 104857kB
+                                             Worker 7:  Hits: 31952722  Misses: 69651617  Evictions: 68296939  Overflows: 0  Memory Usage: 104857kB
+                                             Worker 8:  Hits: 31561496  Misses: 68811081  Evictions: 67456975  Overflows: 0  Memory Usage: 104857kB
+                                             Worker 9:  Hits: 31537185  Misses: 68730604  Evictions: 67376287  Overflows: 0  Memory Usage: 104857kB
+                                             Worker 10:  Hits: 31084507  Misses: 67784734  Evictions: 66430448  Overflows: 0  Memory Usage: 104857kB
+                                             ->  Index Scan using orders_pkey on orders  (cost=0.58..2.43 rows=1 width=12) (actual time=0.003..0.003 rows=0 loops=822529852)
+                                                   Index Cond: (o_orderkey = lineitem.l_orderkey)
+                                                   Filter: ((o_orderdate >= '1994-01-01'::date) AND (o_orderdate < '1995-01-01 00:00:00'::timestamp without time zone))
+                                                   Rows Removed by Filter: 1
+                                 ->  Index Scan using customer_pkey on customer  (cost=0.57..2.41 rows=1 width=8) (actual time=0.010..0.010 rows=1 loops=182020233)
+                                       Index Cond: (c_custkey = orders.o_custkey)
+ Planning Time: 11.661 ms
+ Execution Time: 1007524.880 ms
+(69 rows)
+
