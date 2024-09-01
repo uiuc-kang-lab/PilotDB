@@ -1,0 +1,48 @@
+                                                                                                                                  QUERY PLAN                                                                                                                                  
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ Finalize GroupAggregate  (cost=129133767.63..129186515.45 rows=7 width=27) (actual time=816879.467..820527.293 rows=2 loops=1)
+   Group Key: lineitem.l_shipmode
+   ->  Gather Merge  (cost=129133767.63..129186514.80 rows=77 width=27) (actual time=816537.348..820526.324 rows=24 loops=1)
+         Workers Planned: 11
+         Workers Launched: 11
+         ->  Partial GroupAggregate  (cost=129132767.42..129185504.93 rows=7 width=27) (actual time=816104.380..816474.725 rows=2 loops=12)
+               Group Key: lineitem.l_shipmode
+               ->  Sort  (cost=129132767.42..129139359.60 rows=2636872 width=27) (actual time=815734.848..816020.550 rows=2596909 loops=12)
+                     Sort Key: lineitem.l_shipmode
+                     Sort Method: external merge  Disk: 95680kB
+                     Worker 0:  Sort Method: external merge  Disk: 93864kB
+                     Worker 1:  Sort Method: external merge  Disk: 92520kB
+                     Worker 2:  Sort Method: external merge  Disk: 93656kB
+                     Worker 3:  Sort Method: external merge  Disk: 93792kB
+                     Worker 4:  Sort Method: external merge  Disk: 93744kB
+                     Worker 5:  Sort Method: external merge  Disk: 92208kB
+                     Worker 6:  Sort Method: external merge  Disk: 94872kB
+                     Worker 7:  Sort Method: external merge  Disk: 94536kB
+                     Worker 8:  Sort Method: external merge  Disk: 94136kB
+                     Worker 9:  Sort Method: external merge  Disk: 94640kB
+                     Worker 10:  Sort Method: external merge  Disk: 94664kB
+                     ->  Nested Loop  (cost=0.59..128814586.50 rows=2636872 width=27) (actual time=2.957..814661.807 rows=2596909 loops=12)
+                           ->  Parallel Seq Scan on lineitem  (cost=0.00..127790836.31 rows=2636872 width=19) (actual time=2.599..592410.504 rows=2596909 loops=12)
+                                 Filter: ((l_shipmode = ANY ('{MAIL,SHIP}'::bpchar[])) AND (l_commitdate < l_receiptdate) AND (l_shipdate < l_commitdate) AND (l_receiptdate >= '1994-01-01'::date) AND (l_receiptdate < '1995-01-01 00:00:00'::timestamp without time zone))
+                                 Rows Removed by Filter: 497402234
+                           ->  Memoize  (cost=0.59..2.45 rows=1 width=24) (actual time=0.085..0.085 rows=1 loops=31162904)
+                                 Cache Key: lineitem.l_orderkey
+                                 Cache Mode: logical
+                                 Hits: 163154  Misses: 2479448  Evictions: 1640600  Overflows: 0  Memory Usage: 104857kB
+                                 Worker 0:  Hits: 159748  Misses: 2432662  Evictions: 1593814  Overflows: 0  Memory Usage: 104857kB
+                                 Worker 1:  Hits: 157954  Misses: 2397472  Evictions: 1558624  Overflows: 0  Memory Usage: 104857kB
+                                 Worker 2:  Hits: 160208  Misses: 2426552  Evictions: 1587704  Overflows: 0  Memory Usage: 104857kB
+                                 Worker 3:  Hits: 160152  Misses: 2430219  Evictions: 1591371  Overflows: 0  Memory Usage: 104857kB
+                                 Worker 4:  Hits: 160143  Misses: 2428985  Evictions: 1590137  Overflows: 0  Memory Usage: 104857kB
+                                 Worker 5:  Hits: 157245  Misses: 2389432  Evictions: 1550584  Overflows: 0  Memory Usage: 104857kB
+                                 Worker 6:  Hits: 161831  Misses: 2458404  Evictions: 1619556  Overflows: 0  Memory Usage: 104857kB
+                                 Worker 7:  Hits: 161849  Misses: 2449226  Evictions: 1610378  Overflows: 0  Memory Usage: 104857kB
+                                 Worker 8:  Hits: 161095  Misses: 2438788  Evictions: 1599940  Overflows: 0  Memory Usage: 104857kB
+                                 Worker 9:  Hits: 161603  Misses: 2452273  Evictions: 1613425  Overflows: 0  Memory Usage: 104857kB
+                                 Worker 10:  Hits: 160867  Misses: 2453594  Evictions: 1614746  Overflows: 0  Memory Usage: 104857kB
+                                 ->  Index Scan using orders_pkey on orders  (cost=0.58..2.44 rows=1 width=24) (actual time=0.089..0.089 rows=1 loops=29237055)
+                                       Index Cond: (o_orderkey = lineitem.l_orderkey)
+ Planning Time: 10.763 ms
+ Execution Time: 820578.772 ms
+(44 rows)
+
