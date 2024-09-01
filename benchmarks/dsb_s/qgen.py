@@ -13,9 +13,9 @@ import os
 
 template_1 = "SELECT {AGG1}(ss_sales_price) FROM store_sales WHERE {date_lb} <= ss_sold_date_sk AND ss_sold_date_sk < {date_ub}"
 template_2 = "SELECT {AGG1}(ss_sales_price) FROM store_sales WHERE {date_lb} <= ss_sold_date_sk AND ss_sold_date_sk < {date_ub} GROUP BY ss_store_sk"
-template_3 = "SELECT {AGG1}(ss_whole_sale_cost), {AGG2}(ss_net_profit) FROM store_sales, store WHERE ss_store_sk = s_store_sk AND s_number_of_employees = {n_employee}"
+template_3 = "SELECT {AGG1}(ss_wholesale_cost), {AGG2}(ss_net_profit) FROM store_sales, store WHERE ss_store_sk = s_store_sk AND s_number_employees = {n_employee}"
 
-aggs = {"COUNT", "SUM", "AVG"}
+aggs = ["COUNT", "AVG", "SUM"]
 
 def parse_date_dist():
     date_dist = {}

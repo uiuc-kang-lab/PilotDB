@@ -1,1 +1,1 @@
-SELECT AVG(ss_whole_sale_cost), AVG(ss_net_profit) FROM store_sales, store WHERE ss_store_sk = s_store_sk WHERE s_number_of_employees = 201
+SELECT AVG(ss_wholesale_cost), AVG(ss_net_profit) FROM store_sales, store WHERE ss_store_sk = s_store_sk AND s_number_employees = 201
