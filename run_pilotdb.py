@@ -51,7 +51,7 @@ if __name__ == "__main__":
         #     for sample_rate in sample_rate_list[f"{args.benchmark}-{args.qid}"]:
         #         execute_uniform_ss(query, db_config, sample_rate)
         # else:
-        execute_uniform(query, db_config)
+        execute_uniform(query, db_config, pilot_sample_rate=args.pilot_sample_rate)
     elif args.process_mode == "sample":
         with open(f"./sample_rate.json", "r") as f:
             meta = json.load(f)
