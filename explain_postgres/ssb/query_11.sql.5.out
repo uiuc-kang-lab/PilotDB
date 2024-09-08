@@ -1,0 +1,66 @@
+                                                                                        QUERY PLAN                                                                                        
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ Finalize GroupAggregate  (cost=92388771.00..92389029.06 rows=175 width=20) (actual time=475835.682..478578.286 rows=35 loops=1)
+   Group Key: dates.d_year, customer.c_nation
+   ->  Gather Merge  (cost=92388771.00..92389012.88 rows=1925 width=20) (actual time=475835.672..478578.243 rows=420 loops=1)
+         Workers Planned: 11
+         Workers Launched: 11
+         ->  Sort  (cost=92387770.78..92387771.22 rows=175 width=20) (actual time=475828.027..475828.536 rows=35 loops=12)
+               Sort Key: dates.d_year, customer.c_nation
+               Sort Method: quicksort  Memory: 26kB
+               Worker 0:  Sort Method: quicksort  Memory: 26kB
+               Worker 1:  Sort Method: quicksort  Memory: 26kB
+               Worker 2:  Sort Method: quicksort  Memory: 26kB
+               Worker 3:  Sort Method: quicksort  Memory: 26kB
+               Worker 4:  Sort Method: quicksort  Memory: 26kB
+               Worker 5:  Sort Method: quicksort  Memory: 26kB
+               Worker 6:  Sort Method: quicksort  Memory: 26kB
+               Worker 7:  Sort Method: quicksort  Memory: 26kB
+               Worker 8:  Sort Method: quicksort  Memory: 26kB
+               Worker 9:  Sort Method: quicksort  Memory: 26kB
+               Worker 10:  Sort Method: quicksort  Memory: 26kB
+               ->  Partial HashAggregate  (cost=92387762.51..92387764.26 rows=175 width=20) (actual time=475827.921..475828.432 rows=35 loops=12)
+                     Group Key: dates.d_year, customer.c_nation
+                     Batches: 1  Memory Usage: 40kB
+                     Worker 0:  Batches: 1  Memory Usage: 40kB
+                     Worker 1:  Batches: 1  Memory Usage: 40kB
+                     Worker 2:  Batches: 1  Memory Usage: 40kB
+                     Worker 3:  Batches: 1  Memory Usage: 40kB
+                     Worker 4:  Batches: 1  Memory Usage: 40kB
+                     Worker 5:  Batches: 1  Memory Usage: 40kB
+                     Worker 6:  Batches: 1  Memory Usage: 40kB
+                     Worker 7:  Batches: 1  Memory Usage: 40kB
+                     Worker 8:  Batches: 1  Memory Usage: 40kB
+                     Worker 9:  Batches: 1  Memory Usage: 40kB
+                     Worker 10:  Batches: 1  Memory Usage: 40kB
+                     ->  Hash Join  (cost=610701.50..92307418.06 rows=8034445 width=20) (actual time=454761.354..474421.845 rows=7988892 loops=12)
+                           Hash Cond: (lineorder.lo_orderdate = dates.d_datekey)
+                           ->  Parallel Hash Join  (cost=610602.99..92196845.93 rows=8034445 width=20) (actual time=454760.666..473056.892 rows=7988892 loops=12)
+                                 Hash Cond: (lineorder.lo_custkey = customer.c_custkey)
+                                 ->  Parallel Hash Join  (cost=73979.11..91103440.48 rows=39840221 width=16) (actual time=997.618..440451.218 rows=39949453 loops=12)
+                                       Hash Cond: (lineorder.lo_partkey = part.p_partkey)
+                                       ->  Parallel Hash Join  (cost=35508.96..90553325.75 rows=109878444 width=20) (actual time=488.626..392748.442 rows=99990888 loops=12)
+                                             Hash Cond: (lineorder.lo_suppkey = supplier.s_suppkey)
+                                             ->  Parallel Seq Scan on lineorder  (cost=0.00..88197560.73 rows=545482473 width=24) (actual time=0.322..301400.715 rows=499999142 loops=12)
+                                             ->  Parallel Hash  (cost=34250.00..34250.00 rows=100717 width=4) (actual time=487.417..487.424 rows=33330 loops=12)
+                                                   Buckets: 524288  Batches: 1  Memory Usage: 19872kB
+                                                   ->  Parallel Seq Scan on supplier  (cost=0.00..34250.00 rows=100717 width=4) (actual time=0.331..469.138 rows=33330 loops=12)
+                                                         Filter: ((s_region)::text = 'AMERICA'::text)
+                                                         Rows Removed by Filter: 133337
+                                       ->  Parallel Hash  (cost=36204.00..36204.00 rows=181292 width=4) (actual time=508.500..508.505 rows=66621 loops=12)
+                                             Buckets: 1048576  Batches: 1  Memory Usage: 39680kB
+                                             ->  Parallel Seq Scan on part  (cost=0.00..36204.00 rows=181292 width=4) (actual time=0.454..481.081 rows=66621 loops=12)
+                                                   Filter: (((p_mfgr)::text = 'MFGR#1'::text) OR ((p_mfgr)::text = 'MFGR#2'::text))
+                                                   Rows Removed by Filter: 100045
+                                 ->  Parallel Hash  (cost=519096.42..519096.42 rows=1008276 width=12) (actual time=6821.338..6821.344 rows=500081 loops=12)
+                                       Buckets: 524288  Batches: 16  Memory Usage: 22528kB
+                                       ->  Parallel Seq Scan on customer  (cost=0.00..519096.42 rows=1008276 width=12) (actual time=0.691..6700.516 rows=500081 loops=12)
+                                             Filter: ((c_region)::text = 'AMERICA'::text)
+                                             Rows Removed by Filter: 1999919
+                           ->  Hash  (cost=66.56..66.56 rows=2556 width=8) (actual time=0.647..0.648 rows=2556 loops=12)
+                                 Buckets: 4096  Batches: 1  Memory Usage: 132kB
+                                 ->  Seq Scan on dates  (cost=0.00..66.56 rows=2556 width=8) (actual time=0.025..0.407 rows=2556 loops=12)
+ Planning Time: 8.562 ms
+ Execution Time: 478578.491 ms
+(62 rows)
+

@@ -1,0 +1,159 @@
+{
+   "name":  "Query", 
+   "result": 21.884556,
+   "timing": 21.884556,
+   "cardinality": 0,
+   "extra-info": "SELECT\n    c_city,\n    s_city,\n    d_year,\n    SUM(lo_revenue) AS REVENUE\nFROM customer, lineorder, supplier, dates\nWHERE\n    lo_custkey = c_custkey\n    AND lo_suppkey = s_suppkey\n    AND lo_orderdate = d_datekey\n    AND (\n        c_city = 'UNITED KI1'\n        OR c_city = 'UNITED KI5'\n    )\n    AND (\n        s_city = 'UNITED KI1'\n        OR s_city = 'UNITED KI5'\n    )\n    AND d_yearmonth = 'Dec1997'\nGROUP BY c_city, s_city, d_year\nORDER BY d_year ASC, REVENUE DESC;", 
+   "timings": [
+
+   ],
+   "children": [
+    {
+      "name": "RESULT_COLLECTOR",
+      "timing":0.000127,
+      "cardinality":0,
+      "extra_info": "",
+      "children": [
+       {
+         "name": "PROJECTION",
+         "timing":0.000068,
+         "cardinality":4,
+         "extra_info": "__internal_decompress_string(#0)\n__internal_decompress_string(#1)\n__internal_decompress_integral_integer(#2, 1992)\n#3\n",
+         "children": [
+          {
+            "name": "ORDER_BY",
+            "timing":0.000284,
+            "cardinality":4,
+            "extra_info": "ORDERS:\ndates.d_year ASC\nsum(lineorder.lo_revenue) DESC",
+            "children": [
+             {
+               "name": "PROJECTION",
+               "timing":0.000028,
+               "cardinality":4,
+               "extra_info": "__internal_compress_string_hugeint(#0)\n__internal_compress_string_hugeint(#1)\n__internal_compress_integral_utinyint(#2, 1992)\n#3\n",
+               "children": [
+                {
+                  "name": "PROJECTION",
+                  "timing":0.000033,
+                  "cardinality":4,
+                  "extra_info": "__internal_decompress_string(#0)\n__internal_decompress_string(#1)\n__internal_decompress_integral_integer(#2, 1992)\n#3\n",
+                  "children": [
+                   {
+                     "name": "HASH_GROUP_BY",
+                     "timing":6.689881,
+                     "cardinality":4,
+                     "extra_info": "#0\n#1\n#2\nsum(#3)",
+                     "children": [
+                      {
+                        "name": "PROJECTION",
+                        "timing":0.000779,
+                        "cardinality":5041,
+                        "extra_info": "c_city\ns_city\nd_year\nlo_revenue\n",
+                        "children": [
+                         {
+                           "name": "PROJECTION",
+                           "timing":0.170796,
+                           "cardinality":5041,
+                           "extra_info": "#0\n#1\n__internal_compress_integral_usmallint(#2, 19920101)\n#3\n__internal_compress_integral_usmallint(#4, 19920101)\n__internal_compress_integral_utinyint(#5, 1992)\n#6\n__internal_compress_string_hugeint(#7)\n#8\n__internal_compress_string_hugeint(#9)\n",
+                           "children": [
+                            {
+                              "name": "HASH_JOIN",
+                              "timing":1.112668,
+                              "cardinality":5041,
+                              "extra_info": "INNER\nlo_custkey = c_custkey\n\n[INFOSEPARATOR]\nEC: 16446464\n",
+                              "children": [
+                               {
+                                 "name": "HASH_JOIN",
+                                 "timing":8.881007,
+                                 "cardinality":621489,
+                                 "extra_info": "INNER\nlo_suppkey = s_suppkey\n\n[INFOSEPARATOR]\nEC: 79598122\n",
+                                 "children": [
+                                  {
+                                    "name": "HASH_JOIN",
+                                    "timing":16.778594,
+                                    "cardinality":77309997,
+                                    "extra_info": "INNER\nlo_orderdate = d_datekey\n\n[INFOSEPARATOR]\nBuild Min: 19920101\nBuild Max: 19980802\n\n[INFOSEPARATOR]\nEC: 401407762\n",
+                                    "children": [
+                                     {
+                                       "name": "SEQ_SCAN ",
+                                       "timing":2742.680795,
+                                       "cardinality":5999989709,
+                                       "extra_info": "lineorder\n[INFOSEPARATOR]\nlo_custkey\nlo_suppkey\nlo_orderdate\nlo_revenue\n[INFOSEPARATOR]\nEC: 5999989709",
+                                       "children": [
+                                       ]
+                                     }
+,
+                                     {
+                                       "name": "FILTER",
+                                       "timing":0.001128,
+                                       "cardinality":31,
+                                       "extra_info": "(d_datekey <= 19980802)\n[INFOSEPARATOR]\nEC: 171",
+                                       "children": [
+                                        {
+                                          "name": "SEQ_SCAN ",
+                                          "timing":0.003980,
+                                          "cardinality":31,
+                                          "extra_info": "dates\n[INFOSEPARATOR]\nd_datekey\nd_year\n[INFOSEPARATOR]\nFilters: d_yearmonth='Dec1997' AND d_yearmonth IS NOT NULL\n\n[INFOSEPARATOR]\nEC: 171",
+                                          "children": [
+                                          ]
+                                        }
+                                       ]
+                                     }
+                                    ]
+                                  }
+,
+                                  {
+                                    "name": "FILTER",
+                                    "timing":0.023017,
+                                    "cardinality":16071,
+                                    "extra_info": "((s_city = 'UNITED KI1') OR (s_city = 'UNITED KI5'))\n[INFOSEPARATOR]\nEC: 400000",
+                                    "children": [
+                                     {
+                                       "name": "SEQ_SCAN ",
+                                       "timing":0.067584,
+                                       "cardinality":2000000,
+                                       "extra_info": "supplier\n[INFOSEPARATOR]\ns_suppkey\ns_city\n[INFOSEPARATOR]\nEC: 400000",
+                                       "children": [
+                                       ]
+                                     }
+                                    ]
+                                  }
+                                 ]
+                               }
+,
+                               {
+                                 "name": "FILTER",
+                                 "timing":0.446841,
+                                 "cardinality":239101,
+                                 "extra_info": "((c_city = 'UNITED KI1') OR (c_city = 'UNITED KI5'))\n[INFOSEPARATOR]\nEC: 6000000",
+                                 "children": [
+                                  {
+                                    "name": "SEQ_SCAN ",
+                                    "timing":2.011269,
+                                    "cardinality":29999999,
+                                    "extra_info": "customer\n[INFOSEPARATOR]\nc_custkey\nc_city\n[INFOSEPARATOR]\nFilters: c_custkey<=29999999 AND c_custkey IS NOT NULL\n\n[INFOSEPARATOR]\nEC: 6000000",
+                                    "children": [
+                                    ]
+                                  }
+                                 ]
+                               }
+                              ]
+                            }
+                           ]
+                         }
+                        ]
+                      }
+                     ]
+                   }
+                  ]
+                }
+               ]
+             }
+            ]
+          }
+         ]
+       }
+      ]
+    }
+   ]
+}

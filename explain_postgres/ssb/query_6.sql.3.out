@@ -1,0 +1,47 @@
+                                                                                     QUERY PLAN                                                                                     
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ Finalize GroupAggregate  (cost=90328995.18..90329824.52 rows=7 width=21) (actual time=472086.649..472116.537 rows=7 loops=1)
+   Group Key: dates.d_year
+   ->  Gather Merge  (cost=90328995.18..90329824.07 rows=77 width=21) (actual time=472082.985..472116.469 rows=84 loops=1)
+         Workers Planned: 11
+         Workers Launched: 11
+         ->  Partial GroupAggregate  (cost=90327994.97..90328814.20 rows=7 width=21) (actual time=472059.134..472074.484 rows=7 loops=12)
+               Group Key: dates.d_year
+               ->  Sort  (cost=90327994.97..90328268.02 rows=109221 width=17) (actual time=472054.718..472067.719 rows=99339 loops=12)
+                     Sort Key: dates.d_year
+                     Sort Method: quicksort  Memory: 7796kB
+                     Worker 0:  Sort Method: quicksort  Memory: 7486kB
+                     Worker 1:  Sort Method: quicksort  Memory: 7902kB
+                     Worker 2:  Sort Method: quicksort  Memory: 7878kB
+                     Worker 3:  Sort Method: quicksort  Memory: 7547kB
+                     Worker 4:  Sort Method: quicksort  Memory: 7887kB
+                     Worker 5:  Sort Method: quicksort  Memory: 7536kB
+                     Worker 6:  Sort Method: quicksort  Memory: 7891kB
+                     Worker 7:  Sort Method: quicksort  Memory: 7526kB
+                     Worker 8:  Sort Method: quicksort  Memory: 7867kB
+                     Worker 9:  Sort Method: quicksort  Memory: 7562kB
+                     Worker 10:  Sort Method: quicksort  Memory: 7868kB
+                     ->  Hash Join  (cost=70566.45..90318854.87 rows=109221 width=17) (actual time=981.522..472001.624 rows=99339 loops=12)
+                           Hash Cond: (lineorder.lo_orderdate = dates.d_datekey)
+                           ->  Parallel Hash Join  (cost=70467.94..90317254.57 rows=109221 width=17) (actual time=980.811..471937.254 rows=99339 loops=12)
+                                 Hash Cond: (lineorder.lo_suppkey = supplier.s_suppkey)
+                                 ->  Parallel Hash Join  (cost=34960.22..90279438.48 rows=542755 width=21) (actual time=494.131..471064.611 rows=495835 loops=12)
+                                       Hash Cond: (lineorder.lo_partkey = part.p_partkey)
+                                       ->  Parallel Seq Scan on lineorder  (cost=0.00..88197560.73 rows=545482473 width=16) (actual time=0.307..425206.924 rows=499999142 loops=12)
+                                       ->  Parallel Hash  (cost=34954.00..34954.00 rows=498 width=13) (actual time=492.327..492.330 rows=163 loops=12)
+                                             Buckets: 2048  Batches: 1  Memory Usage: 400kB
+                                             ->  Parallel Seq Scan on part  (cost=0.00..34954.00 rows=498 width=13) (actual time=3.043..492.165 rows=163 loops=12)
+                                                   Filter: ((p_brand)::text = 'MFGR#2239'::text)
+                                                   Rows Removed by Filter: 166504
+                                 ->  Parallel Hash  (cost=34250.00..34250.00 rows=100617 width=4) (actual time=481.498..481.500 rows=33390 loops=12)
+                                       Buckets: 524288  Batches: 1  Memory Usage: 19904kB
+                                       ->  Parallel Seq Scan on supplier  (cost=0.00..34250.00 rows=100617 width=4) (actual time=0.442..471.464 rows=33390 loops=12)
+                                             Filter: ((s_region)::text = 'EUROPE'::text)
+                                             Rows Removed by Filter: 133276
+                           ->  Hash  (cost=66.56..66.56 rows=2556 width=8) (actual time=0.671..0.672 rows=2556 loops=12)
+                                 Buckets: 4096  Batches: 1  Memory Usage: 132kB
+                                 ->  Seq Scan on dates  (cost=0.00..66.56 rows=2556 width=8) (actual time=0.027..0.425 rows=2556 loops=12)
+ Planning Time: 8.280 ms
+ Execution Time: 472117.645 ms
+(43 rows)
+

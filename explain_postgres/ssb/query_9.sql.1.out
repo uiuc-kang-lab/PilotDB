@@ -1,0 +1,50 @@
+                                                                                     QUERY PLAN                                                                                     
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ Sort  (cost=90920396.88..90921209.86 rows=325195 width=34) (actual time=445889.882..445957.871 rows=24 loops=1)
+   Sort Key: dates.d_year, (sum(lineorder.lo_revenue)) DESC
+   Sort Method: quicksort  Memory: 26kB
+   ->  GroupAggregate  (cost=90838049.36..90885414.69 rows=325195 width=34) (actual time=445803.548..445957.815 rows=24 loops=1)
+         Group Key: customer.c_city, supplier.s_city, dates.d_year
+         ->  Gather Merge  (cost=90838049.36..90878910.79 rows=325195 width=30) (actual time=445799.888..445926.321 rows=349613 loops=1)
+               Workers Planned: 11
+               Workers Launched: 11
+               ->  Sort  (cost=90837049.14..90837123.05 rows=29563 width=30) (actual time=445792.753..445800.133 rows=29134 loops=12)
+                     Sort Key: customer.c_city, supplier.s_city, dates.d_year
+                     Sort Method: quicksort  Memory: 2356kB
+                     Worker 0:  Sort Method: quicksort  Memory: 2343kB
+                     Worker 1:  Sort Method: quicksort  Memory: 2378kB
+                     Worker 2:  Sort Method: quicksort  Memory: 2376kB
+                     Worker 3:  Sort Method: quicksort  Memory: 2380kB
+                     Worker 4:  Sort Method: quicksort  Memory: 2344kB
+                     Worker 5:  Sort Method: quicksort  Memory: 2358kB
+                     Worker 6:  Sort Method: quicksort  Memory: 2360kB
+                     Worker 7:  Sort Method: quicksort  Memory: 2360kB
+                     Worker 8:  Sort Method: quicksort  Memory: 2360kB
+                     Worker 9:  Sort Method: quicksort  Memory: 2360kB
+                     Worker 10:  Sort Method: quicksort  Memory: 2367kB
+                     ->  Hash Join  (cost=567748.67..90834853.87 rows=29563 width=30) (actual time=7303.566..445766.731 rows=29134 loops=12)
+                           Hash Cond: (lineorder.lo_orderdate = dates.d_datekey)
+                           ->  Parallel Hash Join  (cost=567641.93..90834322.23 rows=34472 width=30) (actual time=7299.950..445743.596 rows=31975 loops=12)
+                                 Hash Cond: (lineorder.lo_suppkey = supplier.s_suppkey)
+                                 ->  Parallel Hash Join  (cost=532092.22..90782435.00 rows=4333688 width=23) (actual time=6803.630..444528.426 rows=3978959 loops=12)
+                                       Hash Cond: (lineorder.lo_custkey = customer.c_custkey)
+                                       ->  Parallel Seq Scan on lineorder  (cost=0.00..88197560.73 rows=545482473 width=16) (actual time=0.336..394753.493 rows=499999142 loops=12)
+                                       ->  Parallel Hash  (cost=531595.71..531595.71 rows=39721 width=15) (actual time=6802.323..6802.326 rows=19925 loops=12)
+                                             Buckets: 262144  Batches: 1  Memory Usage: 13472kB
+                                             ->  Parallel Seq Scan on customer  (cost=0.00..531595.71 rows=39721 width=15) (actual time=1.378..6790.591 rows=19925 loops=12)
+                                                   Filter: (((c_city)::text = 'UNITED KI1'::text) OR ((c_city)::text = 'UNITED KI5'::text))
+                                                   Rows Removed by Filter: 2480075
+                                 ->  Parallel Hash  (cost=35500.00..35500.00 rows=3977 width=15) (actual time=476.539..476.542 rows=1339 loops=12)
+                                       Buckets: 16384  Batches: 1  Memory Usage: 992kB
+                                       ->  Parallel Seq Scan on supplier  (cost=0.00..35500.00 rows=3977 width=15) (actual time=0.817..475.897 rows=1339 loops=12)
+                                             Filter: (((s_city)::text = 'UNITED KI1'::text) OR ((s_city)::text = 'UNITED KI5'::text))
+                                             Rows Removed by Filter: 165327
+                           ->  Hash  (cost=79.34..79.34 rows=2192 width=8) (actual time=0.724..0.727 rows=2192 loops=12)
+                                 Buckets: 4096  Batches: 1  Memory Usage: 118kB
+                                 ->  Seq Scan on dates  (cost=0.00..79.34 rows=2192 width=8) (actual time=0.027..0.496 rows=2192 loops=12)
+                                       Filter: ((d_year >= 1992) AND (d_year <= 1997))
+                                       Rows Removed by Filter: 364
+ Planning Time: 8.430 ms
+ Execution Time: 445958.475 ms
+(46 rows)
+

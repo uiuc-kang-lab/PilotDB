@@ -1,0 +1,92 @@
+{
+   "name":  "Query", 
+   "result": 0.119381,
+   "timing": 0.119381,
+   "cardinality": 0,
+   "extra-info": "SELECT AdvEngineID, COUNT(*) FROM hits WHERE AdvEngineID <> 0 GROUP BY AdvEngineID ORDER BY COUNT(*) DESC;", 
+   "timings": [
+
+   ],
+   "children": [
+    {
+      "name": "RESULT_COLLECTOR",
+      "timing":0.000023,
+      "cardinality":0,
+      "extra_info": "",
+      "children": [
+       {
+         "name": "PROJECTION",
+         "timing":0.000002,
+         "cardinality":17,
+         "extra_info": "__internal_decompress_integral_smallint(#0, 0)\n#1\n",
+         "children": [
+          {
+            "name": "ORDER_BY",
+            "timing":0.000644,
+            "cardinality":17,
+            "extra_info": "ORDERS:\ncount_star() DESC",
+            "children": [
+             {
+               "name": "PROJECTION",
+               "timing":0.000004,
+               "cardinality":17,
+               "extra_info": "__internal_compress_integral_utinyint(#0, 0)\n#1\n",
+               "children": [
+                {
+                  "name": "PROJECTION",
+                  "timing":0.000002,
+                  "cardinality":17,
+                  "extra_info": "__internal_decompress_integral_smallint(#0, 0)\n#1\n",
+                  "children": [
+                   {
+                     "name": "PERFECT_HASH_GROUP_BY",
+                     "timing":0.005894,
+                     "cardinality":17,
+                     "extra_info": "#0\ncount_star()",
+                     "children": [
+                      {
+                        "name": "PROJECTION",
+                        "timing":0.000147,
+                        "cardinality":630276,
+                        "extra_info": "AdvEngineID\n",
+                        "children": [
+                         {
+                           "name": "PROJECTION",
+                           "timing":0.010362,
+                           "cardinality":630276,
+                           "extra_info": "__internal_compress_integral_utinyint(#0, 0)\n",
+                           "children": [
+                            {
+                              "name": "FILTER",
+                              "timing":0.130280,
+                              "cardinality":630276,
+                              "extra_info": "(AdvEngineID != 0)\n[INFOSEPARATOR]\nEC: 19999499",
+                              "children": [
+                               {
+                                 "name": "SEQ_SCAN ",
+                                 "timing":9.911069,
+                                 "cardinality":99997497,
+                                 "extra_info": "hits\n[INFOSEPARATOR]\nAdvEngineID\n[INFOSEPARATOR]\nEC: 99997497",
+                                 "children": [
+                                 ]
+                               }
+                              ]
+                            }
+                           ]
+                         }
+                        ]
+                      }
+                     ]
+                   }
+                  ]
+                }
+               ]
+             }
+            ]
+          }
+         ]
+       }
+      ]
+    }
+   ]
+}
