@@ -1,0 +1,14 @@
+                                                                 QUERY PLAN                                                                 
+--------------------------------------------------------------------------------------------------------------------------------------------
+ Finalize Aggregate  (cost=24744787.82..24744787.83 rows=1 width=8) (actual time=93350.020..93390.433 rows=1 loops=1)
+   ->  Gather  (cost=24744786.78..24744787.79 rows=10 width=8) (actual time=93349.680..93390.427 rows=11 loops=1)
+         Workers Planned: 10
+         Workers Launched: 10
+         ->  Partial Aggregate  (cost=24743786.78..24743786.79 rows=1 width=8) (actual time=93344.250..93344.251 rows=1 loops=11)
+               ->  Parallel Seq Scan on hits  (cost=0.00..24743776.40 rows=4153 width=0) (actual time=49.261..93343.104 rows=7232 loops=11)
+                     Filter: (url ~~ '%google%'::text)
+                     Rows Removed by Filter: 45446175
+ Planning Time: 4.299 ms
+ Execution Time: 93390.621 ms
+(10 rows)
+

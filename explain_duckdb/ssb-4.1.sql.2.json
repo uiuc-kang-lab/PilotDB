@@ -1,0 +1,168 @@
+{
+   "name":  "Query", 
+   "result": 26.790516,
+   "timing": 26.790516,
+   "cardinality": 0,
+   "extra-info": "SELECT\n    d_year,\n    c_nation,\n    SUM(lo_revenue - lo_supplycost) AS PROFIT\nFROM dates, customer, supplier, part, lineorder\nWHERE\n    lo_custkey = c_custkey\n    AND lo_suppkey = s_suppkey\n    AND lo_partkey = p_partkey\n    AND lo_orderdate = d_datekey\n    AND c_region = 'AMERICA'\n    AND s_region = 'AMERICA'\n    AND (\n        p_mfgr = 'MFGR#1'\n        OR p_mfgr = 'MFGR#2'\n    )\nGROUP BY d_year, c_nation\nORDER BY d_year, c_nation;", 
+   "timings": [
+
+   ],
+   "children": [
+    {
+      "name": "RESULT_COLLECTOR",
+      "timing":0.000236,
+      "cardinality":0,
+      "extra_info": "",
+      "children": [
+       {
+         "name": "PROJECTION",
+         "timing":0.000068,
+         "cardinality":35,
+         "extra_info": "__internal_decompress_integral_integer(#0, 1992)\n__internal_decompress_string(#1)\n#2\n",
+         "children": [
+          {
+            "name": "ORDER_BY",
+            "timing":0.000449,
+            "cardinality":35,
+            "extra_info": "ORDERS:\ndates.d_year ASC\ncustomer.c_nation ASC",
+            "children": [
+             {
+               "name": "PROJECTION",
+               "timing":0.000068,
+               "cardinality":35,
+               "extra_info": "__internal_compress_integral_utinyint(#0, 1992)\n__internal_compress_string_hugeint(#1)\n#2\n",
+               "children": [
+                {
+                  "name": "PROJECTION",
+                  "timing":0.000120,
+                  "cardinality":35,
+                  "extra_info": "__internal_decompress_integral_integer(#0, 1992)\n__internal_decompress_string(#1)\n#2\n",
+                  "children": [
+                   {
+                     "name": "HASH_GROUP_BY",
+                     "timing":16.864268,
+                     "cardinality":35,
+                     "extra_info": "#0\n#1\nsum(#2)",
+                     "children": [
+                      {
+                        "name": "PROJECTION",
+                        "timing":0.659862,
+                        "cardinality":95866701,
+                        "extra_info": "d_year\nc_nation\n(lo_revenue - lo_supplycost)\n",
+                        "children": [
+                         {
+                           "name": "PROJECTION",
+                           "timing":4.156120,
+                           "cardinality":95866701,
+                           "extra_info": "#0\n#1\n#2\n__internal_compress_integral_usmallint(#3, 19920101)\n#4\n#5\n#6\n#7\n__internal_compress_string_hugeint(#8)\n#9\n__internal_compress_integral_usmallint(#10, 19920101)\n__internal_compress_integral_utinyint(#11, 1992)\n",
+                           "children": [
+                            {
+                              "name": "HASH_JOIN",
+                              "timing":1.496509,
+                              "cardinality":95866701,
+                              "extra_info": "INNER\nlo_orderdate = d_datekey\n\n[INFOSEPARATOR]\nBuild Min: 19920101\nBuild Max: 19980802\n\n[INFOSEPARATOR]\nEC: 51322645\n",
+                              "children": [
+                               {
+                                 "name": "HASH_JOIN",
+                                 "timing":34.734320,
+                                 "cardinality":95866701,
+                                 "extra_info": "INNER\nlo_partkey = p_partkey\n\n[INFOSEPARATOR]\nEC: 51322645\n",
+                                 "children": [
+                                  {
+                                    "name": "HASH_JOIN",
+                                    "timing":125.938183,
+                                    "cardinality":239965146,
+                                    "extra_info": "INNER\nlo_custkey = c_custkey\n\n[INFOSEPARATOR]\nEC: 245831365\n",
+                                    "children": [
+                                     {
+                                       "name": "HASH_JOIN",
+                                       "timing":139.938429,
+                                       "cardinality":1199890662,
+                                       "extra_info": "INNER\nlo_suppkey = s_suppkey\n\n[INFOSEPARATOR]\nEC: 1189782469\n",
+                                       "children": [
+                                        {
+                                          "name": "SEQ_SCAN ",
+                                          "timing":3056.521147,
+                                          "cardinality":5999989709,
+                                          "extra_info": "lineorder\n[INFOSEPARATOR]\nlo_custkey\nlo_suppkey\nlo_partkey\nlo_orderdate\nlo_revenue\nlo_supplycost\n[INFOSEPARATOR]\nEC: 5999989709",
+                                          "children": [
+                                          ]
+                                        }
+,
+                                        {
+                                          "name": "SEQ_SCAN ",
+                                          "timing":0.064680,
+                                          "cardinality":399954,
+                                          "extra_info": "supplier\n[INFOSEPARATOR]\ns_suppkey\n[INFOSEPARATOR]\nFilters: s_region='AMERICA' AND s_region IS NOT NULL\n\n[INFOSEPARATOR]\nEC: 400000",
+                                          "children": [
+                                          ]
+                                        }
+                                       ]
+                                     }
+,
+                                     {
+                                       "name": "FILTER",
+                                       "timing":0.023847,
+                                       "cardinality":6000975,
+                                       "extra_info": "(c_custkey <= 29999999)\n[INFOSEPARATOR]\nEC: 6000000",
+                                       "children": [
+                                        {
+                                          "name": "SEQ_SCAN ",
+                                          "timing":4.098711,
+                                          "cardinality":6000975,
+                                          "extra_info": "customer\n[INFOSEPARATOR]\nc_custkey\nc_nation\n[INFOSEPARATOR]\nFilters: c_region='AMERICA' AND c_region IS NOT NULL\n\n[INFOSEPARATOR]\nEC: 6000000",
+                                          "children": [
+                                          ]
+                                        }
+                                       ]
+                                     }
+                                    ]
+                                  }
+,
+                                  {
+                                    "name": "FILTER",
+                                    "timing":0.017459,
+                                    "cardinality":559300,
+                                    "extra_info": "((p_mfgr = 'MFGR#1') OR (p_mfgr = 'MFGR#2'))\n[INFOSEPARATOR]\nEC: 400000",
+                                    "children": [
+                                     {
+                                       "name": "SEQ_SCAN ",
+                                       "timing":0.033909,
+                                       "cardinality":1400000,
+                                       "extra_info": "part\n[INFOSEPARATOR]\np_partkey\np_mfgr\n[INFOSEPARATOR]\nFilters: p_partkey<=1400000 AND p_partkey IS NOT NULL\n\n[INFOSEPARATOR]\nEC: 400000",
+                                       "children": [
+                                       ]
+                                     }
+                                    ]
+                                  }
+                                 ]
+                               }
+,
+                               {
+                                 "name": "SEQ_SCAN ",
+                                 "timing":0.002042,
+                                 "cardinality":2406,
+                                 "extra_info": "dates\n[INFOSEPARATOR]\nd_datekey\nd_year\n[INFOSEPARATOR]\nFilters: d_datekey<=19980802 AND d_datekey IS NOT NULL\n\n[INFOSEPARATOR]\nEC: 2556",
+                                 "children": [
+                                 ]
+                               }
+                              ]
+                            }
+                           ]
+                         }
+                        ]
+                      }
+                     ]
+                   }
+                  ]
+                }
+               ]
+             }
+            ]
+          }
+         ]
+       }
+      ]
+    }
+   ]
+}

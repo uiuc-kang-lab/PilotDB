@@ -1,0 +1,14 @@
+                                                                  QUERY PLAN                                                                   
+-----------------------------------------------------------------------------------------------------------------------------------------------
+ Finalize Aggregate  (cost=24745589.84..24745589.85 rows=1 width=8) (actual time=78848.829..78880.253 rows=1 loops=1)
+   ->  Gather  (cost=24745588.81..24745589.82 rows=10 width=8) (actual time=78848.254..78880.239 rows=11 loops=1)
+         Workers Planned: 10
+         Workers Launched: 10
+         ->  Partial Aggregate  (cost=24744588.81..24744588.82 rows=1 width=8) (actual time=78842.496..78842.501 rows=1 loops=11)
+               ->  Parallel Seq Scan on hits  (cost=0.00..24743776.40 rows=324963 width=0) (actual time=1.531..78813.250 rows=286975 loops=11)
+                     Filter: (advengineid <> 0)
+                     Rows Removed by Filter: 45166433
+ Planning Time: 3.701 ms
+ Execution Time: 78880.392 ms
+(10 rows)
+

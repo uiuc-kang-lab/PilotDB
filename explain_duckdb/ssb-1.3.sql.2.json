@@ -1,0 +1,69 @@
+{
+   "name":  "Query", 
+   "result": 17.412670,
+   "timing": 17.412670,
+   "cardinality": 0,
+   "extra-info": "SELECT\n    SUM(lo_extendedprice * lo_discount) AS REVENUE\nFROM lineorder, dates\nWHERE\n    lo_orderdate = d_datekey\n    AND d_weeknuminyear = 6\n    AND d_year = 1994\n    AND lo_discount BETWEEN 5 AND 7\n    AND lo_quantity BETWEEN 26 AND 35;", 
+   "timings": [
+
+   ],
+   "children": [
+    {
+      "name": "RESULT_COLLECTOR",
+      "timing":0.000008,
+      "cardinality":0,
+      "extra_info": "",
+      "children": [
+       {
+         "name": "UNGROUPED_AGGREGATE",
+         "timing":0.002592,
+         "cardinality":1,
+         "extra_info": "sum(#0)",
+         "children": [
+          {
+            "name": "PROJECTION",
+            "timing":0.044297,
+            "cardinality":951577,
+            "extra_info": "(lo_extendedprice * lo_discount)\n",
+            "children": [
+             {
+               "name": "HASH_JOIN",
+               "timing":4.251382,
+               "cardinality":951577,
+               "extra_info": "INNER\nlo_orderdate = d_datekey\n\n[INFOSEPARATOR]\nBuild Min: 19920101\nBuild Max: 19980802\n\n[INFOSEPARATOR]\nEC: 21596207\n",
+               "children": [
+                {
+                  "name": "SEQ_SCAN ",
+                  "timing":2211.647165,
+                  "cardinality":327252995,
+                  "extra_info": "lineorder\n[INFOSEPARATOR]\nlo_orderdate\nlo_discount\nlo_extendedprice\n[INFOSEPARATOR]\nFilters: lo_discount>=5 AND lo_discount<=7 AND lo_discount IS NOT NULL\nlo_quantity>=26 AND lo_quantity<=35 AND lo_quantity IS NOT NULL\n\n[INFOSEPARATOR]\nEC: 1199997941",
+                  "children": [
+                  ]
+                }
+,
+                {
+                  "name": "FILTER",
+                  "timing":0.000686,
+                  "cardinality":7,
+                  "extra_info": "(d_datekey <= 19980802)\n[INFOSEPARATOR]\nEC: 46",
+                  "children": [
+                   {
+                     "name": "SEQ_SCAN ",
+                     "timing":0.000844,
+                     "cardinality":7,
+                     "extra_info": "dates\n[INFOSEPARATOR]\nd_datekey\n[INFOSEPARATOR]\nFilters: d_weeknuminyear=6 AND d_weeknuminyear IS NOT NULL\nd_year=1994 AND d_year IS NOT NULL\n\n[INFOSEPARATOR]\nEC: 46",
+                     "children": [
+                     ]
+                   }
+                  ]
+                }
+               ]
+             }
+            ]
+          }
+         ]
+       }
+      ]
+    }
+   ]
+}

@@ -1,0 +1,92 @@
+{
+   "name":  "Query", 
+   "result": 20.486829,
+   "timing": 20.486829,
+   "cardinality": 0,
+   "extra-info": "select\n    l_returnflag,\n    l_linestatus,\n    sum(l_quantity) as sum_qty,\n    sum(l_extendedprice) as sum_base_price,\n    sum(l_extendedprice * (1 - l_discount)) as sum_disc_price,\n    sum(l_extendedprice * (1 - l_discount) * (1 + l_tax)) as sum_charge,\n    avg(l_quantity) as avg_qty,\n    avg(l_extendedprice) as avg_price,\n    avg(l_discount) as avg_disc,\n    count(*) as count_order\nfrom\n    lineitem\nwhere\n    l_shipdate <= date '1998-12-01' - interval '90 day'\ngroup by\n    l_returnflag,\n    l_linestatus\norder by\n    l_returnflag,\n    l_linestatus;", 
+   "timings": [
+
+   ],
+   "children": [
+    {
+      "name": "RESULT_COLLECTOR",
+      "timing":0.000074,
+      "cardinality":0,
+      "extra_info": "",
+      "children": [
+       {
+         "name": "PROJECTION",
+         "timing":0.000001,
+         "cardinality":4,
+         "extra_info": "__internal_decompress_string(#0)\n__internal_decompress_string(#1)\n#2\n#3\n#4\n#5\n#6\n#7\n#8\n#9\n",
+         "children": [
+          {
+            "name": "ORDER_BY",
+            "timing":0.000663,
+            "cardinality":4,
+            "extra_info": "ORDERS:\nlineitem.l_returnflag ASC\nlineitem.l_linestatus ASC",
+            "children": [
+             {
+               "name": "PROJECTION",
+               "timing":0.000004,
+               "cardinality":4,
+               "extra_info": "__internal_compress_string_utinyint(#0)\n__internal_compress_string_utinyint(#1)\n#2\n#3\n#4\n#5\n#6\n#7\n#8\n#9\n",
+               "children": [
+                {
+                  "name": "PROJECTION",
+                  "timing":0.000008,
+                  "cardinality":4,
+                  "extra_info": "__internal_decompress_string(#0)\n__internal_decompress_string(#1)\n#2\n#3\n#4\n#5\n#6\n#7\n#8\n#9\n",
+                  "children": [
+                   {
+                     "name": "PERFECT_HASH_GROUP_BY",
+                     "timing":99.684856,
+                     "cardinality":4,
+                     "extra_info": "#0\n#1\nsum_no_overflow(#2)\nsum_no_overflow(#3)\nsum_no_overflow(#4)\nsum(#5)\navg(#6)\navg(#7)\navg(#8)\ncount_star()",
+                     "children": [
+                      {
+                        "name": "PROJECTION",
+                        "timing":20.573835,
+                        "cardinality":5915582721,
+                        "extra_info": "l_returnflag\nl_linestatus\nl_quantity\nl_extendedprice\n#4\n(#4 * (1.00 + l_tax))\nl_quantity\nl_extendedprice\nl_discount\n",
+                        "children": [
+                         {
+                           "name": "PROJECTION",
+                           "timing":27.151754,
+                           "cardinality":5915582721,
+                           "extra_info": "__internal_compress_string_utinyint(#0)\n__internal_compress_string_utinyint(#1)\n#2\n#3\n#4\n#5\n#6\n",
+                           "children": [
+                            {
+                              "name": "PROJECTION",
+                              "timing":21.970012,
+                              "cardinality":5915582721,
+                              "extra_info": "l_returnflag\nl_linestatus\nl_quantity\nl_extendedprice\n(l_extendedprice * (1.00 - l_discount))\nl_tax\nl_discount\n",
+                              "children": [
+                               {
+                                 "name": "SEQ_SCAN ",
+                                 "timing":2436.697369,
+                                 "cardinality":5915582721,
+                                 "extra_info": "lineitem\n[INFOSEPARATOR]\nl_returnflag\nl_linestatus\nl_quantity\nl_extendedprice\nl_discount\nl_tax\n[INFOSEPARATOR]\nFilters: l_shipdate<='1998-09-02'::DATE AND l_shipdate IS NOT NULL\n\n[INFOSEPARATOR]\nEC: 1199997941",
+                                 "children": [
+                                 ]
+                               }
+                              ]
+                            }
+                           ]
+                         }
+                        ]
+                      }
+                     ]
+                   }
+                  ]
+                }
+               ]
+             }
+            ]
+          }
+         ]
+       }
+      ]
+    }
+   ]
+}

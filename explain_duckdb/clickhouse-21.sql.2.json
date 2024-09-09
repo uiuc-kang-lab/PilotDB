@@ -1,0 +1,44 @@
+{
+   "name":  "Query", 
+   "result": 1.778666,
+   "timing": 1.778666,
+   "cardinality": 0,
+   "extra-info": "SELECT COUNT(*) FROM hits WHERE URL LIKE '%google%';", 
+   "timings": [
+
+   ],
+   "children": [
+    {
+      "name": "RESULT_COLLECTOR",
+      "timing":0.000002,
+      "cardinality":0,
+      "extra_info": "",
+      "children": [
+       {
+         "name": "UNGROUPED_AGGREGATE",
+         "timing":0.000131,
+         "cardinality":1,
+         "extra_info": "count_star()",
+         "children": [
+          {
+            "name": "FILTER",
+            "timing":4.514132,
+            "cardinality":15911,
+            "extra_info": "contains(URL, 'google')\n[INFOSEPARATOR]\nEC: 19999499",
+            "children": [
+             {
+               "name": "SEQ_SCAN ",
+               "timing":203.642818,
+               "cardinality":99997497,
+               "extra_info": "hits\n[INFOSEPARATOR]\nURL\n[INFOSEPARATOR]\nEC: 99997497",
+               "children": [
+               ]
+             }
+            ]
+          }
+         ]
+       }
+      ]
+    }
+   ]
+}
