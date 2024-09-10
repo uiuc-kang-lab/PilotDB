@@ -7,13 +7,8 @@ import pandas as pd
 
 def connect_to_db(dbms: str, config: dict):
     if dbms == 'duckdb':
-        # clean cache
-        if config["flush_memory"] == True:
-            os.system("sudo sync; echo 3 | sudo tee /proc/sys/vm/drop_caches")
         return duckdb_utils.connect_to_db(config["path"])
     elif dbms == 'postgres':
-        os.system("pg_ctl -D /mydata/ps/ps stop; sudo sync; echo 3 | sudo tee /proc/sys/vm/drop_caches; pg_ctl -D /mydata/ps/ps start")
-        os.system("sleep 2")
         return postgres_utils.connect_to_db(config["dbname"], config["username"], config["host"], config["port"], 
                                             config["password"])
     elif dbms == 'sqlserver':
