@@ -1,0 +1,1 @@
+select avg (ss_list_price)       from store_sales where ss_wholesale_cost between 20     and 40
