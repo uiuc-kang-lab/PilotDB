@@ -1,0 +1,1 @@
+select sum (ss_quantity)         from store_sales where ss_net_profit     between 50     and 25000
