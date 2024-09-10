@@ -1,1 +1,1 @@
-SELECT SUM(ss_whole_sale_cost) FROM store_sales, store WHERE ss_store_sk = s_store_sk AND s_number_of_employees = 233
+SELECT AVG(ss_sales_price) FROM store_sales WHERE 2451227 <= ss_sold_date_sk AND ss_sold_date_sk < 2451433 GROUP BY ss_store_sk

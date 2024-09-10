@@ -1,1 +1,1 @@
-SELECT SUM(ss_sales_price) FROM store_sales WHERE 2451433 <= ss_sold_date_sk AND ss_sold_date_sk < 2451639 GROUP BY ss_store_sk
+SELECT SUM(ss_net_profit) FROM store_sales, store WHERE ss_store_sk = s_store_sk AND s_number_employees = 233

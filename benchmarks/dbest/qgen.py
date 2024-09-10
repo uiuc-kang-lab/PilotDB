@@ -11,9 +11,9 @@ import random
 import argparse
 import os
 
-join_template = "SELECT {AGG}(ss_sales_price) FROM store_sales WHERE {date_lb} <= ss_sold_date_sk AND ss_sold_date_sk < {date_ub} GROUP BY ss_store_sk" # 30 = 3*10
-groupby_template_1 = "SELECT {AGG}(ss_whole_sale_cost) FROM store_sales, store WHERE ss_store_sk = s_store_sk AND s_number_of_employees = {n_employee}" # 21 = 3*7
-groupby_template_2 = "SELECT {AGG}(ss_net_profit) FROM store_sales, store WHERE ss_store_sk = s_store_sk AND s_number_of_employees = {n_employee}" # 21 = 3*7
+groupby_template = "SELECT {AGG}(ss_sales_price) FROM store_sales WHERE {date_lb} <= ss_sold_date_sk AND ss_sold_date_sk < {date_ub} GROUP BY ss_store_sk" # 30 = 3*10
+join_template_1 = "SELECT {AGG}(ss_wholesale_cost) FROM store_sales, store WHERE ss_store_sk = s_store_sk AND s_number_employees = {n_employee}" # 21 = 3*7
+join_template_2 = "SELECT {AGG}(ss_net_profit) FROM store_sales, store WHERE ss_store_sk = s_store_sk AND s_number_employees = {n_employee}" # 21 = 3*7
 
 aggs = {"COUNT", "SUM", "AVG"}
 
@@ -51,7 +51,7 @@ def gen_agg_query():
             queries.append(query)
     return queries
 
-def gen_join_query(date_dist: dict):
+def gen_groupby_query(date_dist: dict):
     min_date = min(date_dist.keys())
     max_date = max(date_dist.keys())
     bucket_length = (max_date - min_date + 1) // 10
@@ -60,19 +60,19 @@ def gen_join_query(date_dist: dict):
         lb = min_date + i * bucket_length
         ub = lb + bucket_length
         for agg in aggs:
-            query = join_template.format(AGG=agg, date_lb=lb, date_ub=ub)
+            query = groupby_template.format(AGG=agg, date_lb=lb, date_ub=ub)
             queries.append(query)
     return queries
 
-def gen_groupby_query(n_employee_dist: dict, n_query: int):
+def gen_join_query(n_employee_dist: dict, n_query: int):
     n_employees = list(n_employee_dist.keys())
     n_employees_choices = random.choices(n_employees, k=n_query)
     queries = []
     for n_employee in n_employees_choices:
         for agg1 in aggs:
-            query = groupby_template_1.format(AGG=agg1, n_employee=n_employee)
+            query = join_template_1.format(AGG=agg1, n_employee=n_employee)
             queries.append(query)
-            query = groupby_template_2.format(AGG=agg1, n_employee=n_employee)
+            query = join_template_2.format(AGG=agg1, n_employee=n_employee)
             queries.append(query)
     return queries
 
@@ -82,8 +82,8 @@ def main(args):
     date_dist = parse_date_dist()
     n_employee_dist = parse_n_employee_dist()
     agg_queries = gen_agg_query()
-    join_queries = gen_join_query(date_dist)
-    groupby_queries = gen_groupby_query(n_employee_dist, args.n_query)
+    join_queries = gen_join_query(n_employee_dist, args.n_query)
+    groupby_queries = gen_groupby_query(date_dist)
 
     for i in range(len(agg_queries)):
         with open(f"query_agg{i+1}.sql", "w") as f:
