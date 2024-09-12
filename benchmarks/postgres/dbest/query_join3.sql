@@ -1,1 +1,1 @@
-SELECT SUM(ss_wholesale_cost) FROM store_sales, store WHERE ss_store_sk = s_store_sk AND s_number_employees = 238
+SELECT count(ss_wholesale_cost) FROM store_sales, store WHERE ss_store_sk = s_store_sk AND s_number_employees = 238

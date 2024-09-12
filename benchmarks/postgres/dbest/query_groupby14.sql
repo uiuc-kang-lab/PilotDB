@@ -1,1 +1,1 @@
-SELECT SUM(ss_sales_price) FROM store_sales WHERE 2451639 <= ss_sold_date_sk AND ss_sold_date_sk < 2451845 GROUP BY ss_store_sk
+SELECT count(ss_sales_price), ss_store_sk FROM store_sales WHERE 2451639 <= ss_sold_date_sk AND ss_sold_date_sk < 2451845 GROUP BY ss_store_sk
