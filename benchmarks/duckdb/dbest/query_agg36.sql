@@ -1,0 +1,1 @@
+select avg (ss_ext_discount_amt) from store_sales where ss_quantity       between 1      and 20

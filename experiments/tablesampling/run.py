@@ -24,6 +24,9 @@ elif args.mode == "shuffle":
     args.sample_rate /= 100
     with open("data-shuffle.sql") as f:
         query = f.readlines()[0]
+elif args.mode == "exact":
+    with open("no-sample.sql") as f:
+        query = f.readlines()[0]
 
 # DEBUG
 # query = "set statement_timeout to 1000;" + query

@@ -1,0 +1,1 @@
+select sum(ss_quantity)          from store_sales where ss_sales_price    between 150.00 and 200.00

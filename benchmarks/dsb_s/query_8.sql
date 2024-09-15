@@ -1,1 +1,0 @@
-SELECT AVG(ss_sales_price) FROM store_sales WHERE 2451329 <= ss_sold_date_sk AND ss_sold_date_sk < 2451535

@@ -1,0 +1,1 @@
+select count (ss_list_price)     from store_sales where ss_wholesale_cost between 50     and 70

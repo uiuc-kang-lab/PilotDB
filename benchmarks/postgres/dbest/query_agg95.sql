@@ -1,0 +1,1 @@
+select avg (ws_quantity)         from web_sales where ws_sales_price      between 100.00 and 150.00
