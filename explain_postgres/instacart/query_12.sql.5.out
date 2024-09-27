@@ -1,0 +1,28 @@
+                                                                                 QUERY PLAN                                                                                  
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ Finalize GroupAggregate  (cost=152043197.21..152043199.02 rows=7 width=20) (actual time=1322901.352..1337219.719 rows=7 loops=1)
+   Group Key: orders.order_dow
+   ->  Gather Merge  (cost=152043197.21..152043198.85 rows=14 width=20) (actual time=1322901.327..1337219.688 rows=21 loops=1)
+         Workers Planned: 2
+         Workers Launched: 2
+         ->  Sort  (cost=152042197.19..152042197.21 rows=7 width=20) (actual time=1322897.934..1322898.736 rows=7 loops=3)
+               Sort Key: orders.order_dow
+               Sort Method: quicksort  Memory: 25kB
+               Worker 0:  Sort Method: quicksort  Memory: 25kB
+               Worker 1:  Sort Method: quicksort  Memory: 25kB
+               ->  Partial HashAggregate  (cost=152042197.02..152042197.09 rows=7 width=20) (actual time=1322897.539..1322898.342 rows=7 loops=3)
+                     Group Key: orders.order_dow
+                     ->  Parallel Hash Join  (cost=18447632.00..147153573.87 rows=391089852 width=8) (actual time=1162611.304..1286057.301 rows=308896300 loops=3)
+                           Hash Cond: (order_products.order_id = orders.order_id)
+                           ->  Parallel Seq Scan on order_products  (cost=0.00..117464848.00 rows=827586614 width=12) (actual time=0.503..907534.625 rows=652857300 loops=3)
+                                 Filter: (add_to_cat_order <= 2)
+                                 Rows Removed by Filter: 2729053300
+                           ->  Parallel Hash  (cost=14934707.80..14934707.80 rows=202091776 width=12) (actual time=128859.692..128859.695 rows=161886900 loops=3)
+                                 Buckets: 131072  Batches: 8192  Memory Usage: 3872kB
+                                 ->  Parallel Seq Scan on orders  (cost=0.00..14934707.80 rows=202091776 width=12) (actual time=0.114..92124.708 rows=161886900 loops=3)
+                                       Filter: ((order_hour_of_day >= 12) AND (order_hour_of_day < 18))
+                                       Rows Removed by Filter: 180221400
+ Planning Time: 10.239 ms
+ Execution Time: 1337221.342 ms
+(24 rows)
+

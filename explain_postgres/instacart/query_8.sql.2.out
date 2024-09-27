@@ -1,0 +1,43 @@
+                                                                                        QUERY PLAN                                                                                         
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ Finalize GroupAggregate  (cost=141411486.36..141493856.42 rows=24 width=12) (actual time=1224430.852..1234892.889 rows=12 loops=1)
+   Group Key: orders.order_hour_of_day
+   ->  Gather Merge  (cost=141411486.36..141493855.76 rows=48 width=20) (actual time=1224392.152..1234892.850 rows=36 loops=1)
+         Workers Planned: 2
+         Workers Launched: 2
+         ->  Partial GroupAggregate  (cost=141410486.34..141492850.19 rows=24 width=20) (actual time=1224376.315..1228080.282 rows=12 loops=3)
+               Group Key: orders.order_hour_of_day
+               ->  Sort  (cost=141410486.34..141426959.06 rows=6589089 width=20) (actual time=1224302.640..1226170.825 rows=25267900 loops=3)
+                     Sort Key: orders.order_hour_of_day
+                     Sort Method: external merge  Disk: 816560kB
+                     Worker 0:  Sort Method: external merge  Disk: 817032kB
+                     Worker 1:  Sort Method: external merge  Disk: 803752kB
+                     ->  Hash Join  (cost=16473733.05..140393961.73 rows=6589089 width=20) (actual time=1172297.181..1215073.675 rows=25267900 loops=3)
+                           Hash Cond: (products.aisle_id = aisles.aisle_id)
+                           ->  Parallel Hash Join  (cost=16473729.04..140376114.32 rows=6589089 width=8) (actual time=1172297.089..1212218.859 rows=25267900 loops=3)
+                                 Hash Cond: (order_products.order_id = orders.order_id)
+                                 ->  Hash Join  (cost=1136.99..122938244.02 rows=18802382 width=12) (actual time=18.104..1024687.488 rows=73923800 loops=3)
+                                       Hash Cond: (order_products.product_id = products.product_id)
+                                       ->  Parallel Seq Scan on order_products  (cost=0.00..106896377.60 rows=4227388160 width=16) (actual time=0.453..798019.378 rows=3381910600 loops=3)
+                                       ->  Hash  (cost=1134.22..1134.22 rows=221 width=12) (actual time=17.627..17.650 rows=907 loops=3)
+                                             Buckets: 1024  Batches: 1  Memory Usage: 47kB
+                                             ->  Hash Join  (cost=21.30..1134.22 rows=221 width=12) (actual time=0.210..17.501 rows=907 loops=3)
+                                                   Hash Cond: (products.department_id = departments.department_id)
+                                                   ->  Seq Scan on products  (cost=0.00..981.88 rows=49688 width=16) (actual time=0.029..14.110 rows=49688 loops=3)
+                                                   ->  Hash  (cost=21.25..21.25 rows=4 width=4) (actual time=0.169..0.176 rows=1 loops=3)
+                                                         Buckets: 1024  Batches: 1  Memory Usage: 9kB
+                                                         ->  Seq Scan on departments  (cost=0.00..21.25 rows=4 width=4) (actual time=0.161..0.165 rows=1 loops=3)
+                                                               Filter: ((department)::text = 'meat seafood'::text)
+                                                               Rows Removed by Filter: 20
+                                 ->  Parallel Hash  (cost=13865590.00..13865590.00 rows=149975844 width=12) (actual time=120648.320..120648.321 rows=119482100 loops=3)
+                                       Buckets: 131072  Batches: 8192  Memory Usage: 3136kB
+                                       ->  Parallel Seq Scan on orders  (cost=0.00..13865590.00 rows=149975844 width=12) (actual time=0.098..92739.257 rows=119482100 loops=3)
+                                             Filter: (order_hour_of_day < 12)
+                                             Rows Removed by Filter: 222626200
+                           ->  Hash  (cost=2.34..2.34 rows=134 width=20) (actual time=0.054..0.055 rows=134 loops=3)
+                                 Buckets: 1024  Batches: 1  Memory Usage: 16kB
+                                 ->  Seq Scan on aisles  (cost=0.00..2.34 rows=134 width=20) (actual time=0.013..0.021 rows=134 loops=3)
+ Planning Time: 11.840 ms
+ Execution Time: 1235097.640 ms
+(39 rows)
+

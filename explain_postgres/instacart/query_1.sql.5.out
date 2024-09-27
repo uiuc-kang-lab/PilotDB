@@ -1,0 +1,21 @@
+                                                                               QUERY PLAN                                                                               
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ Finalize GroupAggregate  (cost=126810514.15..126810514.66 rows=2 width=12) (actual time=963993.975..963997.286 rows=2 loops=1)
+   Group Key: reordered
+   ->  Gather Merge  (cost=126810514.15..126810514.62 rows=4 width=12) (actual time=963993.940..963997.279 rows=6 loops=1)
+         Workers Planned: 2
+         Workers Launched: 2
+         ->  Sort  (cost=126809514.13..126809514.13 rows=2 width=12) (actual time=963990.772..963990.773 rows=2 loops=3)
+               Sort Key: reordered
+               Sort Method: quicksort  Memory: 25kB
+               Worker 0:  Sort Method: quicksort  Memory: 25kB
+               Worker 1:  Sort Method: quicksort  Memory: 25kB
+               ->  Partial HashAggregate  (cost=126809514.10..126809514.12 rows=2 width=12) (actual time=963990.746..963990.747 rows=2 loops=3)
+                     Group Key: reordered
+                     ->  Parallel Seq Scan on order_products  (cost=0.00..117464848.00 rows=1868933220 width=4) (actual time=0.102..829724.645 rows=1483254100 loops=3)
+                           Filter: (add_to_cat_order <= 5)
+                           Rows Removed by Filter: 1898656500
+ Planning Time: 7.778 ms
+ Execution Time: 963997.748 ms
+(17 rows)
+
