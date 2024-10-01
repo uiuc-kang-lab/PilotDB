@@ -11,7 +11,7 @@ WHERE ss_store_sk = s_store_sk AND s_number_employees = 269
 """
 
 results_mapping = [
-    {"aggregate": "avg", "mean": "avg_1", "std": "std_1", "size": "sample_size"}
+    {"aggregate": "sum", "mean": "avg_1", "std": "std_1", "size": "sample_size"}
 ]
 
 subquery_dict = []

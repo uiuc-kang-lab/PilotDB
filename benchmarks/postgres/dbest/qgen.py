@@ -11,7 +11,7 @@ import random
 import argparse
 import os
 
-groupby_template = "SELECT {AGG}(ss_sales_price), ss_store_sk FROM store_sales WHERE {date_lb} <= ss_sold_date_sk AND ss_sold_date_sk < {date_ub} GROUP BY ss_store_sk" # 30 = 3*10
+groupby_template = "SELECT {AGG}(ss_sales_price), ss_store_sk store FROM store_sales WHERE {date_lb} <= ss_sold_date_sk AND ss_sold_date_sk < {date_ub} GROUP BY store" # 30 = 3*10
 join_template_1 = "SELECT {AGG}(ss_wholesale_cost) FROM store_sales, store WHERE ss_store_sk = s_store_sk AND s_number_employees = {n_employee}" # 21 = 3*7
 join_template_2 = "SELECT {AGG}(ss_net_profit) FROM store_sales, store WHERE ss_store_sk = s_store_sk AND s_number_employees = {n_employee}" # 21 = 3*7
 
@@ -133,12 +133,11 @@ def gen_agg_query():
 def gen_groupby_query(date_dist: dict):
     min_date = min(date_dist.keys())
     max_date = max(date_dist.keys())
-    bucket_length = (max_date - min_date + 1) // 10
     queries = []
     uniform_queries = []
     for i in range(10):
-        lb = min_date + i * bucket_length
-        ub = lb + bucket_length
+        lb = min_date + i
+        ub = max_date - 9 + i
         for agg in aggs:
             query = groupby_template.format(AGG=agg, date_lb=lb, date_ub=ub)
             queries.append(query)

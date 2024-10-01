@@ -6,7 +6,7 @@ SELECT
     COUNT(*) AS sample_size
 FROM 
     store_sales {sampling_method}
-WHERE 2452051 <= ss_sold_date_sk AND ss_sold_date_sk < 2452257 
+WHERE 2450821 <= ss_sold_date_sk AND ss_sold_date_sk < 2452879 
 GROUP BY ss_store_sk
 """
 

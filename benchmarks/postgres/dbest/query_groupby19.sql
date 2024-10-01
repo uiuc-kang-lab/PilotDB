@@ -1,1 +1,1 @@
-SELECT avg(ss_sales_price), ss_store_sk FROM store_sales WHERE 2452051 <= ss_sold_date_sk AND ss_sold_date_sk < 2452257 GROUP BY ss_store_sk
+SELECT sum(ss_sales_price), ss_store_sk store FROM store_sales WHERE 2450821 <= ss_sold_date_sk AND ss_sold_date_sk < 2452879 GROUP BY store

@@ -6,12 +6,12 @@ SELECT
     COUNT(*) AS sample_size
 FROM 
     store_sales {sampling_method}
-WHERE 2452463 <= ss_sold_date_sk AND ss_sold_date_sk < 2452669 
+WHERE 2450823 <= ss_sold_date_sk AND ss_sold_date_sk < 2452881 
 GROUP BY ss_store_sk
 """
 
 results_mapping = [
-    {"aggregate": "sum", "mean": "avg_1", "std": "std_1", "size": "sample_size"}
+    {"aggregate": "avg", "mean": "avg_1", "std": "std_1", "size": "sample_size"}
 ]
 
 subquery_dict = []
