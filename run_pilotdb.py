@@ -9,6 +9,7 @@ from pilotdb.execute import execute_aqp, execute_exact
 from pilotdb.execute_oracle import execute_oracle_aqp
 from pilotdb.execute_uniform import execute_uniform
 from pilotdb.execute_uniform_ss import execute_uniform_ss
+from pilotdb.execute_wrong_block import execute_block_wrong
 from pilotdb.execute_sample import execute_sample
 from pilotdb.query import Query
 
@@ -58,3 +59,5 @@ if __name__ == "__main__":
         sample_rate_list = meta[db_config["dbms"]][args.benchmark][f'query_{args.qid}']
         for sample_rate in sample_rate_list:
             execute_sample(query, sample_rate, db_config)
+    elif args.process_mode == "block-wrong":
+        execute_block_wrong(query, db_config, pilot_sample_rate=0.01)
