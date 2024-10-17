@@ -1,0 +1,6 @@
+- [ ] recover code to augment quickr
+- [ ] separate memory flush
+- [ ] implement connection to the cost models
+- [ ] fix the naming of clickbench
+- [ ] a complete and unified pipeline for oracle
+- [ ] prepare scripts to generate data
