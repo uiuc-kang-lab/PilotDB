@@ -1,9 +1,9 @@
 # PilotDB
 
-An online approximate query processing framework that
-1. doesn't require maintaining samples manually
-2. makes no modifications to the underlying database management system (DBMS)
-3. provides a priori error guarantees
+An online middleware approximate query processing system that
+1. provide user-specified error guarantees (i.e., a priori error guarantees)
+2. requires no maintenance
+3. requires no modifications to the underlying database management system
 4. achieves up to 126x speedups
 
 <p float="middle">
@@ -109,17 +109,3 @@ python run_pilotdb.py \
     --db_config_file <path_to_db_config> \
     --process_model exact
 ```
-
-## Evaluation
-Below is a selected set of evaluation results about 
-1. speedups on PostgreSQL, 
-2. error guarantees on the TPC-H workload, 
-3. and performance V.S. errors.
-<p float="middle">
-    <img src="./.assets/speedup_cdf_postgresql.jpg" width="255"/>
-    <img src="./.assets/error_tpch.jpg" width="295"/>
-    <img src="./.assets/speedup_error.jpg" width="264"/>
-</p>
-
-## Proofs
-We provide detailed proofs to all the theoretical statements derived in our paper, which can be found [here](./extended_report.pdf).
