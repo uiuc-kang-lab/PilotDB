@@ -1,24 +1,27 @@
-#!/bin/bash
+db_path=$1
 
-for run in {1..5}; do
+# postgres
+for run in {1..20}; do
     for qid in {1..97}; do
-        pg_ctl -D /mydata/dsb_postgres stop
-        bash clean_cache.sh
-        pg_ctl -D /mydata/dsb_postgres start
-        python run_pilotdb.py \
+        pg_ctl -D $db_path stop
+        sudo sync
+        echo 3 | sudo tee /proc/sys/vm/drop_caches
+        sleep 2
+        pg_ctl -D $db_path start
+        python evaluate.py \
             --benchmark dbest \
             --qid agg$qid \
-            --pilot_sample_rate 0.05 \
             --dbms postgres \
             --db_config_file db_configs/postgres_dsb.yml \
             --process_mode aqp
-        
     done
     for qid in {1..30}; do
-        pg_ctl -D /mydata/dsb_postgres stop
-        bash clean_cache.sh
-        pg_ctl -D /mydata/dsb_postgres start
-        python run_pilotdb.py \
+        pg_ctl -D $db_path stop
+        sudo sync
+        echo 3 | sudo tee /proc/sys/vm/drop_caches
+        sleep 2
+        pg_ctl -D $db_path start
+        python evaluate.py \
             --benchmark dbest \
             --qid groupby$qid \
             --dbms postgres \
@@ -26,10 +29,12 @@ for run in {1..5}; do
             --process_mode aqp
     done
     for qid in {1..42}; do
-        pg_ctl -D /mydata/dsb_postgres stop
-        bash clean_cache.sh
-        pg_ctl -D /mydata/dsb_postgres start
-        python run_pilotdb.py \
+        pg_ctl -D $db_path stop
+        sudo sync
+        echo 3 | sudo tee /proc/sys/vm/drop_caches
+        sleep 2
+        pg_ctl -D $db_path start
+        python evaluate.py \
             --benchmark dbest \
             --qid join$qid \
             --dbms postgres \

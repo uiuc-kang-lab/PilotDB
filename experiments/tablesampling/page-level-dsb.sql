@@ -1,1 +1,0 @@
-SELECT AVG(ss_ext_discount_amt) FROM store_sales TABLESAMPLE SYSTEM ({sample_rate})
