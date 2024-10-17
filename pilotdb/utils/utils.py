@@ -1,9 +1,11 @@
-import os
 import json
 import logging
+import os
+
 import pandas as pd
 
 from pilotdb.pilot_engine.commons import *
+
 
 def setup_logging(log_file: str):
     log_dir = os.path.dirname(log_file)

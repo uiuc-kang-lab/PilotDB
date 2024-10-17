@@ -1,9 +1,10 @@
 import logging
+import re
+
 import sqlglot
 from sqlglot import exp
+
 from pilotdb.pilot_engine.commons import *
-from pilotdb.pilot_engine.pilot_query import Query
-import re
 
 
 class Pilot_Rewriter:
@@ -11,7 +12,7 @@ class Pilot_Rewriter:
         self.table_cols = table_cols
         self.table_size = table_size
         self.database = database
-        
+
         self.subquery_count = 0
         self.page_id_rank = 0
         self.page_id_count = 0
@@ -29,13 +30,13 @@ class Pilot_Rewriter:
         self.sqlserver_page_id_mapping = {}
         self.sqlserver_page_id_mapping_count = 0
         self.sqlserver_alias2page_id = {}
-        
+
+        # return parameters
         self.res_2_page_id = {}
         self.result_mapping_list = []
         self.group_cols = []
         self.subquery_dict = {}
         self.limit_value = None
-
 
     def find_alias(self, expression):
         alias_list = expression.find_all(exp.Alias)
@@ -50,12 +51,10 @@ class Pilot_Rewriter:
 
         return None
 
-
     def extract_cte(self, expression):
         cte_list = expression.find_all(exp.CTE)
         for cte in cte_list:
             self.cte[cte.alias] = cte.this
-
 
     def find_all_aggregator(self, expression):
         for agg in expression.find_all(exp.AggFunc):
@@ -65,8 +64,6 @@ class Pilot_Rewriter:
                 table_set.add(column.table)
             if len(table_set) > 1:
                 self.single_sample = True
-        
-
 
     def extract_page_id(self, is_union=False, is_join=False):
         if self.database == POSTGRES:
@@ -102,67 +99,51 @@ class Pilot_Rewriter:
         elif self.database == SQLSERVER:
             if is_union:
                 if is_join:
-                    expresion = f''''page_id_{self.page_id_rank}:' + CAST(CAST(SUBSTRING({self.largest_table}.%%physloc%%, 6, 1)
+                    expresion = f"""'page_id_{self.page_id_rank}:' + CAST(CAST(SUBSTRING({self.largest_table}.%%physloc%%, 6, 1)
                     + SUBSTRING({self.largest_table}.%%physloc%%, 5, 1) AS int) AS VARCHAR) 
                     + '||' + CAST(CAST(SUBSTRING({self.largest_table}.%%physloc%%, 4, 1) 
                     + SUBSTRING({self.largest_table}.%%physloc%%, 3, 1) + SUBSTRING({self.largest_table}.%%physloc%%, 2, 1) 
-                    + SUBSTRING({self.largest_table}.%%physloc%%, 1, 1) AS int) AS VARCHAR)'''
-                    self.sqlserver_alias2page_id['page_id_1'] = expresion
-                    expresion = f'''{expresion} AS page_id_1'''
+                    + SUBSTRING({self.largest_table}.%%physloc%%, 1, 1) AS int) AS VARCHAR)"""
+                    self.sqlserver_alias2page_id["page_id_1"] = expresion
+                    expresion = f"""{expresion} AS page_id_1"""
                     self.page_id_rank += 1
                     self.page_id_count = 2
                 else:
-                    expresion = f''''page_id_{self.page_id_rank}:' + CAST(CAST(SUBSTRING({self.largest_table}.%%physloc%%, 6, 1)
+                    expresion = f"""'page_id_{self.page_id_rank}:' + CAST(CAST(SUBSTRING({self.largest_table}.%%physloc%%, 6, 1)
                     + SUBSTRING({self.largest_table}.%%physloc%%, 5, 1) AS int) AS VARCHAR) 
                     + '||' + CAST(CAST(SUBSTRING({self.largest_table}.%%physloc%%, 4, 1) 
                     + SUBSTRING({self.largest_table}.%%physloc%%, 3, 1) + SUBSTRING({self.largest_table}.%%physloc%%, 2, 1) 
-                    + SUBSTRING({self.largest_table}.%%physloc%%, 1, 1) AS int) AS VARCHAR)'''
-                    self.sqlserver_alias2page_id['page_id_0'] = expresion
-                    expresion = f'''{expresion} AS page_id_0'''
+                    + SUBSTRING({self.largest_table}.%%physloc%%, 1, 1) AS int) AS VARCHAR)"""
+                    self.sqlserver_alias2page_id["page_id_0"] = expresion
+                    expresion = f"""{expresion} AS page_id_0"""
                     self.page_id_rank += 1
                     self.page_id_count = 1
             else:
-                expresion = f''''page_id_{self.page_id_rank}:' + CAST(CAST(SUBSTRING({self.largest_table}.%%physloc%%, 6, 1)
+                expresion = f"""'page_id_{self.page_id_rank}:' + CAST(CAST(SUBSTRING({self.largest_table}.%%physloc%%, 6, 1)
                     + SUBSTRING({self.largest_table}.%%physloc%%, 5, 1) AS int) AS VARCHAR) 
                     + '||' + CAST(CAST(SUBSTRING({self.largest_table}.%%physloc%%, 4, 1) 
                     + SUBSTRING({self.largest_table}.%%physloc%%, 3, 1) + SUBSTRING({self.largest_table}.%%physloc%%, 2, 1) 
-                    + SUBSTRING({self.largest_table}.%%physloc%%, 1, 1) AS int) AS VARCHAR)'''
-                self.sqlserver_alias2page_id[f'page_id_{self.page_id_count}'] = expresion
-                expresion = f'''{expresion} AS page_id_{self.page_id_count}'''
+                    + SUBSTRING({self.largest_table}.%%physloc%%, 1, 1) AS int) AS VARCHAR)"""
+                self.sqlserver_alias2page_id[f"page_id_{self.page_id_count}"] = (
+                    expresion
+                )
+                expresion = f"""{expresion} AS page_id_{self.page_id_count}"""
                 self.page_id_rank += 1
                 self.page_id_count += 1
-            sqlserver_page_id_mapping = f"sqlserver_page_id_mapping_{self.sqlserver_page_id_mapping_count}"
+            sqlserver_page_id_mapping = (
+                f"sqlserver_page_id_mapping_{self.sqlserver_page_id_mapping_count}"
+            )
             self.sqlserver_page_id_mapping[sqlserver_page_id_mapping] = expresion
             self.sqlserver_page_id_mapping_count += 1
             return sqlglot.parse_one(sqlserver_page_id_mapping)
 
     def remove_clauses(self, expression):
         if expression.find(exp.Limit):
-            self.limit_value = int(expression.args['limit'].args['expression'].this)
+            self.limit_value = int(expression.args["limit"].args["expression"].this)
 
         expression.set("limit", None)
         expression.set("offset", None)
-        # FIXME
         expression.set("order", None)
-        # for having_expression in expression.find_all(exp.Having):
-        #     having_expression.parent.set("having", None)
-
-
-    def replace_star(self, expression):
-        new_expressions = []
-        for select_expression in expression.args["expressions"]:
-            if isinstance(select_expression, exp.Star):
-                for subquery in expression.find_all(exp.Subquery):
-                    for sub_select_expression in subquery.this.args["expressions"]:
-                        if sub_select_expression.find(exp.Alias):
-                            new_expressions.append(
-                                exp.Column(
-                                    this=exp.Identifier(
-                                        this=sub_select_expression.alias
-                                    )
-                                )
-                            )
-                expression.set("expressions", new_expressions)
 
     def rewrite_subtraction(self, expression):
         new_select_expression = []
@@ -170,7 +151,12 @@ class Pilot_Rewriter:
         for sub_expression in expression.find_all(exp.Sub):
             left = sub_expression.this.find(exp.Column)
             right = sub_expression.expression.find(exp.Column)
-            if left and right and left.this.this in self.alias and right.this.this in self.alias:
+            if (
+                left
+                and right
+                and left.this.this in self.alias
+                and right.this.this in self.alias
+            ):
                 if isinstance(self.alias[right.this.this], exp.AggFunc):
                     node = sub_expression
                     while not isinstance(node, exp.Select):
@@ -180,19 +166,30 @@ class Pilot_Rewriter:
                         if node_select_expression.find(exp.Sub):
                             sub_left = node_select_expression.find(exp.Sub)
                             sub_right = node_select_expression.find(exp.Sub).expression
-                            sub_left.parent.parent.set('this', sub_left.this)
+                            sub_left.parent.parent.set("this", sub_left.this)
                             node_expressions.append(node_select_expression)
-                            node_expressions.append(exp.Alias(this=sub_right, alias=sub_right.this.this))
-                            if exp.Sum(this=sub_right.find(exp.Column)) not in new_select_expression:
-                                new_select_expression.append(exp.Sum(this=sub_right.find(exp.Column)))
+                            node_expressions.append(
+                                exp.Alias(this=sub_right, alias=sub_right.this.this)
+                            )
+                            if (
+                                exp.Sum(this=sub_right.find(exp.Column))
+                                not in new_select_expression
+                            ):
+                                new_select_expression.append(
+                                    exp.Sum(this=sub_right.find(exp.Column))
+                                )
                         else:
                             node_expressions.append(node_select_expression)
-                    node.set('expressions', node_expressions)
+                    node.set("expressions", node_expressions)
 
         for select_expression in new_select_expression:
-            new_expressions.append(exp.Alias(this=select_expression, alias=f"r{self.select_expression_count}"))
+            new_expressions.append(
+                exp.Alias(
+                    this=select_expression, alias=f"r{self.select_expression_count}"
+                )
+            )
             self.select_expression_count += 1
-        
+
         return new_expressions
 
     def rewrite_select_expression(self, expression):
@@ -203,18 +200,6 @@ class Pilot_Rewriter:
         for select_expression in expression.args["expressions"]:
             is_average = False
             temp_expressions = []
-            # if select_expression.find(exp.Case):
-            #     case_subquery = select_expression.find(exp.Case).args['ifs'][0].find(exp.If)
-            #     condition_subquery = case_subquery.this.this.this
-            #     subquery_str = f"subquery_{self.subquery_count}"
-            #     self.subquery_dict[subquery_str] = condition_subquery.sql()
-            #     self.subquery_count += 1
-            #     condition_subquery.replace(sqlglot.parse_one(subquery_str))
-            #     new_subquery1 = self.rewrite(case_subquery.args['true'].this.sql(), return_expression=True)
-            #     case_subquery.args['true'].this.replace(new_subquery1)
-            #     new_subquery2 = self.rewrite(case_subquery.parent.args['default'].this.sql(), return_expression=True)
-            #     case_subquery.parent.args['default'].this.replace(new_subquery2)
-            #     temp_expressions.append(select_expression)
             if select_expression.find(exp.Avg):
                 avg_expression = select_expression.find(exp.Avg)
                 sum_expression = exp.Sum(this=avg_expression.this)
@@ -225,7 +210,9 @@ class Pilot_Rewriter:
                 div_operator = select_expression.find(exp.Div)
                 mul_operator = select_expression.find(exp.Mul)
                 if div_operator:
-                    if div_operator.this.find(exp.AggFunc) and div_operator.expression.find(exp.AggFunc):
+                    if div_operator.this.find(
+                        exp.AggFunc
+                    ) and div_operator.expression.find(exp.AggFunc):
                         ratio_type = DIV_OPERATOR
                         temp_expressions.append(div_operator.this)
                         temp_expressions.append(div_operator.expression)
@@ -233,8 +220,12 @@ class Pilot_Rewriter:
                         left = div_operator.this.find(exp.Column)
                         right = div_operator.expression.find(exp.Column)
                         if (
-                            left and right and left.this.this in self.alias and isinstance(self.alias[left.this.this], exp.AggFunc)
-                            and right.this.this in self.alias and isinstance(self.alias[right.this.this], exp.AggFunc)
+                            left
+                            and right
+                            and left.this.this in self.alias
+                            and isinstance(self.alias[left.this.this], exp.AggFunc)
+                            and right.this.this in self.alias
+                            and isinstance(self.alias[right.this.this], exp.AggFunc)
                         ):
                             ratio_type = DIV_OPERATOR
                             temp_expressions.append(div_operator.this)
@@ -242,7 +233,9 @@ class Pilot_Rewriter:
                         else:
                             temp_expressions.append(select_expression)
                 elif mul_operator:
-                    if mul_operator.this.find(exp.AggFunc) and mul_operator.expression.find(exp.AggFunc):
+                    if mul_operator.this.find(
+                        exp.AggFunc
+                    ) and mul_operator.expression.find(exp.AggFunc):
                         ratio_type = MUL_OPERATOR
                         temp_expressions.append(mul_operator.this)
                         temp_expressions.append(mul_operator.expression)
@@ -250,8 +243,12 @@ class Pilot_Rewriter:
                         left = mul_operator.this.find(exp.Column)
                         right = mul_operator.expression.find(exp.Column)
                         if (
-                            left and right and left.this.this in self.alias and isinstance(self.alias[left.this.this], exp.AggFunc)
-                            and right.this.this in self.alias and isinstance(self.alias[right.this.this], exp.AggFunc)
+                            left
+                            and right
+                            and left.this.this in self.alias
+                            and isinstance(self.alias[left.this.this], exp.AggFunc)
+                            and right.this.this in self.alias
+                            and isinstance(self.alias[right.this.this], exp.AggFunc)
                         ):
                             ratio_type = MUL_OPERATOR
                             temp_expressions.append(mul_operator.this)
@@ -260,7 +257,7 @@ class Pilot_Rewriter:
                             temp_expressions.append(select_expression)
                 else:
                     temp_expressions.append(select_expression)
-            
+
             for temp_exp in temp_expressions:
                 if isinstance(temp_exp, exp.Alias):
                     alias_expression = exp.Alias(
@@ -295,12 +292,17 @@ class Pilot_Rewriter:
                     result_mapping[AGGREGATE] = COUNT_OPERATOR
                     result_mapping[PAGE_SIZE] = f"r{self.select_expression_count-1}"
                 elif select_expression.find(exp.Anonymous):
-                    if select_expression.find(exp.Anonymous).this.upper() == 'COUNT_BIG':
+                    if (
+                        select_expression.find(exp.Anonymous).this.upper()
+                        == "COUNT_BIG"
+                    ):
                         result_mapping[AGGREGATE] = COUNT_OPERATOR
                         result_mapping[PAGE_SIZE] = f"r{self.select_expression_count-1}"
-                elif isinstance(select_expression, exp.Expression) \
-                    and isinstance(select_expression.this, exp.Expression) \
-                        and select_expression.this.this in self.aggregator_mapping:
+                elif (
+                    isinstance(select_expression, exp.Expression)
+                    and isinstance(select_expression.this, exp.Expression)
+                    and select_expression.this.this in self.aggregator_mapping
+                ):
                     if self.aggregator_mapping[select_expression.this.this].find(
                         exp.Sum
                     ):
@@ -334,19 +336,18 @@ class Pilot_Rewriter:
                     result_mapping[PAGE_SIZE] = f"r{self.select_expression_count-1}"
 
         # rewrite subtraction operator
-        
+
         new_select_expression = self.rewrite_subtraction(expression)
         if new_select_expression:
             self.result_mapping_list[-1] = {
-                AGGREGATE: SUB_OPERATOR, 
-                FIRST_ELEMENT: f"r{self.select_expression_count-2}", 
-                SECOND_ELEMENT: f"r{self.select_expression_count-1}"
-                }
+                AGGREGATE: SUB_OPERATOR,
+                FIRST_ELEMENT: f"r{self.select_expression_count-2}",
+                SECOND_ELEMENT: f"r{self.select_expression_count-1}",
+            }
         new_expressions += new_select_expression
         expression.set("expressions", new_expressions)
-        
-        return expression
 
+        return expression
 
     def add_page_id_to_group_by(self, expression, page_id_name):
         page_col = exp.Column(this=exp.Identifier(this=page_id_name))
@@ -359,8 +360,9 @@ class Pilot_Rewriter:
             group_by_expr = exp.Group(expressions=[page_col])
             expression.set("group", group_by_expr)
 
-
-    def add_page_id(self, expression, add_group_by=True, page_id=True, is_union=False, is_join=False):
+    def add_page_id(
+        self, expression, add_group_by=True, page_id=True, is_union=False, is_join=False
+    ):
         if page_id:
             page_exp = self.extract_page_id(is_union, is_join)
             for select_expression in expression.args["expressions"]:
@@ -370,7 +372,7 @@ class Pilot_Rewriter:
                     )
             expression.args["expressions"].append(page_exp)
 
-            if add_group_by or 'group' in expression.args:
+            if add_group_by or "group" in expression.args:
                 self.add_page_id_to_group_by(
                     expression, f"page_id_{self.page_id_count-1}"
                 )
@@ -380,15 +382,22 @@ class Pilot_Rewriter:
             for i in range(length):
                 column = f"page_id_{i}"
                 page_exp = exp.Column(this=exp.Identifier(this=column))
-                if expression and expression.parent and isinstance(expression.parent.parent, exp.Join) and length == 1:
-                    page_exp = exp.Alias(this=page_exp, alias=exp.Identifier(this=f"page_id_{self.page_id_count}"))
+                if (
+                    expression
+                    and expression.parent
+                    and isinstance(expression.parent.parent, exp.Join)
+                    and length == 1
+                ):
+                    page_exp = exp.Alias(
+                        this=page_exp,
+                        alias=exp.Identifier(this=f"page_id_{self.page_id_count}"),
+                    )
                     self.page_id_count += 1
                 expression.args["expressions"].append(page_exp)
                 if add_group_by:
                     self.add_page_id_to_group_by(expression, f"page_id_{i}")
 
         return expression
-
 
     def find_all_tables(self, expression):
         table_list = []
@@ -399,41 +408,43 @@ class Pilot_Rewriter:
                 table_list.append(join.find(exp.Table))
         return table_list
 
-
     def add_table_sample(self, expression):
         tablesample = (
             sqlglot.parse_one("from lineitem TABLESAMPLE SYSTEM (1)").args["from"].this
         )
-        table_list = {table.this.this : table for table in self.find_all_tables(expression)}
+        table_list = {
+            table.this.this: table for table in self.find_all_tables(expression)
+        }
+        self.largest_table = list(table_list.keys())[0]
         for largest_table in self.table_size:
             if largest_table in table_list:
                 if table_list[largest_table].find(exp.TableAlias):
-                    self.largest_table = table_list[largest_table].find(exp.TableAlias).this.this
+                    self.largest_table = (
+                        table_list[largest_table].find(exp.TableAlias).this.this
+                    )
                 else:
                     self.largest_table = largest_table
                 break
 
         for table in expression.args["from"].find_all(exp.Table):
-            if table.this.this == largest_table:
+            if table.this.this == self.largest_table:
                 tablesample.set("this", table)
                 expression.args["from"].set("this", tablesample)
                 return expression
         if "joins" in expression.args:
             for join in expression.args["joins"]:
                 for table in join.find_all(exp.Table):
-                    if table.this.this == largest_table:
+                    if table.this.this == self.largest_table:
                         table_parent = table.parent
                         tablesample.set("this", table)
                         table_parent.set("this", tablesample)
                         return expression
-
 
     def extract_items(self, expression, type):
         extracted_items = []
         for item in expression.find_all(type):
             extracted_items.append(item)
         return extracted_items
-
 
     def subquery_in_where(self, expression, column_information):
         if "where" in expression.args:
@@ -459,11 +470,16 @@ class Pilot_Rewriter:
                                     )
                             new_cte = exp.With()
                             new_cte_with_alias_list = []
-                            cte_to_alias = {y:x for x, y in self.cte.items()}
+                            cte_to_alias = {y: x for x, y in self.cte.items()}
                             for temp_cte in new_cte_expression:
                                 cte_alis = cte_to_alias[temp_cte]
                                 new_cte_with_alias_list.append(
-                                    exp.CTE(this=temp_cte, alias=exp.TableAlias(this=exp.Identifier(this=cte_alis)))
+                                    exp.CTE(
+                                        this=temp_cte,
+                                        alias=exp.TableAlias(
+                                            this=exp.Identifier(this=cte_alis)
+                                        ),
+                                    )
                                 )
                             new_cte.set("expressions", new_cte_with_alias_list)
                             new_subquery = subquery.copy()
@@ -502,22 +518,28 @@ class Pilot_Rewriter:
 
         return expression
 
-
     def subquery_in_from(self, expression, is_union=False, is_join=False):
         self.subquery_in_where(expression, self.table_cols)
         self.add_table_sample(expression)
-        if expression.find(exp.AggFunc) or (expression.find(exp.Anonymous) and expression.find(exp.Anonymous).this.upper() == 'COUNT_BIG'):
+        if expression.find(exp.AggFunc) or (
+            expression.find(exp.Anonymous)
+            and expression.find(exp.Anonymous).this.upper() == "COUNT_BIG"
+        ):
             self.add_page_id(expression, True, True, is_union, is_join)
         else:
             self.add_page_id(expression, False, True, is_union, is_join)
 
         return expression
 
-
-    def primary_query_rewriter(self, expression, is_union=False, level=0, is_join=False):
+    def primary_query_rewriter(
+        self, expression, is_union=False, level=0, is_join=False
+    ):
         contains_agg = False
         for select_expression in expression.args["expressions"]:
-            if select_expression.find(exp.AggFunc)  or (select_expression.find(exp.Anonymous) and select_expression.find(exp.Anonymous).this.upper() == 'COUNT_BIG'):
+            if select_expression.find(exp.AggFunc) or (
+                select_expression.find(exp.Anonymous)
+                and select_expression.find(exp.Anonymous).this.upper() == "COUNT_BIG"
+            ):
                 contains_agg = True
                 break
         if contains_agg:
@@ -549,11 +571,17 @@ class Pilot_Rewriter:
             if "joins" in expression.args:
                 for join_expression in expression.args["joins"]:
                     if join_expression.find(exp.Select):
-                        self.primary_query_rewriter(join_expression.find(exp.Select), is_union, level + 1)
+                        self.primary_query_rewriter(
+                            join_expression.find(exp.Select), is_union, level + 1
+                        )
             is_aggregate = False
             is_star = False
             for select_expression in expression.args["expressions"]:
-                if select_expression.find(exp.AggFunc) or (select_expression.find(exp.Anonymous) and select_expression.find(exp.Anonymous).this.upper() == 'COUNT_BIG'):
+                if select_expression.find(exp.AggFunc) or (
+                    select_expression.find(exp.Anonymous)
+                    and select_expression.find(exp.Anonymous).this.upper()
+                    == "COUNT_BIG"
+                ):
                     is_aggregate = True
                 if select_expression.find(exp.Star):
                     is_star = True
@@ -561,7 +589,7 @@ class Pilot_Rewriter:
                 self.add_page_id(expression, add_group_by=True, page_id=False)
             elif not is_star:
                 self.add_page_id(expression, add_group_by=False, page_id=False)
-        
+
         elif self.cte and expression.args["from"].this.this.this in self.cte:
             cte_expression = self.cte[expression.args["from"].this.this.this]
             if expression.args["from"].this.this.this not in self.sampled_cte:
@@ -574,50 +602,31 @@ class Pilot_Rewriter:
                         if join_expression.this.this.this in self.cte:
                             cte_expression = self.cte[join_expression.this.this.this]
                             if join_expression.this.this.this not in self.sampled_cte:
-                                self.primary_query_rewriter(cte_expression, is_union, level + 1, True)
-                                self.sampled_cte.add(join_expression.this.this.this)  
+                                self.primary_query_rewriter(
+                                    cte_expression, is_union, level + 1, True
+                                )
+                                self.sampled_cte.add(join_expression.this.this.this)
 
             is_aggregate = False
 
             for select_expression in expression.args["expressions"]:
-                if select_expression.find(exp.AggFunc) or (select_expression.find(exp.Anonymous) and select_expression.find(exp.Anonymous).this.upper() == 'COUNT_BIG'):
+                if select_expression.find(exp.AggFunc) or (
+                    select_expression.find(exp.Anonymous)
+                    and select_expression.find(exp.Anonymous).this.upper()
+                    == "COUNT_BIG"
+                ):
                     is_aggregate = True
             if is_aggregate:
                 self.add_page_id(expression, add_group_by=True, page_id=False)
             else:
-                self.add_page_id(expression, add_group_by=False, page_id=False, is_union=False)
+                self.add_page_id(
+                    expression, add_group_by=False, page_id=False, is_union=False
+                )
         else:
             self.subquery_in_from(expression, is_union, is_join)
         expression.set("having", None)
         return expression
 
-
-    def parse_window(self, expression):
-        window = expression.find(exp.Window)
-        if window:
-            return True
-        stddev = expression.find(exp.StddevSamp)
-        if stddev:
-            return True
-        return False
-
-
-    def extract_res_2_page_id(self, expression):
-        if self.page_id_count > 1:
-            for select_expression in expression.args["expressions"]:
-                if select_expression.find(exp.Column):
-                    column = select_expression.find(exp.Column)
-                    if column.this.this in self.alias_2_page_id:
-                        self.res_2_page_id[select_expression.alias] = (
-                            self.alias_2_page_id[column.this.this]
-                        )
-                    else:
-                        for result_mapping in self.result_mapping_list:
-                            if result_mapping[AGGREGATE] == DIV_OPERATOR:
-                                self.res_2_page_id[result_mapping[FIRST_ELEMENT]] = 'page_id_0'
-                                self.res_2_page_id[result_mapping[SECOND_ELEMENT]] = 'page_id_1'
-                                
-                        
 
     def remove_cte(self, expression):
         remove_cte = True
@@ -636,11 +645,11 @@ class Pilot_Rewriter:
         if remove_cte:
             expression.set("with", None)
 
-
     def replace_sample_method(self, sql_query):
-        new_query = sql_query.replace("TABLESAMPLE SYSTEM (1 ROWS)", "{sampling_method}")
+        new_query = sql_query.replace(
+            "TABLESAMPLE SYSTEM (1 ROWS)", "{sampling_method}"
+        )
         return new_query
-
 
     def remove_duplicate(self, expression):
         new_expressions = []
@@ -653,11 +662,13 @@ class Pilot_Rewriter:
                     select_expression_dict[select_expression.this] = alias
                     new_expressions.append(select_expression)
                 else:
-                    res_2_res_mapping[alias] = select_expression_dict[select_expression.this]
+                    res_2_res_mapping[alias] = select_expression_dict[
+                        select_expression.this
+                    ]
             else:
                 new_expressions.append(select_expression)
         expression.set("expressions", new_expressions)
-        
+
         for res_mapping in self.result_mapping_list:
             for key in [FIRST_ELEMENT, SECOND_ELEMENT, PAGE_SUM, PAGE_SIZE]:
                 if key in res_mapping:
@@ -667,53 +678,59 @@ class Pilot_Rewriter:
     def fix_parse(self, sql):
         sql = sql.replace("AS days", "days")
         return sql
-    
+
     def sqlserver_replace_page_id(self, old_query):
-        # if self.page_id_rank == 1 and self.page_id_count == 1:
-        #     for key, value in self.sqlserver_alias2page_id.items():
-        #         old_query = old_query.replace(key, value)
         old_query = old_query.replace("COUNT(", "COUNT_BIG(")
         for key, value in self.sqlserver_page_id_mapping.items():
             old_query = old_query.replace(key, value)
         return old_query
 
-    
     def sqlserver_replace_group_by(self, expression):
         for group_by in expression.find_all(exp.Group):
             replacement = False
-            for select_expression in group_by.parent.args['expressions']:
+            for select_expression in group_by.parent.args["expressions"]:
                 if select_expression.find(exp.Column):
                     column_name = select_expression.find(exp.Column).this.this
                     if column_name in self.sqlserver_page_id_mapping:
                         replacement = True
             if replacement:
                 new_group_by = []
-                group_arg = ''
-                if 'expressions' in group_by.args:
-                    group_expressions = group_by.args['expressions']
-                    group_arg = 'expressions'
-                elif 'rollup' in group_by.args:
-                    group_expressions = group_by.args['rollup']
-                    group_arg = 'rollup'
+                group_arg = ""
+                if "expressions" in group_by.args:
+                    group_expressions = group_by.args["expressions"]
+                    group_arg = "expressions"
+                elif "rollup" in group_by.args:
+                    group_expressions = group_by.args["rollup"]
+                    group_arg = "rollup"
                 for group_by_expression in group_expressions:
                     if group_by_expression.find(exp.Column):
                         column_name = group_by_expression.find(exp.Column).this.this
-                        if column_name[:7] == 'page_id':
-                            new_group_by.append(exp.Column(this=exp.Identifier(this=f'replace_{column_name[8:]}')))
-                            self.sqlserver_page_id_mapping[f'replace_{column_name[8:]}'] = self.sqlserver_alias2page_id[column_name]
+                        if column_name[:7] == "page_id":
+                            new_group_by.append(
+                                exp.Column(
+                                    this=exp.Identifier(
+                                        this=f"replace_{column_name[8:]}"
+                                    )
+                                )
+                            )
+                            self.sqlserver_page_id_mapping[
+                                f"replace_{column_name[8:]}"
+                            ] = self.sqlserver_alias2page_id[column_name]
                         else:
                             new_group_by.append(group_by_expression)
                     else:
                         new_group_by.append(group_by_expression)
-                        
+
                 group_by.set(group_arg, new_group_by)
 
     def rewrite(self, original_query):
         if self.database == SQLSERVER:
-            match = re.search(r'TOP (\d+)', original_query, re.IGNORECASE)
+            match = re.search(r"TOP (\d+)", original_query, re.IGNORECASE)
             if match:
                 self.limit_value = int(match.group(1))  # The number x to be retrieved
-                original_query = re.sub(r'TOP \d+', '', original_query, flags=re.IGNORECASE)
+                original_query = re.sub(
+                    r"TOP \d+", "", original_query, flags=re.IGNORECASE
+                )
         expression = sqlglot.parse_one(original_query)
         # Simple count query in duckdb
         if self.database == DUCKDB:
@@ -721,12 +738,9 @@ class Pilot_Rewriter:
                 self.is_rewritable = False
                 return original_query
 
-        if self.parse_window(expression):
-            return original_query
         self.find_alias(expression)
         self.extract_cte(expression)
         self.find_all_aggregator(expression)
-        self.replace_star(expression)
 
         self.remove_clauses(expression)
 
@@ -734,21 +748,19 @@ class Pilot_Rewriter:
         expression = self.rewrite_select_expression(expression)
 
         expression = self.primary_query_rewriter(expression)
-        self.extract_res_2_page_id(expression)
 
         self.remove_cte(expression)
         self.remove_duplicate(expression)
-        self.sqlserver_replace_group_by(expression)      
+        self.sqlserver_replace_group_by(expression)
         modified_query = expression.sql()
         new_query = self.replace_sample_method(modified_query)
         new_query = self.fix_parse(new_query)
-        
+
         if self.database == SQLSERVER:
             new_query = self.sqlserver_replace_page_id(new_query)
         elif self.database == POSTGRES:
             pattern = r"\b(INTERVAL) '(\d+)' (DAYS)\b"
             new_query = re.sub(pattern, r"\1 '\2 \3'", new_query)
-        print(self.result_mapping_list)
         return new_query
 
     def log_info(self):
@@ -758,4 +770,3 @@ class Pilot_Rewriter:
         logging.info(f"res2pageid: {self.res_2_page_id}")
         logging.info(f"subqueries in WHERE and HAVING: {self.subquery_dict}")
         logging.info(f"limit value: {self.limit_value}")
-

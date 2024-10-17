@@ -1,6 +1,7 @@
 import time
 from typing import Dict
 
+
 class Timer:
     def __init__(self) -> None:
         self.start_time = 0

@@ -10,19 +10,18 @@ do
     for run in {1..1}
     do
         python run_pilotdb.py \
-            --benchmark ssb \
+            --benchmark tpch \
             --qid $qid \
             --pilot_sample_rate 0.05 \
             --dbms postgres \
-            --db_config_file /users/teng77/PilotDB/db_configs/postgres_ssb.yml \
-            --process_mode oracle
+            --db_config_file /users/teng77/PilotDB/db_configs/postgres_tpch.yml \
+            --process_mode aqp
     done
 
     python run_pilotdb.py \
-        --benchmark ssb \
+        --benchmark tpch \
         --qid $qid \
         --dbms postgres \
-        --db_config_file /users/teng77/PilotDB/db_configs/postgres_ssb.yml \
+        --db_config_file /users/teng77/PilotDB/db_configs/postgres_tpch.yml \
         --process_mode exact
-    curl -d "query $qid oracle successful" ntfy.sh/tpchps
 done

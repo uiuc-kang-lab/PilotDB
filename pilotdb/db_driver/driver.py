@@ -1,11 +1,15 @@
+import os
+
+import pandas as pd
+
 import pilotdb.db_driver.duckdb_utils as duckdb_utils
 import pilotdb.db_driver.postgres_utils as postgres_utils
 import pilotdb.db_driver.sqlserver_utils as sqlserver_utils
-import os
-import pandas as pd
 
 
 def connect_to_db(dbms: str, config: dict):
+    if "flush_memory" not in config:
+        config["flush_memory"] = False
     if dbms == 'duckdb':
         return duckdb_utils.connect_to_db(config["path"])
     elif dbms == 'postgres':
