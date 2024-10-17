@@ -1,0 +1,185 @@
+{
+   "name":  "Query", 
+   "result": 22.922449,
+   "timing": 22.922449,
+   "cardinality": 0,
+   "extra-info": "select\n    n_name,\n    sum(l_extendedprice * (1 - l_discount)) as revenue\nfrom\n    customer,\n    orders,\n    lineitem,\n    supplier,\n    nation,\n    region\nwhere\n    c_custkey = o_custkey\n    and l_orderkey = o_orderkey\n    and l_suppkey = s_suppkey\n    and c_nationkey = s_nationkey\n    and s_nationkey = n_nationkey\n    and n_regionkey = r_regionkey\n    and r_name = 'ASIA'\n    and o_orderdate >= date '1994-01-01'\n    and o_orderdate < date '1994-01-01' + interval '1' year\ngroup by\n    n_name\norder by\n    revenue desc;", 
+   "timings": [
+
+   ],
+   "children": [
+    {
+      "name": "RESULT_COLLECTOR",
+      "timing":0.000063,
+      "cardinality":0,
+      "extra_info": "",
+      "children": [
+       {
+         "name": "PROJECTION",
+         "timing":0.000010,
+         "cardinality":5,
+         "extra_info": "__internal_decompress_string(#0)\n#1\n",
+         "children": [
+          {
+            "name": "ORDER_BY",
+            "timing":0.000251,
+            "cardinality":5,
+            "extra_info": "ORDERS:\nsum((lineitem.l_extendedprice * (1 - lineitem.l_discount))) DESC",
+            "children": [
+             {
+               "name": "PROJECTION",
+               "timing":0.000014,
+               "cardinality":5,
+               "extra_info": "__internal_compress_string_hugeint(#0)\n#1\n",
+               "children": [
+                {
+                  "name": "PROJECTION",
+                  "timing":0.000014,
+                  "cardinality":5,
+                  "extra_info": "__internal_decompress_string(#0)\n#1\n",
+                  "children": [
+                   {
+                     "name": "HASH_GROUP_BY",
+                     "timing":5.191805,
+                     "cardinality":5,
+                     "extra_info": "#0\nsum(#1)",
+                     "children": [
+                      {
+                        "name": "PROJECTION",
+                        "timing":0.526533,
+                        "cardinality":7282311,
+                        "extra_info": "n_name\n(l_extendedprice * (1.00 - l_discount))\n",
+                        "children": [
+                         {
+                           "name": "PROJECTION",
+                           "timing":0.687798,
+                           "cardinality":7282311,
+                           "extra_info": "#0\n#1\n#2\n#3\n#4\n__internal_compress_integral_utinyint(#5, 0)\n__internal_compress_string_hugeint(#6)\n#7\n__internal_compress_integral_utinyint(#8, 0)\n",
+                           "children": [
+                            {
+                              "name": "HASH_JOIN",
+                              "timing":31.835300,
+                              "cardinality":7282311,
+                              "extra_info": "INNER\nn_nationkey = s_nationkey\nl_suppkey = s_suppkey\n\n[INFOSEPARATOR]\nEC: 163278234\n",
+                              "children": [
+                               {
+                                 "name": "HASH_JOIN",
+                                 "timing":249.218641,
+                                 "cardinality":182094202,
+                                 "extra_info": "INNER\nl_orderkey = o_orderkey\n\n[INFOSEPARATOR]\nEC: 164028792\n",
+                                 "children": [
+                                  {
+                                    "name": "SEQ_SCAN ",
+                                    "timing":2028.436486,
+                                    "cardinality":5999989709,
+                                    "extra_info": "lineitem\n[INFOSEPARATOR]\nl_orderkey\nl_suppkey\nl_extendedprice\nl_discount\n[INFOSEPARATOR]\nEC: 5999989709",
+                                    "children": [
+                                    ]
+                                  }
+,
+                                  {
+                                    "name": "HASH_JOIN",
+                                    "timing":65.510963,
+                                    "cardinality":45523964,
+                                    "extra_info": "INNER\no_custkey = c_custkey\n\n[INFOSEPARATOR]\nEC: 39915873\n",
+                                    "children": [
+                                     {
+                                       "name": "SEQ_SCAN ",
+                                       "timing":413.566163,
+                                       "cardinality":227571151,
+                                       "extra_info": "orders\n[INFOSEPARATOR]\no_custkey\no_orderkey\n[INFOSEPARATOR]\nFilters: o_orderdate>='1994-01-01'::DATE AND o_orderdate<'1995-01-01'::DATE AND o_orderdate IS NOT NULL\n\n[INFOSEPARATOR]\nEC: 300000000",
+                                       "children": [
+                                       ]
+                                     }
+,
+                                     {
+                                       "name": "PROJECTION",
+                                       "timing":0.011685,
+                                       "cardinality":30007619,
+                                       "extra_info": "#0\n#1\n#3\n",
+                                       "children": [
+                                        {
+                                          "name": "FILTER",
+                                          "timing":0.115769,
+                                          "cardinality":30007619,
+                                          "extra_info": "(c_custkey <= 149999999)\n[INFOSEPARATOR]\nEC: 30000000",
+                                          "children": [
+                                           {
+                                             "name": "HASH_JOIN",
+                                             "timing":0.523044,
+                                             "cardinality":30007619,
+                                             "extra_info": "INNER\nc_nationkey = n_nationkey\n\n[INFOSEPARATOR]\nBuild Min: 0\nBuild Max: 24\n\n[INFOSEPARATOR]\nEC: 30000000\n",
+                                             "children": [
+                                              {
+                                                "name": "SEQ_SCAN ",
+                                                "timing":17.213508,
+                                                "cardinality":150000000,
+                                                "extra_info": "customer\n[INFOSEPARATOR]\nc_custkey\nc_nationkey\n[INFOSEPARATOR]\nEC: 150000000",
+                                                "children": [
+                                                ]
+                                              }
+,
+                                              {
+                                                "name": "HASH_JOIN",
+                                                "timing":0.000232,
+                                                "cardinality":5,
+                                                "extra_info": "INNER\nn_regionkey = r_regionkey\n\n[INFOSEPARATOR]\nEC: 25\n",
+                                                "children": [
+                                                 {
+                                                   "name": "SEQ_SCAN ",
+                                                   "timing":0.000145,
+                                                   "cardinality":25,
+                                                   "extra_info": "nation\n[INFOSEPARATOR]\nn_nationkey\nn_regionkey\nn_name\n[INFOSEPARATOR]\nEC: 25",
+                                                   "children": [
+                                                   ]
+                                                 }
+,
+                                                 {
+                                                   "name": "SEQ_SCAN ",
+                                                   "timing":0.002806,
+                                                   "cardinality":1,
+                                                   "extra_info": "region\n[INFOSEPARATOR]\nr_regionkey\n[INFOSEPARATOR]\nFilters: r_name='ASIA' AND r_name IS NOT NULL\n\n[INFOSEPARATOR]\nEC: 1",
+                                                   "children": [
+                                                   ]
+                                                 }
+                                                ]
+                                              }
+                                             ]
+                                           }
+                                          ]
+                                        }
+                                       ]
+                                     }
+                                    ]
+                                  }
+                                 ]
+                               }
+,
+                               {
+                                 "name": "SEQ_SCAN ",
+                                 "timing":0.340443,
+                                 "cardinality":10000000,
+                                 "extra_info": "supplier\n[INFOSEPARATOR]\ns_suppkey\ns_nationkey\n[INFOSEPARATOR]\nEC: 10000000",
+                                 "children": [
+                                 ]
+                               }
+                              ]
+                            }
+                           ]
+                         }
+                        ]
+                      }
+                     ]
+                   }
+                  ]
+                }
+               ]
+             }
+            ]
+          }
+         ]
+       }
+      ]
+    }
+   ]
+}

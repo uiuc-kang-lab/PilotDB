@@ -1,0 +1,56 @@
+                                                                                        QUERY PLAN                                                                                        
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ Finalize GroupAggregate  (cost=91909233.69..91947759.39 rows=4375 width=28) (actual time=449550.652..450216.498 rows=100 loops=1)
+   Group Key: dates.d_year, supplier.s_nation, part.p_category
+   ->  Gather Merge  (cost=91909233.69..91947234.39 rows=48125 width=28) (actual time=449544.048..450216.323 rows=1200 loops=1)
+         Workers Planned: 11
+         Workers Launched: 11
+         ->  Partial GroupAggregate  (cost=91908233.48..91940198.11 rows=4375 width=28) (actual time=448637.649..449443.842 rows=100 loops=12)
+               Group Key: dates.d_year, supplier.s_nation, part.p_category
+               ->  Sort  (cost=91908233.48..91913553.62 rows=2128059 width=28) (actual time=448631.236..449218.706 rows=1922977 loops=12)
+                     Sort Key: dates.d_year, supplier.s_nation, part.p_category
+                     Sort Method: external merge  Disk: 77736kB
+                     Worker 0:  Sort Method: external merge  Disk: 75064kB
+                     Worker 1:  Sort Method: external merge  Disk: 76832kB
+                     Worker 2:  Sort Method: external merge  Disk: 74208kB
+                     Worker 3:  Sort Method: external merge  Disk: 74664kB
+                     Worker 4:  Sort Method: external merge  Disk: 75576kB
+                     Worker 5:  Sort Method: external merge  Disk: 76768kB
+                     Worker 6:  Sort Method: external merge  Disk: 77272kB
+                     Worker 7:  Sort Method: external merge  Disk: 75848kB
+                     Worker 8:  Sort Method: external merge  Disk: 77904kB
+                     Worker 9:  Sort Method: external merge  Disk: 75464kB
+                     Worker 10:  Sort Method: external merge  Disk: 75288kB
+                     ->  Hash Join  (cost=605766.79..91654739.30 rows=2128059 width=28) (actual time=7880.384..447084.140 rows=1922977 loops=12)
+                           Hash Cond: (lineorder.lo_orderdate = dates.d_datekey)
+                           ->  Parallel Hash Join  (cost=605678.99..91603241.74 rows=8034445 width=28) (actual time=7878.958..445964.798 rows=7988892 loops=12)
+                                 Hash Cond: (lineorder.lo_partkey = part.p_partkey)
+                                 ->  Parallel Hash Join  (cost=567208.84..91461589.93 rows=22158820 width=24) (actual time=7372.452..432676.159 rows=19997096 loops=12)
+                                       Hash Cond: (lineorder.lo_suppkey = supplier.s_suppkey)
+                                       ->  Parallel Hash Join  (cost=531699.88..90958162.66 rows=110005633 width=20) (actual time=6886.638..402710.267 rows=99998604 loops=12)
+                                             Hash Cond: (lineorder.lo_custkey = customer.c_custkey)
+                                             ->  Parallel Seq Scan on lineorder  (cost=0.00..88197560.73 rows=545482473 width=24) (actual time=0.209..290375.736 rows=499999142 loops=12)
+                                             ->  Parallel Hash  (cost=519096.42..519096.42 rows=1008276 width=4) (actual time=6883.307..6883.316 rows=500081 loops=12)
+                                                   Buckets: 8388608  Batches: 1  Memory Usage: 300512kB
+                                                   ->  Parallel Seq Scan on customer  (cost=0.00..519096.42 rows=1008276 width=4) (actual time=0.691..6605.137 rows=500081 loops=12)
+                                                         Filter: ((c_region)::text = 'AMERICA'::text)
+                                                         Rows Removed by Filter: 1999919
+                                       ->  Parallel Hash  (cost=34250.00..34250.00 rows=100717 width=12) (actual time=485.596..485.597 rows=33330 loops=12)
+                                             Buckets: 524288  Batches: 1  Memory Usage: 23712kB
+                                             ->  Parallel Seq Scan on supplier  (cost=0.00..34250.00 rows=100717 width=12) (actual time=0.298..467.458 rows=33330 loops=12)
+                                                   Filter: ((s_region)::text = 'AMERICA'::text)
+                                                   Rows Removed by Filter: 133337
+                                 ->  Parallel Hash  (cost=36204.00..36204.00 rows=181292 width=12) (actual time=505.946..505.948 rows=66621 loops=12)
+                                       Buckets: 1048576  Batches: 1  Memory Usage: 45888kB
+                                       ->  Parallel Seq Scan on part  (cost=0.00..36204.00 rows=181292 width=12) (actual time=0.393..482.256 rows=66621 loops=12)
+                                             Filter: (((p_mfgr)::text = 'MFGR#1'::text) OR ((p_mfgr)::text = 'MFGR#2'::text))
+                                             Rows Removed by Filter: 100045
+                           ->  Hash  (cost=79.34..79.34 rows=677 width=8) (actual time=0.477..0.478 rows=729 loops=12)
+                                 Buckets: 1024  Batches: 1  Memory Usage: 37kB
+                                 ->  Seq Scan on dates  (cost=0.00..79.34 rows=677 width=8) (actual time=0.286..0.409 rows=729 loops=12)
+                                       Filter: ((d_year = 1997) OR (d_year = 1998))
+                                       Rows Removed by Filter: 1827
+ Planning Time: 8.684 ms
+ Execution Time: 450228.365 ms
+(52 rows)
+

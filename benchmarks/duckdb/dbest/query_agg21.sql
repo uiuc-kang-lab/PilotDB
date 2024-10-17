@@ -1,0 +1,1 @@
+select count (ss_list_price)     from store_sales where ss_list_price     between 100    and 110

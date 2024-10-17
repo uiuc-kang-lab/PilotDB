@@ -1,0 +1,16 @@
+{
+    "table_cols": {
+        "lineitem": [
+            "l_quantity",
+            "l_orderkey"
+        ],
+        "orders": [
+            "o_orderkey",
+            "o_orderdate"
+        ]
+    },
+    "table_size": [
+        "lineitem",
+        "orders"
+    ]
+}

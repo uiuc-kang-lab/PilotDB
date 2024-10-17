@@ -1,0 +1,36 @@
+{
+   "name":  "Query", 
+   "result": 0.021331,
+   "timing": 0.021331,
+   "cardinality": 0,
+   "extra-info": "SELECT COUNT(*) FROM hits;", 
+   "timings": [
+
+   ],
+   "children": [
+    {
+      "name": "RESULT_COLLECTOR",
+      "timing":0.000009,
+      "cardinality":0,
+      "extra_info": "",
+      "children": [
+       {
+         "name": "UNGROUPED_AGGREGATE",
+         "timing":0.002228,
+         "cardinality":1,
+         "extra_info": "count_star()",
+         "children": [
+          {
+            "name": "SEQ_SCAN ",
+            "timing":1.568147,
+            "cardinality":99997497,
+            "extra_info": "hits\n[INFOSEPARATOR]\n\n[INFOSEPARATOR]\nEC: 99997497",
+            "children": [
+            ]
+          }
+         ]
+       }
+      ]
+    }
+   ]
+}

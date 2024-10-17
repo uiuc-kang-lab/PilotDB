@@ -1,0 +1,1 @@
+select avg (ss_list_price)       from store_sales where ss_list_price     between 120    and 130

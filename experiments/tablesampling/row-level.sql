@@ -1,0 +1,1 @@
+SELECT AVG(l_discount) FROM lineitem TABLESAMPLE BERNOULLI ({sample_rate})

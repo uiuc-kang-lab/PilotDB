@@ -1,0 +1,44 @@
+{
+   "name":  "Query", 
+   "result": 0.189702,
+   "timing": 0.189702,
+   "cardinality": 0,
+   "extra-info": "SELECT SUM(AdvEngineID), COUNT(*), AVG(ResolutionWidth) FROM hits;", 
+   "timings": [
+
+   ],
+   "children": [
+    {
+      "name": "RESULT_COLLECTOR",
+      "timing":0.000019,
+      "cardinality":0,
+      "extra_info": "",
+      "children": [
+       {
+         "name": "UNGROUPED_AGGREGATE",
+         "timing":0.049168,
+         "cardinality":1,
+         "extra_info": "sum(#0)\ncount_star()\navg(#1)",
+         "children": [
+          {
+            "name": "PROJECTION",
+            "timing":0.004561,
+            "cardinality":99997497,
+            "extra_info": "AdvEngineID\nResolutionWidth\n",
+            "children": [
+             {
+               "name": "SEQ_SCAN ",
+               "timing":18.427552,
+               "cardinality":99997497,
+               "extra_info": "hits\n[INFOSEPARATOR]\nAdvEngineID\nResolutionWidth\n[INFOSEPARATOR]\nEC: 99997497",
+               "children": [
+               ]
+             }
+            ]
+          }
+         ]
+       }
+      ]
+    }
+   ]
+}

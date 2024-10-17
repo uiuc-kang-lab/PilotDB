@@ -1,0 +1,55 @@
+                                                                                             QUERY PLAN                                                                                             
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+ Sort  (cost=245884266.11..245884307.52 rows=16563 width=16) (actual time=2036440.863..2036452.184 rows=3 loops=1)
+   Sort Key: (count(*)) DESC
+   Sort Method: quicksort  Memory: 25kB
+   InitPlan 1 (returns $1)
+     ->  Finalize Aggregate  (cost=122909338.29..122909338.31 rows=1 width=32) (actual time=1037513.041..1037523.791 rows=1 loops=1)
+           ->  Gather  (cost=122909338.08..122909338.29 rows=2 width=8) (actual time=1037509.314..1037521.674 rows=3 loops=1)
+                 Workers Planned: 2
+                 Workers Launched: 2
+                 ->  Partial Aggregate  (cost=122908338.08..122908338.09 rows=1 width=8) (actual time=1037505.234..1037505.598 rows=1 loops=3)
+                       ->  Parallel Hash Join  (cost=1681.65..122861367.10 rows=18788392 width=0) (actual time=4.238..1036541.557 rows=15929400 loops=3)
+                             Hash Cond: (order_products_1.product_id = products_1.product_id)
+                             ->  Parallel Seq Scan on order_products order_products_1  (cost=0.00..106896377.60 rows=4227388160 width=8) (actual time=0.213..805435.655 rows=3381910600 loops=3)
+                             ->  Parallel Hash  (cost=1680.02..1680.02 rows=130 width=8) (actual time=3.340..3.347 rows=351 loops=3)
+                                   Buckets: 1024  Batches: 1  Memory Usage: 104kB
+                                   ->  Hash Join  (cost=21.59..1680.02 rows=130 width=8) (actual time=0.097..3.197 rows=351 loops=3)
+                                         Hash Cond: (products_1.department_id = departments_1.department_id)
+                                         ->  Parallel Index Scan using products_pkey on products products_1  (cost=0.29..1581.65 rows=29228 width=12) (actual time=0.028..2.145 rows=16563 loops=3)
+                                         ->  Hash  (cost=21.25..21.25 rows=4 width=4) (actual time=0.029..0.032 rows=1 loops=3)
+                                               Buckets: 1024  Batches: 1  Memory Usage: 9kB
+                                               ->  Seq Scan on departments departments_1  (cost=0.00..21.25 rows=4 width=4) (actual time=0.023..0.025 rows=1 loops=3)
+                                                     Filter: ((department)::text = 'alcohol'::text)
+                                                     Rows Removed by Filter: 20
+   ->  Finalize GroupAggregate  (cost=122960681.78..122973767.10 rows=16563 width=16) (actual time=2036440.167..2036441.376 rows=3 loops=1)
+         Group Key: products.product_id
+         Filter: ((count(*))::numeric > $1)
+         Rows Removed by Filter: 1111
+         ->  Gather Merge  (cost=122960681.78..122972276.46 rows=99376 width=16) (actual time=998926.896..998927.910 rows=3342 loops=1)
+               Workers Planned: 2
+               Workers Launched: 2
+               ->  Sort  (cost=122959681.76..122959805.98 rows=49688 width=16) (actual time=998923.296..998923.398 rows=1114 loops=3)
+                     Sort Key: products.product_id
+                     Sort Method: quicksort  Memory: 101kB
+                     Worker 0:  Sort Method: quicksort  Memory: 101kB
+                     Worker 1:  Sort Method: quicksort  Memory: 101kB
+                     ->  Partial HashAggregate  (cost=122955309.06..122955805.94 rows=49688 width=16) (actual time=998922.681..998923.054 rows=1114 loops=3)
+                           Group Key: products.product_id
+                           ->  Parallel Hash Join  (cost=1681.65..122861367.10 rows=18788392 width=8) (actual time=7.981..989134.747 rows=73906900 loops=3)
+                                 Hash Cond: (order_products.product_id = products.product_id)
+                                 ->  Parallel Seq Scan on order_products  (cost=0.00..106896377.60 rows=4227388160 width=8) (actual time=0.242..750326.194 rows=3381910600 loops=3)
+                                 ->  Parallel Hash  (cost=1680.02..1680.02 rows=130 width=8) (actual time=7.568..7.596 rows=372 loops=3)
+                                       Buckets: 1024  Batches: 1  Memory Usage: 104kB
+                                       ->  Hash Join  (cost=21.59..1680.02 rows=130 width=8) (actual time=0.181..7.456 rows=372 loops=3)
+                                             Hash Cond: (products.department_id = departments.department_id)
+                                             ->  Parallel Index Scan using products_pkey on products  (cost=0.29..1581.65 rows=29228 width=12) (actual time=0.053..6.335 rows=16563 loops=3)
+                                             ->  Hash  (cost=21.25..21.25 rows=4 width=4) (actual time=0.073..0.079 rows=1 loops=3)
+                                                   Buckets: 1024  Batches: 1  Memory Usage: 9kB
+                                                   ->  Seq Scan on departments  (cost=0.00..21.25 rows=4 width=4) (actual time=0.053..0.059 rows=1 loops=3)
+                                                         Filter: ((department)::text = 'breakfast'::text)
+                                                         Rows Removed by Filter: 20
+ Planning Time: 8.904 ms
+ Execution Time: 2036454.295 ms
+(51 rows)
+

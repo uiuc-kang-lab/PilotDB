@@ -1,0 +1,32 @@
+                                                                        QUERY PLAN                                                                         
+-----------------------------------------------------------------------------------------------------------------------------------------------------------
+ Sort  (cost=24776977.38..24776977.41 rows=10 width=10) (actual time=95726.114..95735.076 rows=18 loops=1)
+   Sort Key: (count(*)) DESC
+   Sort Method: quicksort  Memory: 25kB
+   ->  Finalize GroupAggregate  (cost=24774526.82..24776977.22 rows=10 width=10) (actual time=95718.604..95735.054 rows=18 loops=1)
+         Group Key: advengineid
+         ->  Gather Merge  (cost=24774526.82..24776976.62 rows=100 width=10) (actual time=95718.242..95735.034 rows=186 loops=1)
+               Workers Planned: 10
+               Workers Launched: 10
+               ->  Partial GroupAggregate  (cost=24773526.63..24775963.95 rows=10 width=10) (actual time=95702.814..95710.700 rows=17 loops=11)
+                     Group Key: advengineid
+                     ->  Sort  (cost=24773526.63..24774339.03 rows=324963 width=2) (actual time=95688.797..95698.114 rows=286975 loops=11)
+                           Sort Key: advengineid
+                           Sort Method: quicksort  Memory: 12289kB
+                           Worker 0:  Sort Method: quicksort  Memory: 12289kB
+                           Worker 1:  Sort Method: quicksort  Memory: 12289kB
+                           Worker 2:  Sort Method: quicksort  Memory: 12289kB
+                           Worker 3:  Sort Method: quicksort  Memory: 12289kB
+                           Worker 4:  Sort Method: quicksort  Memory: 12289kB
+                           Worker 5:  Sort Method: quicksort  Memory: 12289kB
+                           Worker 6:  Sort Method: quicksort  Memory: 12289kB
+                           Worker 7:  Sort Method: quicksort  Memory: 12289kB
+                           Worker 8:  Sort Method: quicksort  Memory: 12289kB
+                           Worker 9:  Sort Method: quicksort  Memory: 12289kB
+                           ->  Parallel Seq Scan on hits  (cost=0.00..24743776.40 rows=324963 width=2) (actual time=1.378..95657.239 rows=286975 loops=11)
+                                 Filter: (advengineid <> 0)
+                                 Rows Removed by Filter: 45166433
+ Planning Time: 4.358 ms
+ Execution Time: 95736.011 ms
+(28 rows)
+

@@ -1,0 +1,6 @@
+# psql -d skew -U yuxuan18 -c "COPY (SELECT x, (ctid::text::point)[0] page_id FROM skew_1_5) TO '/mydata/skew_data/1_5_postgres.csv' DELIMITER ',' CSV HEADER;"
+psql -d skew -U yuxuan18 -c "COPY (SELECT x, (ctid::text::point)[0] page_id FROM skew_2) TO '/mydata/skew_data/2_postgres.csv' DELIMITER ',' CSV HEADER;"
+psql -d skew -U yuxuan18 -c "COPY (SELECT x, (ctid::text::point)[0] page_id FROM skew_2_5) TO '/mydata/skew_data/2_5_postgres.csv' DELIMITER ',' CSV HEADER;"
+psql -d skew -U yuxuan18 -c "COPY (SELECT x, (ctid::text::point)[0] page_id FROM skew_3) TO '/mydata/skew_data/3_postgres.csv' DELIMITER ',' CSV HEADER;"
+psql -d skew -U yuxuan18 -c "COPY (SELECT x, (ctid::text::point)[0] page_id FROM skew_3_5) TO '/mydata/skew_data/3_5_postgres.csv' DELIMITER ',' CSV HEADER;"
+psql -d skew -U yuxuan18 -c "COPY (SELECT x, (ctid::text::point)[0] page_id FROM skew_4) TO '/mydata/skew_data/4_postgres.csv' DELIMITER ',' CSV HEADER;"

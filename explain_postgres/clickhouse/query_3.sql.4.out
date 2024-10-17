@@ -1,0 +1,12 @@
+                                                                    QUERY PLAN                                                                     
+---------------------------------------------------------------------------------------------------------------------------------------------------
+ Finalize Aggregate  (cost=24994748.85..24994748.86 rows=1 width=48) (actual time=79796.341..79816.944 rows=1 loops=1)
+   ->  Gather  (cost=24994747.76..24994748.77 rows=10 width=48) (actual time=79795.645..79816.834 rows=11 loops=1)
+         Workers Planned: 10
+         Workers Launched: 10
+         ->  Partial Aggregate  (cost=24993747.76..24993747.77 rows=1 width=48) (actual time=79789.871..79789.908 rows=1 loops=11)
+               ->  Parallel Seq Scan on hits  (cost=0.00..24618790.72 rows=49994272 width=4) (actual time=0.187..74520.637 rows=45453408 loops=11)
+ Planning Time: 4.225 ms
+ Execution Time: 79817.060 ms
+(8 rows)
+

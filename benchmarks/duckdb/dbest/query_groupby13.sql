@@ -1,0 +1,1 @@
+SELECT AVG(ss_sales_price) FROM store_sales WHERE 2451639 <= ss_sold_date_sk AND ss_sold_date_sk < 2451845 GROUP BY ss_store_sk

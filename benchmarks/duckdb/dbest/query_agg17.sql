@@ -1,0 +1,1 @@
+select count (ss_list_price)     from store_sales where ss_quantity       between 26     and 30

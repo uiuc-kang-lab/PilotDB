@@ -1,0 +1,1 @@
+select count (ss_list_price)     from store_sales where ss_coupon_amt     between 7000   and 8000
