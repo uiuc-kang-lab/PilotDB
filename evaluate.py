@@ -5,16 +5,20 @@ import yaml
 
 warnings.simplefilter(action="ignore", category=UserWarning)
 
-from pilotdb.execute import execute_aqp, execute_exact
-from pilotdb.execute_oracle import execute_oracle_aqp
-from pilotdb.execute_uniform import execute_uniform
-from pilotdb.execute_uniform_ss import execute_uniform_ss
-from pilotdb.execute_wrong_block import execute_block_wrong
-from pilotdb.execute_sample import execute_sample
+from pilotdb.execute import (
+    execute_aqp,
+    execute_exact,
+    execute_oracle_aqp,
+    execute_uniform,
+    execute_block_wrong,
+    execute_sample,
+)
 from pilotdb.query import Query
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Run pilotdb on a benchmark query")
+    parser = argparse.ArgumentParser(
+        description="Evaluate PilotDB on a benchmark query"
+    )
     parser.add_argument("--benchmark", type=str, default="tpch", help="benchmark name")
     parser.add_argument("--qid", type=str, default="1", help="query id")
     parser.add_argument(
@@ -30,7 +34,13 @@ if __name__ == "__main__":
     parser.add_argument("--process_mode", type=str, default="aqp", help="query mode")
     parser.add_argument("--error", type=float, default=0.05, help="error rate")
     parser.add_argument(
-        "--failure_probability", type=float, default=0.05, help="failure probability"
+        "--failure_probability", type=float, default=0.05, help="confidence"
+    )
+    parser.add_argument(
+        "--sample_rate",
+        type=float,
+        default=0.05,
+        help="sample rate of the largest table (valid only in 'sample' process mode)",
     )
 
     args = parser.parse_args()
@@ -57,17 +67,13 @@ if __name__ == "__main__":
 
     if args.process_mode == "aqp":
         execute_aqp(query, db_config, args.pilot_sample_rate)
+    elif args.process_mode == "aqp-oracle":
+        execute_oracle_aqp(query, db_config)
+    elif args.process_mode == "aqp-uniform":
+        execute_uniform(query, db_config)
+    elif args.process_mode == "aqp-nobsap":
+        execute_block_wrong(query, db_config, args.pilot_sample_rate)
     elif args.process_mode == "exact":
         execute_exact(query, db_config)
-    elif args.process_mode == "oracle":
-        execute_oracle_aqp(query, db_config)
-    elif args.process_mode == "uniform":
-        execute_uniform(query, db_config)
     elif args.process_mode == "sample":
-        with open("./tests/sample_rate.json", "r") as f:
-            meta = json.load(f)
-        sample_rate_list = meta[db_config["dbms"]][args.benchmark][f"query_{args.qid}"]
-        for sample_rate in sample_rate_list:
-            execute_sample(query, sample_rate, db_config)
-    elif args.process_mode == "block-wrong":
-        execute_block_wrong(query, db_config, pilot_sample_rate=0.01)
+        execute_sample(query, args.sample_rate, db_config)

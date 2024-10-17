@@ -65,7 +65,7 @@ order by
 """
 results_mapping = [
     {"aggregate": "sum", "mean": "avg_1", "std": "std_1", "size": "sample_size"},
-    {"aggregate": "sum", "mean": "avg_2", "std": "std_2", "size": "sample_size"}
+    {"aggregate": "sum", "mean": "avg_2", "std": "std_2", "size": "sample_size"},
 ]
 
 subquery_dict = []

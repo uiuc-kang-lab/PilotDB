@@ -12,7 +12,7 @@ WHERE
     AND RAND(CHECKSUM(NEWID())) < {sampling_method};
 """
 
-sampling_query = '''
+sampling_query = """
 SELECT SUM(CAST(lo_extendedprice AS BIGINT) * CAST(lo_discount AS BIGINT)) / {sample_rate} AS REVENUE
 FROM lineorder, dates
 WHERE
@@ -21,7 +21,7 @@ WHERE
     AND lo_discount BETWEEN 1 AND 3
     AND lo_quantity < 25
     AND RAND(CHECKSUM(NEWID())) < {sampling_method};
-'''
+"""
 results_mapping = [
     {"aggregate": "sum", "mean": "avg_1", "std": "std_1", "size": "sample_size"},
 ]

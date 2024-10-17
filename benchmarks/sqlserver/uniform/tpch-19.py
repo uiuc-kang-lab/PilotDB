@@ -1,4 +1,4 @@
-pilot_query = '''
+pilot_query = """
 select
     avg(l_extendedprice* (1 - l_discount)) as avg_1,
     stddev(l_extendedprice* (1 - l_discount)) as std_1,
@@ -36,9 +36,9 @@ where
         and l_shipmode in ('AIR', 'AIR REG')
         and l_shipinstruct = 'DELIVER IN PERSON'
     );
-'''
+"""
 
-sampling_query ='''
+sampling_query = """
 SELECT SUM(l_extendedprice * (1 - l_discount)) / { sample_rate } AS revenue
 FROM lineitem,
   part
@@ -73,7 +73,7 @@ WHERE ((
     AND l_shipinstruct = 'DELIVER IN PERSON'
   )) 
   AND { sampling_method }
-'''
+"""
 results_mapping = [
     {"aggregate": "sum", "mean": "avg_1", "std": "std_1", "size": "sample_size"}
 ]

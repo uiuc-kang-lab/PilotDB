@@ -1,4 +1,4 @@
-pilot_query = '''
+pilot_query = """
 select
     o_year,
     avg(case
@@ -43,10 +43,15 @@ group by
     o_year
 order by
     o_year;
-'''
+"""
 
 results_mapping = [
-    {"aggregate": "div", "first_element": "avg_1", "second_element": "avg_2", "size": "sample_size"}
+    {
+        "aggregate": "div",
+        "first_element": "avg_1",
+        "second_element": "avg_2",
+        "size": "sample_size",
+    }
 ]
 
 subquery_dict = []

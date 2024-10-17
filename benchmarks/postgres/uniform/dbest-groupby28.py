@@ -1,4 +1,3 @@
-
 pilot_query = """
 SELECT 
     AVG(ss_sales_price) avg_1,

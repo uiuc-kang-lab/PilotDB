@@ -41,7 +41,7 @@ running_results = {
     "mode": args.mode,
     "sample_rate": args.sample_rate,
     "avg": result,
-    "time": end - start
+    "time": end - start,
 }
 
 with open("results-dsb.jsonl", "a+") as f:

@@ -183,7 +183,7 @@ SELECT AVG(CAST(ResolutionWidth AS BIGINT)) AS avg_1,
 FROM hits {sampling_method};
 """
 
-sampling_query = '''
+sampling_query = """
 SELECT SUM(CAST(ResolutionWidth AS BIGINT)) / {sample_rate},
   SUM(CAST(ResolutionWidth AS BIGINT) + 1) / {sample_rate},
   SUM(CAST(ResolutionWidth AS BIGINT) + 2) / {sample_rate},
@@ -276,7 +276,7 @@ SELECT SUM(CAST(ResolutionWidth AS BIGINT)) / {sample_rate},
   SUM(CAST(ResolutionWidth AS BIGINT) + 89) / {sample_rate}
 FROM hits 
 WHERE {sampling_method};
-'''
+"""
 results_mapping = [
     {"aggregate": "sum", "mean": "avg_1", "std": "std_1", "size": "sample_size"},
     {"aggregate": "sum", "mean": "avg_2", "std": "std_2", "size": "sample_size"},
@@ -367,7 +367,7 @@ results_mapping = [
     {"aggregate": "sum", "mean": "avg_87", "std": "std_87", "size": "sample_size"},
     {"aggregate": "sum", "mean": "avg_88", "std": "std_88", "size": "sample_size"},
     {"aggregate": "sum", "mean": "avg_89", "std": "std_89", "size": "sample_size"},
-    {"aggregate": "sum", "mean": "avg_90", "std": "std_90", "size": "sample_size"}
+    {"aggregate": "sum", "mean": "avg_90", "std": "std_90", "size": "sample_size"},
 ]
 
 subquery_dict = []

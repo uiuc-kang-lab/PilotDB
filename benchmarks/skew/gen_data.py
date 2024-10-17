@@ -25,19 +25,25 @@ import time
 import csv
 from tqdm import tqdm
 
+
 def int_to_date(dates_int: np.ndarray):
     # start date: 1990-01-01
     start_date = np.datetime64("1990-01-01")
     return dates_int + start_date
 
+
 def gen_data_zipf(min_int: int, max_int: int, n_data: int, param: float):
     from scipy.stats import zipfian
+
     n_elements = max_int - min_int + 1
     data = np.array(zipfian.rvs(param, n_elements, size=n_data))
     data += min_int
     return data
 
-def gen_order(scale: int, skew_param: float, save_dir: str, n_parallel: int=1, child: int=1):
+
+def gen_order(
+    scale: int, skew_param: float, save_dir: str, n_parallel: int = 1, child: int = 1
+):
     n_data_per_scale = 1500000
     n_total_dates = 2405
     n_data = scale * n_data_per_scale
@@ -53,7 +59,9 @@ def gen_order(scale: int, skew_param: float, save_dir: str, n_parallel: int=1, c
 
     for part_id in tqdm(range(n_data_gen // part_len + 1)):
         if part_id == n_data_gen // part_len:
-            n_data_part = n_data_gen % part_len if n_data_gen % part_len != 0 else part_len
+            n_data_part = (
+                n_data_gen % part_len if n_data_gen % part_len != 0 else part_len
+            )
         else:
             n_data_part = part_len
         o_orderkey = np.array(list(range(start_idx, start_idx + n_data_part)))
@@ -64,7 +72,10 @@ def gen_order(scale: int, skew_param: float, save_dir: str, n_parallel: int=1, c
             data = list(map(list, zip(o_orderkey, o_orderdate)))
             writer.writerows(data)
 
-def gen_lineitem(scale: int, skew_param: float, save_dir: str, n_parallel: int=1, child: int=1):
+
+def gen_lineitem(
+    scale: int, skew_param: float, save_dir: str, n_parallel: int = 1, child: int = 1
+):
     n_data_per_scale = 6000000
     n_data = n_data_per_scale * scale
     n_data_per_child = n_data // n_parallel
@@ -79,7 +90,9 @@ def gen_lineitem(scale: int, skew_param: float, save_dir: str, n_parallel: int=1
 
     for part_id in tqdm(range(n_data_gen // part_len + 1)):
         if part_id == n_data_gen // part_len:
-            n_data_part = n_data_gen % part_len if n_data_gen % part_len != 0 else part_len
+            n_data_part = (
+                n_data_gen % part_len if n_data_gen % part_len != 0 else part_len
+            )
         else:
             n_data_part = part_len
         l_quantity = gen_data_zipf(1, 50, n_data_part, skew_param)
@@ -89,25 +102,40 @@ def gen_lineitem(scale: int, skew_param: float, save_dir: str, n_parallel: int=1
             data = list(map(list, zip(l_quantity, l_orderkey)))
             writer.writerows(data)
 
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--scale", type=int, default=100, help="scale factor of the data")
-    parser.add_argument("--skew", type=float, default=1.5, help="parameter of the zipfian distribution")
-    parser.add_argument("--save_dir", type=str, default="/mydata/skew", help="where to save data")
+    parser.add_argument(
+        "--scale", type=int, default=100, help="scale factor of the data"
+    )
+    parser.add_argument(
+        "--skew", type=float, default=1.5, help="parameter of the zipfian distribution"
+    )
+    parser.add_argument(
+        "--save_dir", type=str, default="/mydata/skew", help="where to save data"
+    )
     parser.add_argument("--seed", type=int, default=2333, help="random seed")
-    parser.add_argument("--parallel", type=int, default=1, help="number of parallel generations")
-    parser.add_argument("--child", type=int, default=1, help="the i-th child of generation")
-    parser.add_argument("--table", type=str, default="order", help="specific table to generate")
+    parser.add_argument(
+        "--parallel", type=int, default=1, help="number of parallel generations"
+    )
+    parser.add_argument(
+        "--child", type=int, default=1, help="the i-th child of generation"
+    )
+    parser.add_argument(
+        "--table", type=str, default="order", help="specific table to generate"
+    )
     args = parser.parse_args()
 
     # initialize
     np.random.seed(args.seed)
     if not os.path.exists(args.save_dir):
         os.makedirs(args.save_dir, exist_ok=True)
-    
+
     # start generating
     print("generating synthetic skewed data distribution based on TPC-H")
-    print(f"with scale {args.scale}, zipfian parameter {args.skew}, and seed {args.seed}")
+    print(
+        f"with scale {args.scale}, zipfian parameter {args.skew}, and seed {args.seed}"
+    )
     print(f"saving data to {args.save_dir}")
 
     if args.table == "order":

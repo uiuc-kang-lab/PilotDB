@@ -42,7 +42,12 @@ where
     AND RAND(CHECKSUM(NEWID())) < {sampling_method};
 """
 results_mapping = [
-    {"aggregate": "div", "first_element": "avg_1", "second_element": "sample_size", "size": "sample_size"}
+    {
+        "aggregate": "div",
+        "first_element": "avg_1",
+        "second_element": "sample_size",
+        "size": "sample_size",
+    }
 ]
 
 subquery_dict = []

@@ -1,4 +1,4 @@
-pilot_query = '''
+pilot_query = """
 select
     supp_nation,
     cust_nation,
@@ -41,7 +41,7 @@ order by
     cust_nation,
     l_year;
 
-'''
+"""
 
 results_mapping = [
     {"aggregate": "sum", "mean": "avg_1", "std": "std_1", "size": "sample_size"}

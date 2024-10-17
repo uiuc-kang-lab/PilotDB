@@ -31,7 +31,7 @@ results_mapping = [
     {"aggregate": "avg", "mean": "avg_3", "std": "std_3"},
     {"aggregate": "avg", "mean": "avg_4", "std": "std_4"},
     {"aggregate": "avg", "mean": "avg_5", "std": "std_5"},
-    {"aggregate": "count", "size": "sample_size"}
+    {"aggregate": "count", "size": "sample_size"},
 ]
 
 subquery_dict = []

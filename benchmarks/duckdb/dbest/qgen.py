@@ -11,11 +11,12 @@ import random
 import argparse
 import os
 
-groupby_template = "SELECT {AGG}(ss_sales_price) FROM store_sales WHERE {date_lb} <= ss_sold_date_sk AND ss_sold_date_sk < {date_ub} GROUP BY ss_store_sk" # 30 = 3*10
-join_template_1 = "SELECT {AGG}(ss_wholesale_cost) FROM store_sales, store WHERE ss_store_sk = s_store_sk AND s_number_employees = {n_employee}" # 21 = 3*7
-join_template_2 = "SELECT {AGG}(ss_net_profit) FROM store_sales, store WHERE ss_store_sk = s_store_sk AND s_number_employees = {n_employee}" # 21 = 3*7
+groupby_template = "SELECT {AGG}(ss_sales_price) FROM store_sales WHERE {date_lb} <= ss_sold_date_sk AND ss_sold_date_sk < {date_ub} GROUP BY ss_store_sk"  # 30 = 3*10
+join_template_1 = "SELECT {AGG}(ss_wholesale_cost) FROM store_sales, store WHERE ss_store_sk = s_store_sk AND s_number_employees = {n_employee}"  # 21 = 3*7
+join_template_2 = "SELECT {AGG}(ss_net_profit) FROM store_sales, store WHERE ss_store_sk = s_store_sk AND s_number_employees = {n_employee}"  # 21 = 3*7
 
 aggs = {"COUNT", "SUM", "AVG"}
+
 
 def parse_date_dist():
     date_dist = {}
@@ -30,6 +31,7 @@ def parse_date_dist():
             date_dist[int(date)] = int(count)
     return date_dist
 
+
 def parse_n_employee_dist():
     n_employee_dist = {}
     with open("n_employees_dist.txt", "r") as f:
@@ -43,13 +45,15 @@ def parse_n_employee_dist():
             n_employee_dist[int(n_employee)] = int(count)
     return n_employee_dist
 
+
 def gen_agg_query():
-    queries=  []
+    queries = []
     with open("agg.sql") as f:
         for line in f:
             query = line.strip()
             queries.append(query)
     return queries
+
 
 def gen_groupby_query(date_dist: dict):
     min_date = min(date_dist.keys())
@@ -64,6 +68,7 @@ def gen_groupby_query(date_dist: dict):
             queries.append(query)
     return queries
 
+
 def gen_join_query(n_employee_dist: dict, n_query: int):
     n_employees = list(n_employee_dist.keys())
     n_employees_choices = random.choices(n_employees, k=n_query)
@@ -75,6 +80,7 @@ def gen_join_query(n_employee_dist: dict, n_query: int):
             query = join_template_2.format(AGG=agg1, n_employee=n_employee)
             queries.append(query)
     return queries
+
 
 def main(args):
     os.system("rm -f query_*.sql")
@@ -88,21 +94,19 @@ def main(args):
     for i in range(len(agg_queries)):
         with open(f"query_agg{i+1}.sql", "w") as f:
             f.write(agg_queries[i])
-        
+
     for i in range(len(join_queries)):
         with open(f"query_join{i+1}.sql", "w") as f:
             f.write(join_queries[i])
-    
+
     for i in range(len(groupby_queries)):
         with open(f"query_groupby{i+1}.sql", "w") as f:
             f.write(groupby_queries[i])
 
-    
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--n_query", type=int, default=7)
     parser.add_argument("--seed", type=int, default=2333)
     args = parser.parse_args()
     main(args)
-
-

@@ -1,4 +1,4 @@
-pilot_query = '''
+pilot_query = """
 WITH RandomSample AS (
     SELECT n1.n_name AS supp_nation,
            n2.n_name AS cust_nation,
@@ -36,9 +36,9 @@ GROUP BY supp_nation,
 ORDER BY supp_nation,
          cust_nation,
          l_year;
-'''
+"""
 
-sampling_query ='''
+sampling_query = """
 SELECT supp_nation,
   cust_nation,
   l_year,
@@ -78,7 +78,7 @@ GROUP BY supp_nation,
 ORDER BY supp_nation,
   cust_nation,
   l_year
-'''
+"""
 results_mapping = [
     {"aggregate": "sum", "mean": "avg_1", "std": "std_1", "size": "sample_size"}
 ]

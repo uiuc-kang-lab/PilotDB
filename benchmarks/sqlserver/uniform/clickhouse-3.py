@@ -26,7 +26,7 @@ where RAND(CHECKSUM(NEWID())) < {sampling_method};
 results_mapping = [
     {"aggregate": "sum", "mean": "avg_1", "std": "std_1", "size": "sample_size"},
     {"aggregate": "count", "size": "sample_size"},
-    {"aggregate": "avg", "mean": "avg_2", "std": "std_2"}
+    {"aggregate": "avg", "mean": "avg_2", "std": "std_2"},
 ]
 
 subquery_dict = []

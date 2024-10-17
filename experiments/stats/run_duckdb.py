@@ -2,7 +2,7 @@ import duckdb
 import pandas as pd
 import json
 
-con = duckdb.connect(database='/mydata/tpch_1t.duckdb', read_only=False)
+con = duckdb.connect(database="/mydata/tpch_1t.duckdb", read_only=False)
 
 exact_query = """
 SELECT AVG( l_extendedprice ) as avg, STDDEV(l_extendedprice) as std, count(*) as cnt

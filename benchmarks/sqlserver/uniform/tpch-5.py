@@ -1,4 +1,4 @@
-pilot_query = '''
+pilot_query = """
 select
     n_name,
     avg(l_extendedprice * (1 - l_discount)) as avg_1,
@@ -24,7 +24,7 @@ where
     AND RAND(CHECKSUM(NEWID())) < {sampling_method}
 group by
     n_name;
-'''
+"""
 
 sampling_query = """
 SELECT n_name,

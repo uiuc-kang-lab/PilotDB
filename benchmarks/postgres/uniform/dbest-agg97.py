@@ -1,4 +1,3 @@
-
 pilot_query = """
 select avg (ws_quantity) avg_1, stddev (ws_quantity) std_1, count(*) sample_size         from web_sales {sampling_method} where ws_sales_price      between 150.00 and 200.00
 """

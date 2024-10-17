@@ -1,4 +1,4 @@
-pilot_query = '''
+pilot_query = """
 select
     nation,
     o_year,
@@ -33,7 +33,7 @@ group by
 order by
     nation,
     o_year desc;
-'''
+"""
 
 # sampling_query = '''
 # SELECT nation,
@@ -64,7 +64,7 @@ order by
 #   o_year DESC
 # '''
 
-sampling_query = '''
+sampling_query = """
 SELECT n_name AS nation,
   YEAR(o_orderdate) AS o_year,
   SUM(l_extendedprice * (1 - l_discount) - ps_supplycost * l_quantity) / {sample_rate} AS sum_profit
@@ -86,7 +86,7 @@ GROUP BY n_name,
   YEAR(o_orderdate)
 ORDER BY n_name,
   YEAR(o_orderdate) DESC
-'''
+"""
 
 results_mapping = [
     {"aggregate": "sum", "mean": "avg_1", "std": "std_1", "size": "sample_size"}

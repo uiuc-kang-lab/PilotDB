@@ -627,7 +627,6 @@ class Pilot_Rewriter:
         expression.set("having", None)
         return expression
 
-
     def remove_cte(self, expression):
         remove_cte = True
         for table in expression.args["from"].find_all(exp.Table):

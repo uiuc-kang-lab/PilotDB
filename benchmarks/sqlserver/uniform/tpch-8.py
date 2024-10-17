@@ -1,4 +1,4 @@
-pilot_query = '''
+pilot_query = """
 WITH RandomSample AS (
     SELECT EXTRACT(YEAR FROM o_orderdate) AS o_year,
            l_extendedprice * (1 - l_discount) AS volume,
@@ -33,9 +33,9 @@ FROM RandomSample
 WHERE rand_value < {sampling_method}
 GROUP BY o_year
 ORDER BY o_year;
-'''
+"""
 
-sampling_query ='''
+sampling_query = """
 SELECT o_year,
   SUM(
     CASE
@@ -69,9 +69,14 @@ FROM (
   ) AS all_nations
 GROUP BY o_year
 ORDER BY o_year;
-'''
+"""
 results_mapping = [
-    {"aggregate": "div", "first_element": "avg_1", "second_element": "avg_2", "size": "sample_size"}
+    {
+        "aggregate": "div",
+        "first_element": "avg_1",
+        "second_element": "avg_2",
+        "size": "sample_size",
+    }
 ]
 
 subquery_dict = []

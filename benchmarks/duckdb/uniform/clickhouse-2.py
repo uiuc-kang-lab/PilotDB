@@ -4,8 +4,6 @@ FROM hits {sampling_method}
 WHERE AdvEngineID <> 0;
 """
 
-results_mapping = [
-    {"aggregate": "count", "size": "sample_size"}
-]
+results_mapping = [{"aggregate": "count", "size": "sample_size"}]
 
 subquery_dict = []

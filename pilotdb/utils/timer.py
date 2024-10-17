@@ -11,15 +11,17 @@ class Timer:
     def start(self) -> float:
         self.start_time = time.time()
         return self.start_time
-    
+
     def check(self, event: str) -> float:
         if len(self.events) == 0:
             self.events.append((event, time.time() - self.start_time))
         else:
             past_events_time = sum([e[1] for e in self.events])
-            self.events.append((event, time.time() - self.start_time - past_events_time))
+            self.events.append(
+                (event, time.time() - self.start_time - past_events_time)
+            )
         return self.events[-1][1]
-    
+
     def stop(self):
         self.stop_time = time.time()
         self.events.append(("runtime", self.stop_time - self.start_time))

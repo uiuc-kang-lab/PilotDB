@@ -1,4 +1,4 @@
-pilot_query = '''
+pilot_query = """
 select
     n_name,
     avg(l_extendedprice * (1 - l_discount)) as avg_1,
@@ -23,7 +23,7 @@ where
     and o_orderdate < date '1994-01-01' + interval '1' year
 group by
     n_name;
-'''
+"""
 
 results_mapping = [
     {"aggregate": "sum", "mean": "avg_1", "std": "std_1", "size": "sample_size"}

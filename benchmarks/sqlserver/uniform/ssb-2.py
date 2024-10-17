@@ -12,7 +12,7 @@ WHERE
     AND {sampling_method};
 """
 
-sampling_query = '''
+sampling_query = """
 SELECT SUM(CAST(lo_extendedprice AS BIGINT) * CAST(lo_discount AS BIGINT)) / {sample_rate} AS REVENUE
 FROM lineorder, dates
 WHERE
@@ -21,7 +21,7 @@ WHERE
     AND lo_discount BETWEEN 4 AND 6
     AND lo_quantity BETWEEN 26 AND 35
     AND {sampling_method};
-'''
+"""
 results_mapping = [
     {"aggregate": "sum", "mean": "avg_1", "std": "std_1", "size": "sample_size"},
 ]

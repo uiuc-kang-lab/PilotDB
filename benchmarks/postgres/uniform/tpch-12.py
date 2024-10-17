@@ -1,4 +1,4 @@
-pilot_query = '''
+pilot_query = """
 select
     l_shipmode,
     avg(case
@@ -40,11 +40,11 @@ group by
     l_shipmode
 order by
     l_shipmode;
-'''
+"""
 
 results_mapping = [
     {"aggregate": "sum", "mean": "avg_1", "std": "std_1", "size": "sample_size"},
-    {"aggregate": "sum", "mean": "avg_2", "std": "std_2", "size": "sample_size"}
+    {"aggregate": "sum", "mean": "avg_2", "std": "std_2", "size": "sample_size"},
 ]
 
 subquery_dict = []

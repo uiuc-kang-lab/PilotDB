@@ -5,15 +5,13 @@ WHERE AdvEngineID <> 0
 AND RAND(CHECKSUM(NEWID())) < {sampling_method};
 """
 
-sampling_query = '''
+sampling_query = """
 SELECT COUNT_BIG(*) / {sample_rate}
 FROM hits
 WHERE AdvEngineID <> 0
 AND RAND(CHECKSUM(NEWID())) <  {sampling_method};
-'''
+"""
 
-results_mapping = [
-    {"aggregate": "count", "size": "sample_size"}
-]
+results_mapping = [{"aggregate": "count", "size": "sample_size"}]
 
 subquery_dict = []

@@ -15,8 +15,6 @@ SELECT AVG(CAST(UserID AS DECIMAL(38, 0)))
 FROM hits
 WHERE RAND(CHECKSUM(NEWID())) < {sampling_method};
 """
-results_mapping = [
-    {"aggregate": "avg", "mean": "avg_1", "std": "std_1"}
-]
+results_mapping = [{"aggregate": "avg", "mean": "avg_1", "std": "std_1"}]
 
 subquery_dict = []
