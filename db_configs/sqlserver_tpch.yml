@@ -1,5 +1,0 @@
-dbms: sqlserver
-dbname: tpch1t
-username: sa
-host: localhost
-password: password

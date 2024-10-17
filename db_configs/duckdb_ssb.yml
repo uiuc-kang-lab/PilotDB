@@ -1,3 +1,0 @@
-dbms: duckdb
-path: /mydata/duckdb/ssb-1000.duckdb
-flush_memory: True

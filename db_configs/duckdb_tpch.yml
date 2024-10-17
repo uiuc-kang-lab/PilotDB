@@ -1,3 +1,0 @@
-dbms: duckdb
-path: /mydata/tpch_1t.duckdb
-flush_memory: False
