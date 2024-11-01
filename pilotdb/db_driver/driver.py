@@ -52,7 +52,7 @@ def execute_query(conn, query: str, dbms: str) -> pd.DataFrame:
 
 def get_sampling_clause(rate: float, dbms: str) -> str | None:
     if dbms == "duckdb":
-        return f"TABLESAMPLE CHUNK({rate}%)"
+        return f"TABLESAMPLE SYSTEM({rate}%)"
     elif dbms == "postgres":
         return f"TABLESAMPLE SYSTEM ({rate})"
     elif dbms == "sqlserver":
