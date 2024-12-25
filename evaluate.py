@@ -42,6 +42,14 @@ if __name__ == "__main__":
         default=0.05,
         help="sample rate of the largest table (valid only in 'sample' process mode)",
     )
+    parser.add_argument(
+        "--delta_1",
+        type=float
+    )
+    parser.add_argument(
+        "--delta_2",
+        type=float
+    )
 
     args = parser.parse_args()
 
@@ -66,7 +74,7 @@ if __name__ == "__main__":
         db_config = yaml.safe_load(f)
 
     if args.process_mode == "aqp":
-        execute_aqp(query, db_config, args.pilot_sample_rate)
+        execute_aqp(query, db_config, args.pilot_sample_rate, args.delta_1, args.delta_2)
     elif args.process_mode == "aqp-oracle":
         execute_oracle_aqp(query, db_config)
     elif args.process_mode == "aqp-uniform":

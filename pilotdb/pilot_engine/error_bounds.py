@@ -135,6 +135,8 @@ def estimate_final_rate(
     group_cols: List[str],
     pilot_rate: float = 0.0001,
     limit: int | None = None,
+    delta_1: float=0.02,
+    delta_2: float=0.02
 ):
     page_stats_cols = [col for col in page_errors.keys() if col != "n_page"]
     n_page_stats = len(page_stats_cols)
@@ -158,7 +160,7 @@ def estimate_final_rate(
     n_est = n_groups * (n_page_stats * 3 + page_size_stats * 2 + 1)
     candidate_sample_rate = []
     try:
-        fp = 1 - math.pow(1 - failure_prob, 1 / n_est)
+        fp = failure_prob - delta_1 - delta_2
         for col, error in page_errors.items():
             if len(group_cols) > 0:
                 for group_i in range(n_groups):
@@ -183,7 +185,7 @@ def estimate_final_rate(
                 if col == "n_page":
                     sample_size = df[page_stats_cols[0]].iloc[2]
                     final_sample_rate = get_bernoulli_N_sample_rate(
-                        error, fp, fp, pilot_rate, sample_size
+                        error, fp/3, fp/3, pilot_rate, sample_size
                     )
                     candidate_sample_rate.append(final_sample_rate)
                 else:
@@ -191,10 +193,10 @@ def estimate_final_rate(
                     sample_std = df[col].iloc[1]
                     sample_size = df[col].iloc[2]
                     final_sample_size = get_mean_sample_size(
-                        error, fp, fp, fp, sample_mean, sample_std, sample_size
+                        error, fp/3, delta_2, delta_1, sample_mean, sample_std, sample_size
                     )
                     final_sample_rate = get_sample_rate(
-                        fp, final_sample_size, pilot_rate, sample_size
+                        fp/3, final_sample_size, pilot_rate, sample_size
                     )
                     candidate_sample_rate.append(final_sample_rate)
 

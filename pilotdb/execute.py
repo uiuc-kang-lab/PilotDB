@@ -31,7 +31,7 @@ from pilotdb.utils.utils import dump_results, get_largest_sample_rate, setup_log
 warnings.simplefilter(action="ignore", category=UserWarning)
 
 
-def execute_aqp(query: Query, db_config: dict, pilot_sample_rate: float = 0.05):
+def execute_aqp(query: Query, db_config: dict, pilot_sample_rate: float = 0.05, delta_1: float=0.02, delta_2: float=0.02):
     # prepare the query and db
     dbms = db_config["dbms"]
     conn = connect_to_db(dbms, db_config)
@@ -87,6 +87,8 @@ def execute_aqp(query: Query, db_config: dict, pilot_sample_rate: float = 0.05):
             group_cols=pq.group_cols,
             pilot_rate=pilot_sample_rate / 100,
             limit=pq.limit_value,
+            delta_1=delta_1,
+            delta_2=delta_2
         )
         logging.info(
             f"sample rate solving time: {timer.check('sampling_rate_solving')}"
