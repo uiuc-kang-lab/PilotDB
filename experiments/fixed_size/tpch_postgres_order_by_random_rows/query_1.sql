@@ -16,6 +16,7 @@ from (
         l_quantity, 
         l_extendedprice, 
         l_discount, 
+        l_shipdate,
         l_tax
     FROM
         lineitem

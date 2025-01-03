@@ -16,9 +16,9 @@ def run(queries: List[str], config: dict):
 
 
 def run_order_by_random_rows(query_id: str, config: dict):
-    with open(f"tpch_postgres_order_by_random_rows/query_{query_id}.sql") as f:
+    with open(f"experiments/fixed_size/tpch_postgres_order_by_random_rows/query_{query_id}.sql") as f:
         query_template = f.read()
-    with open("tpch_postgres_order_by_random_rows/meta.json") as f:
+    with open("experiments/fixed_size/tpch_postgres_order_by_random_rows/meta.json") as f:
         meta = json.load(f)
     table_size = meta["table_sizes"][query_id]
     sample_rate = meta["sample_rates"][query_id]
@@ -30,9 +30,9 @@ def run_order_by_random_rows(query_id: str, config: dict):
     run(queries, config)
 
 def run_tsm_system_rows(query_id: str, config: dict):
-    with open(f"tpch_postgres_tsm_system_rows/query_{query_id}.sql") as f:
+    with open(f"experiments/fixed_size/tpch_postgres_tsm_system_rows/query_{query_id}.sql") as f:
         query_template = f.read()
-    with open("tpch_postgres_tsm_system_rows/meta.json") as f:
+    with open("experiments/fixed_size/tpch_postgres_tsm_system_rows/meta.json") as f:
         meta = json.load(f)
     table_size = meta["table_sizes"][query_id]
     sample_rate = meta["sample_rates"][query_id]
@@ -45,7 +45,7 @@ def run_tsm_system_rows(query_id: str, config: dict):
     run(queries, config)
     
 def run_exact(query_id: str, config: dict):
-    with open(f"tpch_postgres/query_{query_id}.sql") as f:
+    with open(f"experiments/fixed_size/tpch_postgres/query_{query_id}.sql") as f:
         query = f.read()
     queries = [query]
     run(queries, config)
@@ -53,8 +53,8 @@ def run_exact(query_id: str, config: dict):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--qid", type=str, default="1")
-    parser.add_argument("--process_mode", type="str", default="exact")
-    parser.add_argument("--db_config_file", type="str", default="db_configs/postgres_tpch.yml")
+    parser.add_argument("--process_mode", type=str, default="exact")
+    parser.add_argument("--db_config_file", type=str, default="db_configs/postgres_tpch.yml")
     args = parser.parse_args()
     
     with open(args.db_config_file) as f:
@@ -69,3 +69,12 @@ if __name__ == "__main__":
         run_exact(args.qid, config)
     else:
         raise ValueError(f"{args.process_mode} is not in [order_by_random_rows, tsm_system_rows, exact]")
+    end = time.time()
+    cost = end - start
+    with open("all_results.jsonl", "a+") as f:
+        result = {
+            "qid": args.qid,
+            "process_mode": args.process_mode,
+            "cost": cost
+        }
+        
