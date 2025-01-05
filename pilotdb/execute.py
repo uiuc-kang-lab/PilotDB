@@ -108,6 +108,7 @@ def execute_aqp(query: Query, db_config: dict, pilot_sample_rate: float = 0.05, 
             sampling_query = sampling_query.replace(subquery_name, subquery_result)
         logging.info(f"sampling query:\n{sampling_query}")
         results_df = execute_query(conn, sampling_query, dbms)
+        # results_df = pd.DataFrame()
         logging.info(
             f"sampling execution time: {timer.check('sampling_query_execution')}"
         )
@@ -122,6 +123,7 @@ def execute_aqp(query: Query, db_config: dict, pilot_sample_rate: float = 0.05, 
             sampling_query = sampling_query.replace(subquery_name, subquery_result)
         logging.info(f"sampling query:\n{sampling_query}")
         results_df = execute_query(conn, sampling_query, dbms)
+        # results_df = pd.DataFrame()
         logging.info(
             f"sampling execution time: {timer.check('sampling_query_execution')}"
         )
@@ -137,6 +139,7 @@ def execute_aqp(query: Query, db_config: dict, pilot_sample_rate: float = 0.05, 
         for subquery_name, subquery_result in subquery_results.items():
             sampling_query = sampling_query.replace(subquery_name, subquery_result)
         results_df = execute_query(conn, sampling_query, dbms)
+        # results_df = pd.DataFrame()
         logging.info(
             f"sampling execution time: {timer.check('sampling_query_execution')}"
         )
@@ -155,6 +158,8 @@ def execute_aqp(query: Query, db_config: dict, pilot_sample_rate: float = 0.05, 
             "query": query.name,
             "dbms": dbms,
             "pilot_sample_rate": pilot_sample_rate,
+            "delta_1": delta_1,
+            "delta_2": delta_2,
             "final_sample_rate": final_sample_rate,
             "runtime": timer.get_records(),
             "error": query.error,

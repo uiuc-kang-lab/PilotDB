@@ -185,7 +185,7 @@ def estimate_final_rate(
                 if col == "n_page":
                     sample_size = df[page_stats_cols[0]].iloc[2]
                     final_sample_rate = get_bernoulli_N_sample_rate(
-                        error, fp/3, fp/3, pilot_rate, sample_size
+                        error, delta_2/3, delta_2/3, pilot_rate, sample_size
                     )
                     candidate_sample_rate.append(final_sample_rate)
                 else:
@@ -193,10 +193,10 @@ def estimate_final_rate(
                     sample_std = df[col].iloc[1]
                     sample_size = df[col].iloc[2]
                     final_sample_size = get_mean_sample_size(
-                        error, fp/3, delta_2, delta_1, sample_mean, sample_std, sample_size
+                        error, fp, delta_2/3, delta_1, sample_mean, sample_std, sample_size
                     )
                     final_sample_rate = get_sample_rate(
-                        fp/3, final_sample_size, pilot_rate, sample_size
+                        delta_2/3, final_sample_size, pilot_rate, sample_size
                     )
                     candidate_sample_rate.append(final_sample_rate)
 
