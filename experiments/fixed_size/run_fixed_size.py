@@ -10,8 +10,11 @@ def run(queries: List[str], config: dict):
     with conn.cursor() as cursor:
         for query in queries:
             cursor.execute(query)
-            result = cursor.fetchall()
-            print(result)
+            try:
+                result = cursor.fetchall()
+                print(result)
+            except:
+                print("no result to fetch; continue")
     close_connection(conn, "postgres")
 
 
@@ -77,4 +80,5 @@ if __name__ == "__main__":
             "process_mode": args.process_mode,
             "cost": cost
         }
+        f.write(json.dumps(result) + "\n")
         
