@@ -8,7 +8,8 @@ from
         SELECT 
             l_extendedprice,
             l_discount,
-            l_orderkey
+            l_orderkey,
+            l_suppkey
         FROM
             lineitem
         ORDER BY RANDOM()
