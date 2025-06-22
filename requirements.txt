@@ -1,9 +1,0 @@
-scipy
-numpy
-pandas
-psycopg2
-duckdb
-sqlglot
-pyyaml
-gdown
-pyodbc

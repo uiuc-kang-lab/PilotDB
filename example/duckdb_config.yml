@@ -1,0 +1,2 @@
+database: duckdb
+path: /mydata/tpch-sf1000.db

@@ -1,4 +1,0 @@
-binary_path: ./duckdb
-dbname: /mydata/tpch_1t.duckdb
-user: b-aqp
-password: xiaoJiangNB

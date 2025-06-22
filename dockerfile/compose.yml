@@ -1,0 +1,51 @@
+services:
+  postgres:
+    container_name: postgres
+    image: postgres:16
+    restart: always
+    hostname: postgres
+    environment:
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-PilotDB123}
+      POSTGRES_USER: ${POSTGRES_USER:-pilotdb}
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data 
+ 
+  sqlserver:
+    container_name: sqlserver
+    image: mcr.microsoft.com/mssql/server:2025-latest
+    restart: always
+    environment:
+      ACCEPT_EULA: Y
+      MSSQL_SA_PASSWORD: ${SQLSERVER_PASSWORD:-PilotDB123}
+    ports:
+      - "1433:1433"
+
+  pilotdb:
+    container_name: pilotdb
+    build:
+      context: .
+      dockerfile: Dockerfile
+      additional_contexts: 
+        pilotdb: ../../PilotDB
+    restart: always
+    environment:
+      POSTGRES_HOST: postgres
+      SQLSERVER_HOST: sqlserver
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-PilotDB123}
+      SQLSERVER_PASSWORD: ${SQLSERVER_PASSWORD:-PilotDB123}
+      POSTGRES_PORT: 5432
+      SQLSERVER_PORT: 1433
+    ports:
+      - "8080:8080"
+    depends_on:
+      - postgres
+      - sqlserver
+    volumes:
+      - type: bind
+        source: $DUCKDB_DATA
+        target: /mydata
+ 
+volumes:
+  pgdata:
