@@ -1,6 +1,6 @@
 # PilotDB: Database-Agnostic Online Approximate Query Processing with A Priori Error Guarantees
 
-This repository contains the code for PilotDB, an online middleware approximate 
+This repository contains the code for [PilotDB](https://dl.acm.org/doi/10.1145/3725335), an online middleware approximate 
 query processing system that
 1. provides *user-specified* error guarantees (i.e., a priori error guarantees)
 2. requires no offline maintenance
