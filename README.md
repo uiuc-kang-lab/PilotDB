@@ -9,11 +9,11 @@ query processing system that
 
 To achieve these features, we develop the following features in PilotDB:
 1. **TAQA**: the two-stage query approximation middleware
-    <p float="middle">
+    <p align="center">
         <img src="./.assets/taqa.jpg" width="600"/>
     </p>
 3. **BSAP**: efficient block sampling for approximate queries with statistical guarantees
-    <p float="middle">
+    <p align="center">
         <img src="./.assets/bsap.jpg" width="300"/>
     </p>
 
@@ -71,7 +71,7 @@ We use an example to show the power of PilotDB. To run this example, you will ne
     ```
 3. Run queries and compare latency
     ```bash
-    python pilotdb_client.py --mode exact --query_file example/tpch-6.sql --db_config_file example/duckdb_config.yml --error 0.05 --probability 0.05
+    python pilotdb_client.py --mode aqp --query_file example/tpch-6.sql --db_config_file example/duckdb_config.yml --error 0.05 --probability 0.05
     python pilotdb_client.py --mode exact --query_file example/tpch-6.sql --db_config_file example/duckdb_config.yml --error 0.05 --probability 0.05
     ```
 
