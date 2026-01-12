@@ -134,7 +134,7 @@ You need to set up the underlying database manage system with data loaded.
 2. Generate data for benchmarks
 
     - [TPC-H](https://www.tpc.org/tpc_documents_current_versions/current_specifications5.asp): 
-    The official TPC-H toolkit.
+    The official TPC-H toolkit. (Since it can be time-consuming to generate large workload using the official toolkit, faster generation methods (e.g., [tpchgen-rs](https://github.com/clflushopt/tpchgen-rs) can be used to accelerate data generation.
 
     - [SSB](https://github.com/electrum/ssb-dbgen): We use the community version of
     the data generation script since the original SSB dataset is not open-sourced.
