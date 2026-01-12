@@ -65,6 +65,8 @@ if __name__ == "__main__":
     with open(args.db_config_file, "r") as f:
         db_config = yaml.safe_load(f)
 
+    db_config["dbms"] = args.dbms
+
     if args.process_mode == "aqp":
         execute_aqp(query, db_config, args.pilot_sample_rate)
     elif args.process_mode == "aqp-oracle":
