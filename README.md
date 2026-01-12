@@ -28,7 +28,7 @@ To achieve these features, we develop the following features in PilotDB:
 
 You will need to have the [docker engine](https://docs.docker.com/engine/install/) installed in your machine.
 
-1. `cp dockerfile .env.example .env` and set your own environment variables.
+1. `cp dockerfile/.env.example .env` and set your own environment variables.
 2. Build images and start containers:
     ```bash
     cd dockerfile
